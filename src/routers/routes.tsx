@@ -46,6 +46,14 @@ export const router = createBrowserRouter([
             path: "users",
             element: <MainPage activeTab="users" />,
           },
+          {
+            path: "partners",
+            element: <MainPage activeTab="partners" />,
+          },
+          {
+            path: "management",
+            element: <MainPage activeTab="management" />,
+          },
         ],
       },
       {
