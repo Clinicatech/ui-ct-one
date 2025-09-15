@@ -7,6 +7,9 @@ yarn.lock
 package-lock.json
 bun.lockb
 
+dist/*
+node_modules/*
+
 # Logs
 logs
 *.log
