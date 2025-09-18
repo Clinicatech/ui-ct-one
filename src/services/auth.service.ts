@@ -80,7 +80,7 @@ export class AuthService {
   // Verificar se está autenticado
   static isAuthenticated(): boolean {
     const token = TOKEN_STORAGE.getToken();
-    console.log('isAuthenticated', token);
+    //console.log('isAuthenticated', token);
     if (!token) return false;
 
     // Verificar se o token não está expirado

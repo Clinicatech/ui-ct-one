@@ -15,8 +15,8 @@ export interface Entity {
   cnpj: string;
   urlSite?: string;
   urlLogo?: string;
-  createAt?: string;
-  updateAt?: string;
+  //createAt?: string;
+ // updateAt?: string;
 
   // Arrays da API (para exibição)
   enderecos: EnderecoApi[];
@@ -67,8 +67,8 @@ export interface EntityTableRow {
   cnpj: string;
   urlSite: string;
   urlLogo: string;
-  createAt: string;
-  updateAt: string;
+  //createAt: string;
+  //updateAt: string;
 }
 
 export interface EntitySearchParams {

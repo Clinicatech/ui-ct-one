@@ -27,10 +27,10 @@ export interface EntidadeApi {
   entidadeId: number;
   entidadeNome: string;
   cnpj: string;
-  urlSite: string | null;
-  urlLogo: string | null;
-  entidadeCreateAt: string;
-  entidadeUpdateAt: string;
+  urlSite?: string | null;
+  urlLogo?: string | null;
+  //entidadeCreateAt?: string;
+ // entidadeUpdateAt?: string;
   enderecos: EnderecoApi[];
   contasBancarias: ContaBancariaApi[];
 }
@@ -63,8 +63,8 @@ export interface EnderecoApi {
   cidadeCodigo?: number | null;
   uf?: string;
   ufCodigo?: number | null;
-  createAt?: string;
-  updateAt?: string;
+ // createAt?: string;
+ // updateAt?: string;
 }
 
 // Interface para conta bancária da API
@@ -79,8 +79,8 @@ export interface ContaBancariaApi {
   cedenteCodigo?: string;
   cedenteNome?: string;
   chavePix?: string;
-  createAt?: string;
-  updateAt?: string;
+//  createAt?: string;
+//  updateAt?: string;
 }
 
 // Interface para requisição de criação
@@ -139,8 +139,8 @@ export interface EntidadeCreateUpdateResponse {
     cnpj: string;
     urlSite: string | null;
     urlLogo: string | null;
-    createAt: string;
-    updateAt: string;
+   // createAt: string;
+   // updateAt: string;
   };
   endereco: EnderecoApi | null;
   entidadeContaBancaria: ContaBancariaApi | null;
@@ -267,19 +267,6 @@ class EntidadeService {
 
   // Converter Entity da API para Entity do frontend (com campos do formulário preenchidos)
   convertToFrontendFormat(entidadeApi: EntidadeApi): Entity {
-    console.log("=== DEBUG convertToFrontendFormat ===");
-    console.log("entidadeApi recebida:", entidadeApi);
-    console.log("entidadeApi.entidadeId:", entidadeApi.entidadeId);
-    console.log("entidadeApi.entidadeNome:", entidadeApi.entidadeNome);
-    console.log(
-      "typeof entidadeApi.entidadeId:",
-      typeof entidadeApi.entidadeId
-    );
-    console.log(
-      "typeof entidadeApi.entidadeNome:",
-      typeof entidadeApi.entidadeNome
-    );
-
     const endereco = entidadeApi.enderecos?.[0];
     const contaBancaria = entidadeApi.contasBancarias?.[0];
 
@@ -290,8 +277,8 @@ class EntidadeService {
       cnpj: entidadeApi.cnpj || "",
       urlSite: entidadeApi.urlSite || undefined,
       urlLogo: entidadeApi.urlLogo || undefined,
-      createAt: entidadeApi.entidadeCreateAt,
-      updateAt: entidadeApi.entidadeUpdateAt,
+    // createAt: entidadeApi.entidadeCreateAt,
+    //  updateAt: entidadeApi.entidadeUpdateAt,
 
       // Arrays da API
       enderecos: entidadeApi.enderecos || [],
@@ -340,11 +327,6 @@ class EntidadeService {
       cedenteNome: contaBancaria?.cedenteNome || "",
       chavePix: contaBancaria?.chavePix || "",
     };
-
-    console.log("=== DEBUG - Resultado da conversão ===");
-    console.log("result:", result);
-    console.log("result.entidadeId:", result.entidadeId);
-    console.log("result.nome:", result.nome);
 
     return result;
   }
@@ -411,8 +393,8 @@ class EntidadeService {
       cnpj: entidade.cnpj,
       urlSite: entidade.urlSite || "",
       urlLogo: entidade.urlLogo || "",
-      createAt: entidade.createAt,
-      updateAt: entidade.updateAt,
+     // createAt: entidade.createAt,
+     // updateAt: entidade.updateAt,
 
       // Arrays da API
       enderecos: endereco ? [endereco] : [],

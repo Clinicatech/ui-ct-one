@@ -413,9 +413,6 @@ export function EntityManagement() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-semibold">Gestão de Entidades</h2>
-          <p className="text-muted-foreground mt-1">
-            Gerencie as entidades do sistema
-          </p>
         </div>
         <Dialog
           open={isCreateDialogOpen}
@@ -439,7 +436,7 @@ export function EntityManagement() {
               Nova Entidade
             </Button>
           </DialogTrigger>
-          <DialogContent className="min-w-[75vw] min-h-[45vw] max-h-[45vw] overflow-y-auto">
+          <DialogContent className="min-w-[65vw] min-h-[35vw] max-h-[35vw] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Nova Entidade</DialogTitle>
               <DialogDescription>
@@ -479,13 +476,9 @@ export function EntityManagement() {
 
       {/* Seção de pesquisa e filtros */}
       <Card>
-        <CardHeader>
-          <CardTitle>Pesquisar Entidades</CardTitle>
-          <CardDescription>Encontre entidades por nome ou CNPJ</CardDescription>
-        </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
-            <div className="flex-1">
+          <div className="flex gap-4 max-h-5">
+            <div className="flex-1 mt-1">
               <div className="relative">
                 <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -544,11 +537,6 @@ export function EntityManagement() {
                 </TableHeader>
                 <TableBody>
                   {filteredEntities.map((entity, index) => {
-                    console.log("=== DEBUG - Renderizando entidade ===");
-                    console.log("entity:", entity);
-                    console.log("entity.entidadeId:", entity.entidadeId);
-                    console.log("entity.nome:", entity.nome);
-
                     return (
                       <TableRow key={entity.entidadeId || `entity-${index}`}>
                         <TableCell>{entity.entidadeId || "SEM ID"}</TableCell>
@@ -769,7 +757,7 @@ export function EntityManagement() {
           }
         }}
       >
-        <DialogContent className="min-w-[95vw] min-h-[45vw] max-h-[45vw] overflow-y-auto">
+        <DialogContent className="min-w-[65vw] min-h-[35vw] max-h-[35vw] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Editar Entidade</DialogTitle>
             <DialogDescription>
