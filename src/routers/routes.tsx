@@ -1,9 +1,9 @@
 import { createBrowserRouter } from "react-router-dom";
 import { LoginForm } from "../pages/LoginForm";
 import { MainPage } from "../pages/Main";
-import { SupplierManagement } from "../pages/SupplierManagement";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AppLayout } from "./AppLayout";
+import { NotExists } from "../pages/notExists";
 
 export const router = createBrowserRouter([
   {
@@ -31,12 +31,12 @@ export const router = createBrowserRouter([
             element: <MainPage activeTab="overview" />,
           },
           {
-            path: "suppliers",
-            element: <MainPage activeTab="suppliers" />,
+            path: "customers",
+            element: <MainPage activeTab="customers" />,
           },
           {
-            path: "products",
-            element: <MainPage activeTab="products" />,
+            path: "business-partners",
+            element: <MainPage activeTab="business-partners" />,
           },
           {
             path: "reports",
@@ -54,18 +54,23 @@ export const router = createBrowserRouter([
             path: "management",
             element: <MainPage activeTab="management" />,
           },
-        ],
-      },
-      {
-        path: "suppliers",
-        element: <ProtectedRoute />,
-        children: [
           {
-            index: true,
-            element: <SupplierManagement />,
+            path: "entity",
+            element: <MainPage activeTab="entity" />,
           },
         ],
       },
+      // {
+      //   path: "customers",
+      //   element: <ProtectedRoute />,
+      //   children: [
+      //     {
+      //       index: true,
+      //       element: <NotExists title="Cadastro de Clientes" />,
+      //     },
+      //   ],
+      // },
+      
     ],
   },
 ]);

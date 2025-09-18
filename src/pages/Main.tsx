@@ -14,17 +14,16 @@ import {
   TabsList,
   TabsTrigger,
 } from "../components/ui/tabs";
-import { SupplierManagement } from "./SupplierManagement";
 import { useAuth } from "../hooks/useAuth";
 import {
   Building2,
-  Package,
   FileText,
   LogOut,
-  BarChart3,
   DollarSign,
   TrendingUp,
 } from "lucide-react";
+import { EntityManagement } from "./entities";
+import { NotExists } from "./notExists";
 
 interface MainPageProps {
   activeTab?: string;
@@ -44,12 +43,12 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
 
     // Determinar tab ativa baseada na URL
     const path = location.pathname;
-    if (path.includes("/suppliers")) {
-      setActiveTab("suppliers");
+    if (path.includes("/customers")) {
+      setActiveTab("customers");
       return;
     }
-    if (path.includes("/products")) {
-      setActiveTab("products");
+    if (path === '/business-partners') {
+      setActiveTab("business-partners");
       return;
     }
     if (path.includes("/reports")) {
@@ -60,14 +59,18 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
       setActiveTab("users");
       return;
     }
-    if (path.includes("/partners")) {
+    if (path === '/partners') {
       setActiveTab("Sócios");
       return;
-    }     
+    }
     if (path.includes("/management")) {
       setActiveTab("Gestão Financeira");
       return;
-    }    
+    }
+    if (path.includes("/entity")) {
+      setActiveTab("Entidades");
+      return;
+    }
     setActiveTab("overview");
   }, [propActiveTab, location.pathname]);
 
@@ -138,12 +141,13 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
             {" "}
             {/* grid-cols-5 - aqui determina o numero de colunas que vai ter no header */}
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
-            <TabsTrigger value="suppliers">Clientes</TabsTrigger>
-            <TabsTrigger value="products">Parceiros</TabsTrigger>
-            <TabsTrigger value="reports">Relatórios</TabsTrigger>
+            <TabsTrigger value="customers">Clientes</TabsTrigger>
+            <TabsTrigger value="business-partners">Parceiros</TabsTrigger>
             <TabsTrigger value="users">Usuários</TabsTrigger>
             <TabsTrigger value="partners">Sócios</TabsTrigger>
+            <TabsTrigger value="entity">Entidades</TabsTrigger>
             <TabsTrigger value="management">Gestão Financeira</TabsTrigger>
+            <TabsTrigger value="reports">Relatórios</TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -187,7 +191,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
                       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
                       <div className="flex-1">
                         <p className="text-sm">
-                          Novo fornecedor cadastrado: EVOLARIS PRODUTOS
+                          Novo Cliente cadastrado: EVOLARIS PRODUTOS
                           FARMACÊUTICOS LTDA
                         </p>
                         <p className="text-xs text-muted-foreground">
@@ -223,105 +227,32 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
             </div>
           </TabsContent>
 
-          <TabsContent value="suppliers">
-            <SupplierManagement />
+          <TabsContent value="customers">
+             <NotExists title="Cadastro de Clientes" />
           </TabsContent>
 
-          <TabsContent value="products" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">
-                Gestão de Produtos
-              </h2>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center py-12">
-                    <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">
-                      Cadastro de Produtos
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Esta funcionalidade será implementada em breve
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+          <TabsContent value="business-partners" className="space-y-6">
+              <NotExists title="Cadastro de Parceiros" />
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">Relatórios</h2>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center py-12">
-                    <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">
-                      Módulo de Relatórios
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Esta funcionalidade será implementada em breve
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+             <NotExists title="Relatórios" />
           </TabsContent>
 
           <TabsContent value="partners" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">Sócios</h2>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center py-12">
-                    <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">
-                      Cadastro de Sócios
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Esta funcionalidade será implementada em breve
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+             <NotExists title="Cadastro de Sócios" />
+          </TabsContent>
+
+          <TabsContent value="entity" className="space-y-6">
+            <EntityManagement />
           </TabsContent>
 
           <TabsContent value="management" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">Gestão Financeira</h2>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center py-12">
-                    <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">
-                      Gestão Financeira
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Esta funcionalidade será implementada em breve
-                    </p> 
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+            <NotExists title="Gestão Financeira" />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
-            <div>
-              <h2 className="text-2xl font-semibold mb-6">Usuários</h2>
-              <Card>
-                <CardContent className="p-6">
-                  <div className="text-center py-12">
-                    <BarChart3 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                    <h3 className="text-lg font-medium mb-2">
-                      Cadastro de Usuários
-                    </h3>
-                    <p className="text-muted-foreground">
-                      Esta funcionalidade será implementada em breve
-                    </p>
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
+              <NotExists title="Cadastro de Usuários" />
           </TabsContent>
         </Tabs>
       </main>
