@@ -725,8 +725,8 @@ export function EntityForm({
                   <div className="flex gap-2 flex-1 max-w-[20%]">
                     <Input
                       id="bancoId"
-                      name="bancoId"
-                      type="number"
+                      name="bancoId"  
+                      placeholder="000"
                       value={bancoIdInput}
                       onChange={(e) => setBancoIdInput(e.target.value)}
                       onBlur={() => buscarBancoPorId(bancoIdInput)}

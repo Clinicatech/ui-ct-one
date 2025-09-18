@@ -67,7 +67,6 @@ import {
   Edit,
   Trash2,
   Building2,
-  MapPin,
   Phone,
   Loader2,
   X,
@@ -75,6 +74,7 @@ import {
   ChevronRight,
   CheckCircle,
   XCircle,
+  User,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -321,10 +321,13 @@ export function EntityManagement() {
       const apiData = entidadeService.convertToApiFormat(formData);
 
       // Criar entidade na API
-      await entidadeService.create(apiData);
+      const newEntityApi = await entidadeService.create(apiData);
 
-      // Recarregar lista completa para garantir dados atualizados
-      await loadEntities();
+      // Converter resposta da API para formato do frontend
+      const newEntity = entidadeService.convertToFrontendFormat(newEntityApi);
+
+      // Adicionar nova entidade à lista local
+      setEntities((prevEntities) => [...prevEntities, newEntity]);
 
       // Limpar formulário e fechar dialog
       setFormData(DEFAULT_ENTITY_FORM_DATA);
@@ -352,6 +355,12 @@ export function EntityManagement() {
 
   // Função para atualizar entidade via API
   const handleUpdate = async () => {
+    console.log("=== DEBUG handleUpdate ===");
+    console.log("formData:", formData);
+    console.log("razaoSocial:", formData.razaoSocial);
+    console.log("cnpj:", formData.cnpj);
+    console.log("email:", formData.email);
+
     if (!formData.razaoSocial || !formData.cnpj || !formData.email) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
@@ -361,14 +370,36 @@ export function EntityManagement() {
 
     setIsUpdating(true);
     try {
-      // Converter dados do frontend para formato da API
-      const apiData = entidadeService.convertToApiFormat(formData);
+      // Converter dados do frontend para formato de atualização da API
+      const updateData = entidadeService.convertToUpdateFormat(formData);
 
       // Atualizar entidade na API
-      await entidadeService.update(parseInt(editingEntity.id), apiData);
+      const updatedEntityApi = await entidadeService.update(
+        parseInt(editingEntity.id),
+        updateData
+      );
 
-      // Recarregar lista completa para garantir dados atualizados
-      await loadEntities();
+      // Converter resposta da API para formato do frontend
+      console.log("=== DEBUG handleUpdate - Resposta da API ===");
+      console.log("updatedEntityApi:", updatedEntityApi);
+      console.log("updatedEntityApi.entidade:", updatedEntityApi.entidade);
+      console.log(
+        "updatedEntityApi.entidade.nome:",
+        updatedEntityApi.entidade?.nome
+      );
+
+      const updatedEntity =
+        entidadeService.convertToFrontendFormat(updatedEntityApi);
+
+      console.log("updatedEntity convertido:", updatedEntity);
+      console.log("updatedEntity.razaoSocial:", updatedEntity.razaoSocial);
+
+      // Atualizar entidade na lista local
+      setEntities((prevEntities) =>
+        prevEntities.map((entity) =>
+          entity.id === editingEntity.id ? updatedEntity : entity
+        )
+      );
 
       // Limpar estado e fechar dialog
       setEditingEntity(null);
@@ -438,7 +469,7 @@ export function EntityManagement() {
               Nova Entidade
             </Button>
           </DialogTrigger>
-          <DialogContent className="min-w-[95vw] min-h-[45vw] max-h-[45vw] overflow-y-auto">
+          <DialogContent className="min-w-[75vw] min-h-[45vw] max-h-[45vw] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Criar Nova Entidade</DialogTitle>
               <DialogDescription>
@@ -556,8 +587,8 @@ export function EntityManagement() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredEntities.map((entity) => (
-                    <TableRow key={entity.id}>
+                  {filteredEntities.map((entity, index) => (
+                    <TableRow key={entity.id || `entity-${index}`}>
                       <TableCell>{entity.codigo}</TableCell>
                       <TableCell>
                         <div className="flex items-center space-x-2">
@@ -594,12 +625,12 @@ export function EntityManagement() {
                       <TableCell>
                         <div className="space-y-1">
                           <div className="flex items-center space-x-1 text-sm">
-                            <MapPin className="h-3 w-3" />
-                            <span>{entity.endereco}</span>
+                            <User className="h-3 w-3" />
+                            <span>{entity.contatoComercialNome}</span>
                           </div>
                           <div className="flex items-center space-x-1 text-sm text-muted-foreground">
                             <Phone className="h-3 w-3" />
-                            <span>{entity.telefone}</span>
+                            <span>{entity.contatoComercialTelefone1}</span>
                           </div>
                         </div>
                       </TableCell>
