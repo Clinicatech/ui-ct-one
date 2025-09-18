@@ -167,18 +167,18 @@ export function EntityForm({
       <TabsContent value="dados-basicos" className="space-y-6">
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Dados Básicos da Entidade</h3>
-        
+
           {/* razao cnpj e ativo */}
           <div className="grid grid-cols-[70%_15%_10%] gap-4 border border-gray-300 rounded-md p-2">
             <ValidatedInput
               id="razaoSocial"
-              name="razaoSocial"
-              label="Razão Social"
-              value={formData.razaoSocial || ""}
+              name="nome"
+              label="Nome"
+              value={formData.nome || ""}
               onChange={(e) =>
                 setFormData((prev) => ({
                   ...prev,
-                  razaoSocial: e.target.value,
+                  nome: e.target.value,
                 }))
               }
               placeholder="Nome da empresa"
@@ -209,31 +209,6 @@ export function EntityForm({
             </div>
           </div>
           {/* razao cnpj - fim */}
-         
-          <div className="grid grid-cols-1 gap-4 border border-gray-300 rounded-md p-2">
-            <ValidatedInput
-              id="email"
-              name="email"
-              type="email"
-              label="E-mail Principal"
-              value={formData.email || ""}
-              onChange={(e) =>
-                setFormData((prev) => ({
-                  ...prev,
-                  email: e.target.value,
-                }))
-              }
-              placeholder="contato@empresa.com"
-              disabled={isCreating || isUpdating}
-              isRequired={true}
-              validationMessage="E-mail é obrigatório"
-              customValidation={(value) => {
-                // Validação básica de email
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return emailRegex.test(value);
-              }}
-            />
-          </div>
 
           <div className="grid grid-cols-1 gap-4 border border-gray-300 rounded-md p-2">
             <div className="space-y-2">
@@ -725,7 +700,7 @@ export function EntityForm({
                   <div className="flex gap-2 flex-1 max-w-[20%]">
                     <Input
                       id="bancoId"
-                      name="bancoId"  
+                      name="bancoId"
                       placeholder="000"
                       value={bancoIdInput}
                       onChange={(e) => setBancoIdInput(e.target.value)}

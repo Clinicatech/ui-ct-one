@@ -12,15 +12,16 @@ import { EntityFormData } from "../types/entity";
  * Todos os campos são inicializados com valores vazios ou padrão
  */
 export const DEFAULT_ENTITY_FORM_DATA: EntityFormData = {
-  razaoSocial: "",
+  // Campos obrigatórios da Entity
+  entidadeId: 0,
+  nome: "",
   cnpj: "",
-  status: "ativo",
-  endereco: "",
-  telefone: "",
-  email: "",
-  observacoes: "",
   urlSite: "",
   urlLogo: "",
+  createAt: "",
+  updateAt: "",
+  enderecos: [],
+  entidadeContaBancaria: [],
 
   // Dados do endereço
   cep: "",
@@ -84,14 +85,6 @@ export const DEFAULT_SEARCH_CONFIG = {
   searchIn: "entidade_nome,cnpj",
   debounceDelay: 500,
 };
-
-/**
- * Opções de status para entidades
- */
-export const ENTITY_STATUS_OPTIONS = [
-  { value: "ativo", label: "Ativo" },
-  { value: "inativo", label: "Inativo" },
-] as const;
 
 /**
  * Opções de carteira bancária

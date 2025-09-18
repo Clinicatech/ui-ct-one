@@ -53,28 +53,16 @@ import {
   TableHeader,
   TableRow,
 } from "../components/ui/table";
-import { Badge } from "../components/ui/badge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../components/ui/select";
 import {
   Search,
   Plus,
   Edit,
   Trash2,
   Building2,
-  Phone,
   Loader2,
   X,
   ChevronLeft,
   ChevronRight,
-  CheckCircle,
-  XCircle,
-  User,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -99,7 +87,6 @@ export function EntityManagement() {
   // Estados para gerenciar as entidades e interface
   const [entities, setEntities] = useState<Entity[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState<string>("todos");
   const [editingEntity, setEditingEntity] = useState<Entity | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -119,7 +106,7 @@ export function EntityManagement() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [perPage] = useState(25); // Limite fixo de 25 itens por página
+  const [perPage] = useState(3); // Limite temporário de 3 itens por página para testar paginação
 
   // Ref para controlar o timeout do debounce
   const searchTimeoutRef = useRef<number | null>(null);
@@ -299,18 +286,14 @@ export function EntityManagement() {
     setShowCloseConfirmation(false);
   }, []);
 
-  // Filtrar entidades baseado apenas no status (pesquisa é feita na API)
+  // Usar todas as entidades (filtros são feitos na API)
   const filteredEntities = useMemo(() => {
-    return entities.filter((entity) => {
-      const matchesStatus =
-        statusFilter === "todos" || entity.status === statusFilter;
-      return matchesStatus;
-    });
-  }, [entities, statusFilter]);
+    return entities;
+  }, [entities]);
 
   // Função para criar nova entidade via API
   const handleCreate = async () => {
-    if (!formData.razaoSocial || !formData.cnpj || !formData.email) {
+    if (!formData.nome || !formData.cnpj) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
@@ -324,7 +307,8 @@ export function EntityManagement() {
       const newEntityApi = await entidadeService.create(apiData);
 
       // Converter resposta da API para formato do frontend
-      const newEntity = entidadeService.convertToFrontendFormat(newEntityApi);
+      const newEntity =
+        entidadeService.convertCreateUpdateToFrontendFormat(newEntityApi);
 
       // Adicionar nova entidade à lista local
       setEntities((prevEntities) => [...prevEntities, newEntity]);
@@ -347,7 +331,7 @@ export function EntityManagement() {
   // Função para iniciar edição de entidade
   const handleEdit = (entity: Entity) => {
     setEditingEntity(entity);
-    setFormData(entity);
+    setFormData(entity); // Agora Entity e EntityFormData são a mesma coisa
     setActiveTab("dados-basicos"); // Resetar para primeira tab
     setHasUnsavedChanges(false); // Resetar estado de mudanças
     setIsEditDialogOpen(true);
@@ -355,13 +339,7 @@ export function EntityManagement() {
 
   // Função para atualizar entidade via API
   const handleUpdate = async () => {
-    console.log("=== DEBUG handleUpdate ===");
-    console.log("formData:", formData);
-    console.log("razaoSocial:", formData.razaoSocial);
-    console.log("cnpj:", formData.cnpj);
-    console.log("email:", formData.email);
-
-    if (!formData.razaoSocial || !formData.cnpj || !formData.email) {
+    if (!formData.nome || !formData.cnpj) {
       toast.error("Por favor, preencha todos os campos obrigatórios");
       return;
     }
@@ -371,33 +349,23 @@ export function EntityManagement() {
     setIsUpdating(true);
     try {
       // Converter dados do frontend para formato de atualização da API
-      const updateData = entidadeService.convertToUpdateFormat(formData);
+      const updateData = entidadeService.convertToApiFormat(formData);
 
       // Atualizar entidade na API
       const updatedEntityApi = await entidadeService.update(
-        parseInt(editingEntity.id),
+        editingEntity.entidadeId,
         updateData
       );
 
-      // Converter resposta da API para formato do frontend
-      console.log("=== DEBUG handleUpdate - Resposta da API ===");
-      console.log("updatedEntityApi:", updatedEntityApi);
-      console.log("updatedEntityApi.entidade:", updatedEntityApi.entidade);
-      console.log(
-        "updatedEntityApi.entidade.nome:",
-        updatedEntityApi.entidade?.nome
-      );
-
       const updatedEntity =
-        entidadeService.convertToFrontendFormat(updatedEntityApi);
-
-      console.log("updatedEntity convertido:", updatedEntity);
-      console.log("updatedEntity.razaoSocial:", updatedEntity.razaoSocial);
+        entidadeService.convertCreateUpdateToFrontendFormat(updatedEntityApi);
 
       // Atualizar entidade na lista local
       setEntities((prevEntities) =>
         prevEntities.map((entity) =>
-          entity.id === editingEntity.id ? updatedEntity : entity
+          entity.entidadeId === editingEntity.entidadeId
+            ? updatedEntity
+            : entity
         )
       );
 
@@ -425,7 +393,9 @@ export function EntityManagement() {
       await entidadeService.delete(parseInt(id));
 
       // Atualizar lista local
-      setEntities(entities.filter((entity) => entity.id !== id));
+      setEntities(
+        entities.filter((entity) => entity.entidadeId !== parseInt(id))
+      );
       toast.success("Entidade excluída com sucesso!");
     } catch (error) {
       console.error("Erro ao excluir entidade:", error);
@@ -544,20 +514,6 @@ export function EntityManagement() {
                 )}
               </div>
             </div>
-            <Select
-              value={statusFilter}
-              onValueChange={setStatusFilter}
-              disabled={isLoading}
-            >
-              <SelectTrigger className="w-48">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os Status</SelectItem>
-                <SelectItem value="ativo">Apenas Ativos</SelectItem>
-                <SelectItem value="inativo">Apenas Inativos</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
         </CardContent>
       </Card>
@@ -579,116 +535,131 @@ export function EntityManagement() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Código</TableHead>
-                    <TableHead>Razão Social</TableHead>
+                    <TableHead>Nome</TableHead>
                     <TableHead>CNPJ</TableHead>
-                    <TableHead>Status</TableHead>
                     <TableHead>Contato</TableHead>
+                    <TableHead>Endereço</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {filteredEntities.map((entity, index) => (
-                    <TableRow key={entity.id || `entity-${index}`}>
-                      <TableCell>{entity.codigo}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Building2 className="h-4 w-4 text-muted-foreground" />
-                          <span>{entity.razaoSocial}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="font-mono text-sm">
-                        {entity.cnpj}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          {entity.status === "ativo" ? (
-                            <CheckCircle className="h-4 w-4 text-green-600" />
-                          ) : (
-                            <XCircle className="h-4 w-4 text-red-600" />
-                          )}
-                          <Badge
-                            variant={
-                              entity.status === "ativo"
-                                ? "default"
-                                : "secondary"
-                            }
-                            className={
-                              entity.status === "ativo"
-                                ? "bg-green-100 text-green-800 border-green-200"
-                                : "bg-red-100 text-red-800 border-red-200"
-                            }
-                          >
-                            {entity.status === "ativo" ? "Ativo" : "Inativo"}
-                          </Badge>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="space-y-1">
-                          <div className="flex items-center space-x-1 text-sm">
-                            <User className="h-3 w-3" />
-                            <span>{entity.contatoComercialNome}</span>
+                  {filteredEntities.map((entity, index) => {
+                    console.log("=== DEBUG - Renderizando entidade ===");
+                    console.log("entity:", entity);
+                    console.log("entity.entidadeId:", entity.entidadeId);
+                    console.log("entity.nome:", entity.nome);
+
+                    return (
+                      <TableRow key={entity.entidadeId || `entity-${index}`}>
+                        <TableCell>{entity.entidadeId || "SEM ID"}</TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
+                            <Building2 className="h-4 w-4 text-muted-foreground" />
+                            <span>{entity.nome || "SEM NOME"}</span>
                           </div>
-                          <div className="flex items-center space-x-1 text-sm text-muted-foreground">
-                            <Phone className="h-3 w-3" />
-                            <span>{entity.contatoComercialTelefone1}</span>
+                        </TableCell>
+                        <TableCell className="font-mono text-sm">
+                          {entity.cnpj}
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {entity.enderecos?.[0] ? (
+                              <div>
+                                <div className="font-medium">
+                                  {entity.enderecos[0].contatoComercialNome ||
+                                    "Sem nome"}
+                                </div>
+                                <div className="text-muted-foreground">
+                                  {entity.enderecos[0]
+                                    .contatoComercialTelefone1 ||
+                                    "Sem telefone"}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                Sem contato
+                              </span>
+                            )}
                           </div>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(entity)}
-                            disabled={isUpdating || isDeleting}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                disabled={isUpdating || isDeleting}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Excluir Entidade
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja excluir a entidade "
-                                  {entity.razaoSocial}"? Esta ação não pode ser
-                                  desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel disabled={isDeleting}>
-                                  Cancelar
-                                </AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(entity.id)}
-                                  disabled={isDeleting}
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {entity.enderecos?.[0] ? (
+                              <div>
+                                <div>
+                                  {entity.enderecos[0].cidade} -{" "}
+                                  {entity.enderecos[0].uf}
+                                </div>
+                                <div className="text-muted-foreground">
+                                  {entity.enderecos[0].logradouro},{" "}
+                                  {entity.enderecos[0].numero}
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-muted-foreground">
+                                Sem endereço
+                              </span>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end space-x-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEdit(entity)}
+                              disabled={isUpdating || isDeleting}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  disabled={isUpdating || isDeleting}
                                 >
-                                  {isDeleting ? (
-                                    <>
-                                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                      Excluindo...
-                                    </>
-                                  ) : (
-                                    "Excluir"
-                                  )}
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>
+                                    Excluir Entidade
+                                  </AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Tem certeza que deseja excluir a entidade "
+                                    {entity.nome}"? Esta ação não pode ser
+                                    desfeita.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel disabled={isDeleting}>
+                                    Cancelar
+                                  </AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() =>
+                                      handleDelete(entity.entidadeId.toString())
+                                    }
+                                    disabled={isDeleting}
+                                  >
+                                    {isDeleting ? (
+                                      <>
+                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                                        Excluindo...
+                                      </>
+                                    ) : (
+                                      "Excluir"
+                                    )}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
 

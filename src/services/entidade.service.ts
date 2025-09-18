@@ -1,84 +1,76 @@
 /**
- * Serviço de Entidades
+ * Serviço para gerenciar entidades
  *
- * Este serviço gerencia todas as operações relacionadas a entidades,
- * incluindo comunicação com a API backend.
+ * Este serviço centraliza todas as operações relacionadas a entidades,
+ * incluindo CRUD completo e conversões de dados entre API e frontend.
  *
  * Funcionalidades:
- * - CRUD completo (Create, Read, Update, Delete)
- * - Conversão entre formatos da API e frontend
- * - Tratamento de erros
- * - Filtros e paginação
+ * - Buscar todas as entidades (findAll)
+ * - Buscar entidades com filtros/paginação (findAllView)
+ * - Buscar entidade por ID (findOne)
+ * - Criar nova entidade (create)
+ * - Atualizar entidade existente (update)
+ * - Excluir entidade (delete)
+ * - Conversões de dados entre formatos da API e frontend
  *
- * Para desenvolvedores júnior:
- * - Cada método representa uma operação específica
+ * Arquitetura:
  * - As interfaces TypeScript garantem type safety
  * - Os métodos de conversão mantêm compatibilidade entre API e UI
  * - O tratamento de erros é centralizado e consistente
  */
 
 import { apiRequest } from "../config/api";
+import { Entity } from "../types/entity";
 
 // Interface para representar uma entidade conforme retornada pela API
 export interface EntidadeApi {
   entidadeId: number;
-  nome: string;
-  cnpj?: string;
-  urlSite?: string;
-  urlLogo?: string;
-  createAt: string;
-  updateAt: string;
-  enderecos?: EnderecoApi[];
-  entidadeContaBancaria?: ContaBancariaApi[];
-  usuarios?: any[];
+  entidadeNome: string;
+  cnpj: string;
+  urlSite: string | null;
+  urlLogo: string | null;
+  entidadeCreateAt: string;
+  entidadeUpdateAt: string;
+  enderecos: EnderecoApi[];
+  contasBancarias: ContaBancariaApi[];
 }
 
-// Interface para endereço
+// Interface para endereço da API
 export interface EnderecoApi {
   enderecoId: number;
-  pessoaId?: number;
-
-  // Contatos comerciais (API retorna em camelCase)
+  pessoaId: number | null;
   contatoComercialNome?: string;
   contatoComercialTelefone1?: string;
   contatoComercialTelefone2?: string;
   contatoComercialTelefone3?: string;
   contatoComercialEmail?: string;
-
-  // Contatos técnicos (API retorna em camelCase)
   contatoTecnicoNome?: string;
   contatoTecnicoTelefone1?: string;
   contatoTecnicoTelefone2?: string;
   contatoTecnicoTelefone3?: string;
   contatoTecnicoEmail?: string;
-
-  // Contatos financeiros (API retorna em camelCase)
   contatoFinanceiroNome?: string;
   contatoFinanceiroTelefone1?: string;
   contatoFinanceiroTelefone2?: string;
   contatoFinanceiroTelefone3?: string;
   contatoFinanceiroEmail?: string;
-
-  // Dados do endereço
   cep?: string;
   logradouro?: string;
   numero?: string;
   complemento?: string;
   bairro?: string;
   cidade?: string;
-  cidadeCodigo?: number;
+  cidadeCodigo?: number | null;
   uf?: string;
-  ufCodigo?: number;
-
-  // Timestamps
+  ufCodigo?: number | null;
   createAt?: string;
   updateAt?: string;
 }
 
-// Interface para conta bancária
+// Interface para conta bancária da API
 export interface ContaBancariaApi {
   entidadeContaBancariaId: number;
-  bancoId?: number;
+  bancoId: number;
   agencia: string;
   agenciaDigito?: string;
   conta: string;
@@ -87,42 +79,88 @@ export interface ContaBancariaApi {
   cedenteCodigo?: string;
   cedenteNome?: string;
   chavePix?: string;
+  createAt?: string;
+  updateAt?: string;
 }
 
-// Interface para criar entidade
+// Interface para requisição de criação
 export interface CreateEntidadeRequest {
   entidade: {
     nome: string;
-    cnpj?: string;
+    cnpj: string;
     urlSite?: string;
     urlLogo?: string;
   };
-  endereco?: Partial<EnderecoApi>;
-  entidadeContaBancaria?: Partial<ContaBancariaApi>;
+  endereco?: {
+    cep?: string;
+    logradouro?: string;
+    numero?: string;
+    complemento?: string;
+    bairro?: string;
+    cidade?: string;
+    uf?: string;
+    contatoComercialNome?: string;
+    contatoComercialTelefone1?: string;
+    contatoComercialTelefone2?: string;
+    contatoComercialTelefone3?: string;
+    contatoComercialEmail?: string;
+    contatoTecnicoNome?: string;
+    contatoTecnicoTelefone1?: string;
+    contatoTecnicoTelefone2?: string;
+    contatoTecnicoTelefone3?: string;
+    contatoTecnicoEmail?: string;
+    contatoFinanceiroNome?: string;
+    contatoFinanceiroTelefone1?: string;
+    contatoFinanceiroTelefone2?: string;
+    contatoFinanceiroTelefone3?: string;
+    contatoFinanceiroEmail?: string;
+  };
+  entidadeContaBancaria?: {
+    bancoId: number;
+    agencia: string;
+    agenciaDigito?: string;
+    conta: string;
+    contaDigito?: string;
+    carteira?: string;
+    cedenteCodigo?: string;
+    cedenteNome?: string;
+    chavePix?: string;
+  };
 }
 
-// Interface para atualizar entidade
-export interface UpdateEntidadeRequest {
-  entidade?: Partial<CreateEntidadeRequest["entidade"]>;
-  endereco?: Partial<EnderecoApi>;
-  entidadeContaBancaria?: Partial<ContaBancariaApi>;
+// Interface para requisição de atualização
+export interface UpdateEntidadeRequest extends CreateEntidadeRequest {}
+
+// Interface para resposta de criação/atualização
+export interface EntidadeCreateUpdateResponse {
+  entidade: {
+    entidadeId: number;
+    nome: string;
+    cnpj: string;
+    urlSite: string | null;
+    urlLogo: string | null;
+    createAt: string;
+    updateAt: string;
+  };
+  endereco: EnderecoApi | null;
+  entidadeContaBancaria: ContaBancariaApi | null;
 }
 
-// Interface para filtros de pesquisa
-export interface EntidadeFilters {
+// Interface para parâmetros de busca
+export interface FindAllViewParams {
   search?: string;
-  status?: "ativo" | "inativo" | "todos";
-  page?: number;
-  limit?: number;
+  page: number;
+  limit: number;
 }
 
 // Interface para resposta paginada
-export interface EntidadeListResponse {
+export interface PaginatedResponse {
   data: EntidadeApi[];
   totalItems: number;
   totalPages: number;
-  page: number;
+  currentPage: number;
   perPage: number;
+  page: number;
   duration?: string;
 }
 
@@ -132,8 +170,10 @@ class EntidadeService {
   // Buscar todas as entidades
   async findAll(): Promise<EntidadeApi[]> {
     try {
-      const result = await apiRequest<EntidadeApi[]>(this.baseEndpoint);
-      return Array.isArray(result) ? result : [];
+      const result = await apiRequest<{ data: EntidadeApi[] }>(
+        this.baseEndpoint
+      );
+      return Array.isArray(result?.data) ? result.data : [];
     } catch (error) {
       console.error("Erro ao buscar entidades:", error);
       throw new Error("Erro ao carregar entidades");
@@ -141,36 +181,20 @@ class EntidadeService {
   }
 
   // Buscar entidades com filtros e paginação
-  async findAllView(
-    filters: EntidadeFilters = {}
-  ): Promise<EntidadeListResponse> {
+  async findAllView(params: FindAllViewParams): Promise<PaginatedResponse> {
     try {
       const queryParams = new URLSearchParams();
-
-      if (filters.search) {
-        queryParams.append("search", filters.search);
-        // Adicionar searchIn obrigatório quando search é enviado
+      if (params.search) {
+        queryParams.append("search", params.search);
+        // Quando há busca, especificar em quais campos buscar
         queryParams.append("searchIn", "entidade_nome,cnpj");
       }
-      if (filters.page) {
-        queryParams.append("page", filters.page.toString());
-      }
-      if (filters.limit) {
-        queryParams.append("perPage", filters.limit.toString()); // API usa perPage, não limit
-      }
+      queryParams.append("page", params.page.toString());
+      queryParams.append("limit", params.limit.toString());
 
-      const endpoint = `${this.baseEndpoint}/view?${queryParams.toString()}`;
-      const result = await apiRequest<EntidadeListResponse>(endpoint);
-
-      const response: EntidadeListResponse = {
-        data: Array.isArray(result?.data) ? result.data : [],
-        totalItems: result?.totalItems || 0,
-        totalPages: result?.totalPages || 0,
-        page: result?.page || 1,
-        perPage: result?.perPage || 25,
-        duration: result?.duration,
-      };
-
+      const response = await apiRequest<PaginatedResponse>(
+        `${this.baseEndpoint}/view?${queryParams.toString()}`
+      );
       return response;
     } catch (error) {
       console.error("Erro ao buscar entidades com filtros:", error);
@@ -179,7 +203,7 @@ class EntidadeService {
   }
 
   // Buscar entidade por ID
-  async findById(id: number): Promise<EntidadeApi> {
+  async findOne(id: number): Promise<EntidadeApi> {
     try {
       return await apiRequest<EntidadeApi>(`${this.baseEndpoint}/${id}`);
     } catch (error) {
@@ -189,15 +213,16 @@ class EntidadeService {
   }
 
   // Criar nova entidade
-  async create(data: CreateEntidadeRequest): Promise<EntidadeApi> {
+  async create(
+    data: CreateEntidadeRequest
+  ): Promise<EntidadeCreateUpdateResponse> {
     try {
-      return await apiRequest<EntidadeApi>(this.baseEndpoint, {
+      return await apiRequest<EntidadeCreateUpdateResponse>(this.baseEndpoint, {
         method: "POST",
         body: JSON.stringify(data),
       });
     } catch (error) {
       console.error("Erro ao criar entidade:", error);
-      // Preservar a mensagem de erro original da API
       if (error instanceof Error) {
         throw error;
       }
@@ -206,26 +231,18 @@ class EntidadeService {
   }
 
   // Atualizar entidade
-  async update(id: number, data: UpdateEntidadeRequest): Promise<EntidadeApi> {
+  async update(
+    id: number,
+    data: UpdateEntidadeRequest
+  ): Promise<EntidadeCreateUpdateResponse> {
     try {
       const url = `${this.baseEndpoint}/${id}`;
-      console.log("=== DEBUG UPDATE ===");
-      console.log("URL:", url);
-      console.log("Method: PATCH");
-      console.log("Data:", data);
-      console.log("Data.endereco:", data.endereco);
-      console.log(
-        "Data.endereco.contato_comercial_nome:",
-        data.endereco?.contato_comercial_nome
-      );
-
-      return await apiRequest<EntidadeApi>(url, {
+      return await apiRequest<EntidadeCreateUpdateResponse>(url, {
         method: "PATCH",
         body: JSON.stringify(data),
       });
     } catch (error) {
       console.error("Erro ao atualizar entidade:", error);
-      // Preservar a mensagem de erro original da API
       if (error instanceof Error) {
         throw error;
       }
@@ -236,12 +253,11 @@ class EntidadeService {
   // Excluir entidade
   async delete(id: number): Promise<void> {
     try {
-      await apiRequest<void>(`${this.baseEndpoint}/${id}`, {
+      await apiRequest(`${this.baseEndpoint}/${id}`, {
         method: "DELETE",
       });
     } catch (error) {
       console.error("Erro ao excluir entidade:", error);
-      // Preservar a mensagem de erro original da API
       if (error instanceof Error) {
         throw error;
       }
@@ -249,140 +265,117 @@ class EntidadeService {
     }
   }
 
-  // Converter entidade da API para formato do frontend
-  convertToFrontendFormat(entidadeApi: EntidadeApi): any {
+  // Converter Entity da API para Entity do frontend (com campos do formulário preenchidos)
+  convertToFrontendFormat(entidadeApi: EntidadeApi): Entity {
     console.log("=== DEBUG convertToFrontendFormat ===");
-    console.log("entidadeApi:", entidadeApi);
-    console.log("entidadeApi.entidade:", entidadeApi.entidade);
-    console.log("entidadeApi.entidade?.nome:", entidadeApi.entidade?.nome);
-    console.log("entidadeApi.nome:", entidadeApi.nome);
-    console.log("enderecos:", entidadeApi.enderecos);
+    console.log("entidadeApi recebida:", entidadeApi);
+    console.log("entidadeApi.entidadeId:", entidadeApi.entidadeId);
+    console.log("entidadeApi.entidadeNome:", entidadeApi.entidadeNome);
+    console.log(
+      "typeof entidadeApi.entidadeId:",
+      typeof entidadeApi.entidadeId
+    );
+    console.log(
+      "typeof entidadeApi.entidadeNome:",
+      typeof entidadeApi.entidadeNome
+    );
 
-    // A API de update retorna 'endereco' (singular), não 'enderecos' (plural)
-    const endereco = entidadeApi.endereco || entidadeApi.enderecos?.[0];
-    console.log("endereco:", endereco);
+    const endereco = entidadeApi.enderecos?.[0];
+    const contaBancaria = entidadeApi.contasBancarias?.[0];
 
-    // A API de update retorna a estrutura { entidade: {...}, endereco: {...} }
-    // Mas a API de findAll retorna a estrutura direta { entidadeId, nome, ... }
-    const nome = entidadeApi.entidade?.nome || entidadeApi.nome || "";
-    const entidadeId =
-      entidadeApi.entidade?.entidadeId || entidadeApi.entidadeId;
+    const result = {
+      // Dados básicos da entidade
+      entidadeId: entidadeApi.entidadeId,
+      nome: entidadeApi.entidadeNome,
+      cnpj: entidadeApi.cnpj || "",
+      urlSite: entidadeApi.urlSite || undefined,
+      urlLogo: entidadeApi.urlLogo || undefined,
+      createAt: entidadeApi.entidadeCreateAt,
+      updateAt: entidadeApi.entidadeUpdateAt,
 
-    console.log("nome final:", nome);
-    console.log("entidadeId final:", entidadeId);
+      // Arrays da API
+      enderecos: entidadeApi.enderecos || [],
+      entidadeContaBancaria: entidadeApi.contasBancarias || [],
 
-    return {
-      id: entidadeId?.toString() || "",
-      codigo: entidadeId?.toString() || "",
-      razaoSocial: nome,
-      cnpj: entidadeApi.entidade?.cnpj || entidadeApi.cnpj || "",
-      status: "ativo" as const, // A API não tem campo status, assumindo ativo
-      endereco: endereco
-        ? `${endereco.cidade || ""} - ${endereco.uf || ""}`.trim()
-        : "",
-      telefone:
-        endereco?.contatoComercialTelefone1 ||
-        endereco?.contatoTecnicoTelefone1 ||
-        "",
-      email:
-        endereco?.contatoComercialEmail || endereco?.contatoTecnicoEmail || "",
-      observacoes: "",
-      // Dados adicionais da API
-      urlSite: entidadeApi.urlSite,
-      urlLogo: entidadeApi.urlLogo,
-      createAt: entidadeApi.createAt,
-      updateAt: entidadeApi.updateAt,
-
-      // Dados do endereço
+      // Campos individuais do formulário (preenchidos dos arrays)
       cep: endereco?.cep || "",
       logradouro: endereco?.logradouro || "",
       numero: endereco?.numero || "",
       complemento: endereco?.complemento || "",
       bairro: endereco?.bairro || "",
       cidade: endereco?.cidade || "",
-      cidadeCodigo: endereco?.cidadeCodigo
-        ? endereco.cidadeCodigo.toString()
-        : "",
       uf: endereco?.uf || "",
-      ufCodigo: endereco?.ufCodigo ? endereco.ufCodigo.toString() : "",
+      cidadeCodigo: endereco?.cidadeCodigo?.toString() || "",
+      ufCodigo: endereco?.ufCodigo?.toString() || "",
 
       // Contatos comerciais
       contatoComercialNome: endereco?.contatoComercialNome || "",
+      contatoComercialEmail: endereco?.contatoComercialEmail || "",
       contatoComercialTelefone1: endereco?.contatoComercialTelefone1 || "",
       contatoComercialTelefone2: endereco?.contatoComercialTelefone2 || "",
       contatoComercialTelefone3: endereco?.contatoComercialTelefone3 || "",
-      contatoComercialEmail: endereco?.contatoComercialEmail || "",
 
       // Contatos técnicos
       contatoTecnicoNome: endereco?.contatoTecnicoNome || "",
+      contatoTecnicoEmail: endereco?.contatoTecnicoEmail || "",
       contatoTecnicoTelefone1: endereco?.contatoTecnicoTelefone1 || "",
       contatoTecnicoTelefone2: endereco?.contatoTecnicoTelefone2 || "",
       contatoTecnicoTelefone3: endereco?.contatoTecnicoTelefone3 || "",
-      contatoTecnicoEmail: endereco?.contatoTecnicoEmail || "",
 
       // Contatos financeiros
       contatoFinanceiroNome: endereco?.contatoFinanceiroNome || "",
+      contatoFinanceiroEmail: endereco?.contatoFinanceiroEmail || "",
       contatoFinanceiroTelefone1: endereco?.contatoFinanceiroTelefone1 || "",
       contatoFinanceiroTelefone2: endereco?.contatoFinanceiroTelefone2 || "",
       contatoFinanceiroTelefone3: endereco?.contatoFinanceiroTelefone3 || "",
-      contatoFinanceiroEmail: endereco?.contatoFinanceiroEmail || "",
 
-      enderecos:
-        entidadeApi.enderecos ||
-        (entidadeApi.endereco ? [entidadeApi.endereco] : []),
-      contasBancarias: entidadeApi.entidadeContaBancaria || [],
+      // Dados bancários
+      bancoId: contaBancaria?.bancoId,
+      agencia: contaBancaria?.agencia || "",
+      agenciaDigito: contaBancaria?.agenciaDigito || "",
+      conta: contaBancaria?.conta || "",
+      contaDigito: contaBancaria?.contaDigito || "",
+      carteira: contaBancaria?.carteira || "",
+      cedenteCodigo: contaBancaria?.cedenteCodigo || "",
+      cedenteNome: contaBancaria?.cedenteNome || "",
+      chavePix: contaBancaria?.chavePix || "",
     };
+
+    console.log("=== DEBUG - Resultado da conversão ===");
+    console.log("result:", result);
+    console.log("result.entidadeId:", result.entidadeId);
+    console.log("result.nome:", result.nome);
+
+    return result;
   }
 
   // Converter dados do frontend para formato da API
-  convertToApiFormat(frontendData: any): CreateEntidadeRequest {
-    // Debug: verificar dados de contato
-    console.log("=== DEBUG convertToApiFormat ===");
-    console.log("contatoComercialNome:", frontendData.contatoComercialNome);
-    console.log(
-      "contatoComercialTelefone1:",
-      frontendData.contatoComercialTelefone1
-    );
-    console.log("contatoComercialEmail:", frontendData.contatoComercialEmail);
-
-    const apiData = {
+  convertToApiFormat(frontendData: Entity): CreateEntidadeRequest {
+    return {
       entidade: {
-        nome: frontendData.razaoSocial,
+        nome: frontendData.nome,
         cnpj: frontendData.cnpj,
         urlSite: frontendData.urlSite,
         urlLogo: frontendData.urlLogo,
       },
       endereco: {
-        // Dados do endereço
         cep: frontendData.cep,
         logradouro: frontendData.logradouro,
         numero: frontendData.numero,
         complemento: frontendData.complemento,
         bairro: frontendData.bairro,
         cidade: frontendData.cidade,
-        cidade_codigo: frontendData.cidadeCodigo
-          ? parseInt(frontendData.cidadeCodigo)
-          : undefined,
         uf: frontendData.uf,
-        uf_codigo: frontendData.ufCodigo
-          ? parseInt(frontendData.ufCodigo)
-          : undefined,
-
-        // Contatos comerciais
         contatoComercialNome: frontendData.contatoComercialNome,
         contatoComercialTelefone1: frontendData.contatoComercialTelefone1,
         contatoComercialTelefone2: frontendData.contatoComercialTelefone2,
         contatoComercialTelefone3: frontendData.contatoComercialTelefone3,
         contatoComercialEmail: frontendData.contatoComercialEmail,
-
-        // Contatos técnicos
         contatoTecnicoNome: frontendData.contatoTecnicoNome,
         contatoTecnicoTelefone1: frontendData.contatoTecnicoTelefone1,
         contatoTecnicoTelefone2: frontendData.contatoTecnicoTelefone2,
         contatoTecnicoTelefone3: frontendData.contatoTecnicoTelefone3,
         contatoTecnicoEmail: frontendData.contatoTecnicoEmail,
-
-        // Contatos financeiros
         contatoFinanceiroNome: frontendData.contatoFinanceiroNome,
         contatoFinanceiroTelefone1: frontendData.contatoFinanceiroTelefone1,
         contatoFinanceiroTelefone2: frontendData.contatoFinanceiroTelefone2,
@@ -391,95 +384,85 @@ class EntidadeService {
       },
       entidadeContaBancaria: frontendData.bancoId
         ? {
-            banco_id: frontendData.bancoId,
-            agencia: frontendData.agencia,
-            agencia_digito: frontendData.agenciaDigito,
-            conta: frontendData.conta,
-            conta_digito: frontendData.contaDigito,
+            bancoId: frontendData.bancoId,
+            agencia: frontendData.agencia || "",
+            agenciaDigito: frontendData.agenciaDigito,
+            conta: frontendData.conta || "",
+            contaDigito: frontendData.contaDigito,
             carteira: frontendData.carteira,
-            cedente_codigo: frontendData.cedenteCodigo,
-            cedente_nome: frontendData.cedenteNome,
-            chave_pix: frontendData.chavePix,
+            cedenteCodigo: frontendData.cedenteCodigo,
+            cedenteNome: frontendData.cedenteNome,
+            chavePix: frontendData.chavePix,
           }
         : undefined,
     };
-
-    console.log("Dados finais para API:", apiData);
-    return apiData;
   }
 
-  // Converter dados do frontend para formato de atualização da API
-  convertToUpdateFormat(frontendData: any): UpdateEntidadeRequest {
-    // Debug: verificar dados de contato
-    console.log("=== DEBUG convertToUpdateFormat ===");
-    console.log("contatoComercialNome:", frontendData.contatoComercialNome);
-    console.log(
-      "contatoComercialTelefone1:",
-      frontendData.contatoComercialTelefone1
-    );
-    console.log("contatoComercialEmail:", frontendData.contatoComercialEmail);
+  // Converter resposta de criação/atualização para formato do frontend
+  convertCreateUpdateToFrontendFormat(
+    response: EntidadeCreateUpdateResponse
+  ): Entity {
+    const { entidade, endereco, entidadeContaBancaria } = response;
 
-    const updateData: UpdateEntidadeRequest = {
-      entidade: {
-        nome: frontendData.razaoSocial,
-        cnpj: frontendData.cnpj,
-        urlSite: frontendData.urlSite,
-        urlLogo: frontendData.urlLogo,
-      },
-      endereco: {
-        // Dados do endereço
-        cep: frontendData.cep,
-        logradouro: frontendData.logradouro,
-        numero: frontendData.numero,
-        complemento: frontendData.complemento,
-        bairro: frontendData.bairro,
-        cidade: frontendData.cidade,
-        cidade_codigo: frontendData.cidadeCodigo
-          ? parseInt(frontendData.cidadeCodigo)
-          : undefined,
-        uf: frontendData.uf,
-        uf_codigo: frontendData.ufCodigo
-          ? parseInt(frontendData.ufCodigo)
-          : undefined,
+    return {
+      // Dados básicos da entidade
+      entidadeId: entidade.entidadeId,
+      nome: entidade.nome,
+      cnpj: entidade.cnpj,
+      urlSite: entidade.urlSite || "",
+      urlLogo: entidade.urlLogo || "",
+      createAt: entidade.createAt,
+      updateAt: entidade.updateAt,
 
-        // Contatos comerciais
-        contatoComercialNome: frontendData.contatoComercialNome,
-        contatoComercialTelefone1: frontendData.contatoComercialTelefone1,
-        contatoComercialTelefone2: frontendData.contatoComercialTelefone2,
-        contatoComercialTelefone3: frontendData.contatoComercialTelefone3,
-        contatoComercialEmail: frontendData.contatoComercialEmail,
+      // Arrays da API
+      enderecos: endereco ? [endereco] : [],
+      entidadeContaBancaria: entidadeContaBancaria
+        ? [entidadeContaBancaria]
+        : [],
 
-        // Contatos técnicos
-        contatoTecnicoNome: frontendData.contatoTecnicoNome,
-        contatoTecnicoTelefone1: frontendData.contatoTecnicoTelefone1,
-        contatoTecnicoTelefone2: frontendData.contatoTecnicoTelefone2,
-        contatoTecnicoTelefone3: frontendData.contatoTecnicoTelefone3,
-        contatoTecnicoEmail: frontendData.contatoTecnicoEmail,
+      // Campos individuais do formulário
+      cep: endereco?.cep || "",
+      logradouro: endereco?.logradouro || "",
+      numero: endereco?.numero || "",
+      complemento: endereco?.complemento || "",
+      bairro: endereco?.bairro || "",
+      cidade: endereco?.cidade || "",
+      uf: endereco?.uf || "",
+      cidadeCodigo: endereco?.cidadeCodigo?.toString() || "",
+      ufCodigo: endereco?.ufCodigo?.toString() || "",
 
-        // Contatos financeiros
-        contatoFinanceiroNome: frontendData.contatoFinanceiroNome,
-        contatoFinanceiroTelefone1: frontendData.contatoFinanceiroTelefone1,
-        contatoFinanceiroTelefone2: frontendData.contatoFinanceiroTelefone2,
-        contatoFinanceiroTelefone3: frontendData.contatoFinanceiroTelefone3,
-        contatoFinanceiroEmail: frontendData.contatoFinanceiroEmail,
-      },
-      entidadeContaBancaria: frontendData.bancoId
-        ? {
-            banco_id: frontendData.bancoId,
-            agencia: frontendData.agencia,
-            agencia_digito: frontendData.agenciaDigito,
-            conta: frontendData.conta,
-            conta_digito: frontendData.contaDigito,
-            carteira: frontendData.carteira,
-            cedente_codigo: frontendData.cedenteCodigo,
-            cedente_nome: frontendData.cedenteNome,
-            chave_pix: frontendData.chavePix,
-          }
-        : undefined,
+      // Contatos comerciais
+      contatoComercialNome: endereco?.contatoComercialNome || "",
+      contatoComercialEmail: endereco?.contatoComercialEmail || "",
+      contatoComercialTelefone1: endereco?.contatoComercialTelefone1 || "",
+      contatoComercialTelefone2: endereco?.contatoComercialTelefone2 || "",
+      contatoComercialTelefone3: endereco?.contatoComercialTelefone3 || "",
+
+      // Contatos técnicos
+      contatoTecnicoNome: endereco?.contatoTecnicoNome || "",
+      contatoTecnicoEmail: endereco?.contatoTecnicoEmail || "",
+      contatoTecnicoTelefone1: endereco?.contatoTecnicoTelefone1 || "",
+      contatoTecnicoTelefone2: endereco?.contatoTecnicoTelefone2 || "",
+      contatoTecnicoTelefone3: endereco?.contatoTecnicoTelefone3 || "",
+
+      // Contatos financeiros
+      contatoFinanceiroNome: endereco?.contatoFinanceiroNome || "",
+      contatoFinanceiroEmail: endereco?.contatoFinanceiroEmail || "",
+      contatoFinanceiroTelefone1: endereco?.contatoFinanceiroTelefone1 || "",
+      contatoFinanceiroTelefone2: endereco?.contatoFinanceiroTelefone2 || "",
+      contatoFinanceiroTelefone3: endereco?.contatoFinanceiroTelefone3 || "",
+
+      // Dados bancários
+      bancoId: entidadeContaBancaria?.bancoId,
+      agencia: entidadeContaBancaria?.agencia || "",
+      agenciaDigito: entidadeContaBancaria?.agenciaDigito || "",
+      conta: entidadeContaBancaria?.conta || "",
+      contaDigito: entidadeContaBancaria?.contaDigito || "",
+      carteira: entidadeContaBancaria?.carteira || "",
+      cedenteCodigo: entidadeContaBancaria?.cedenteCodigo || "",
+      cedenteNome: entidadeContaBancaria?.cedenteNome || "",
+      chavePix: entidadeContaBancaria?.chavePix || "",
     };
-
-    console.log("Dados finais para UPDATE:", updateData);
-    return updateData;
   }
 }
 
