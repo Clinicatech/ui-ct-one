@@ -30,7 +30,7 @@ export interface EntidadeApi {
   urlSite?: string | null;
   urlLogo?: string | null;
   //entidadeCreateAt?: string;
- // entidadeUpdateAt?: string;
+  // entidadeUpdateAt?: string;
   enderecos: EnderecoApi[];
   contasBancarias: ContaBancariaApi[];
 }
@@ -63,8 +63,6 @@ export interface EnderecoApi {
   cidadeCodigo?: number | null;
   uf?: string;
   ufCodigo?: number | null;
- // createAt?: string;
- // updateAt?: string;
 }
 
 // Interface para conta bancária da API
@@ -79,8 +77,6 @@ export interface ContaBancariaApi {
   cedenteCodigo?: string;
   cedenteNome?: string;
   chavePix?: string;
-//  createAt?: string;
-//  updateAt?: string;
 }
 
 // Interface para requisição de criação
@@ -139,8 +135,6 @@ export interface EntidadeCreateUpdateResponse {
     cnpj: string;
     urlSite: string | null;
     urlLogo: string | null;
-   // createAt: string;
-   // updateAt: string;
   };
   endereco: EnderecoApi | null;
   entidadeContaBancaria: ContaBancariaApi | null;
@@ -277,8 +271,6 @@ class EntidadeService {
       cnpj: entidadeApi.cnpj || "",
       urlSite: entidadeApi.urlSite || undefined,
       urlLogo: entidadeApi.urlLogo || undefined,
-    // createAt: entidadeApi.entidadeCreateAt,
-    //  updateAt: entidadeApi.entidadeUpdateAt,
 
       // Arrays da API
       enderecos: entidadeApi.enderecos || [],
@@ -393,8 +385,6 @@ class EntidadeService {
       cnpj: entidade.cnpj,
       urlSite: entidade.urlSite || "",
       urlLogo: entidade.urlLogo || "",
-     // createAt: entidade.createAt,
-     // updateAt: entidade.updateAt,
 
       // Arrays da API
       enderecos: endereco ? [endereco] : [],

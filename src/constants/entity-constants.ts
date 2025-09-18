@@ -18,8 +18,6 @@ export const DEFAULT_ENTITY_FORM_DATA: EntityFormData = {
   cnpj: "",
   urlSite: "",
   urlLogo: "",
-  createAt: "",
-  updateAt: "",
   enderecos: [],
   entidadeContaBancaria: [],
 

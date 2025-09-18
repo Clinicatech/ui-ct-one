@@ -1,5 +1,4 @@
 import { apiRequest } from "../config/api";
-import { convertBancoApiResponse } from "../utils/bancoUtils";
 
 export interface Banco {
   bancoId: number;
@@ -14,12 +13,12 @@ export class BancoService {
    */
   static async findAll(): Promise<Banco[]> {
     try {
-      const response = await apiRequest<any>("/banco", {
+      const response = await apiRequest<{ data: Banco[] }>("/banco", {
         method: "GET",
       });
 
-      // Usar utilitário para converter resposta da API
-      return convertBancoApiResponse(response);
+      // A API agora retorna { data: [...] }
+      return response.data || [];
     } catch (error) {
       console.error("Erro ao buscar bancos:", error);
       // Em caso de erro, retornar array vazio em vez de lançar erro

@@ -110,8 +110,13 @@ export const isValidBanco = (obj: any): obj is Banco => {
  * Converte resposta da API de bancos para array válido
  * @param response - Resposta da API
  * @returns Array de bancos válidos
+ * @deprecated Esta função não é mais necessária pois a API agora retorna { data: [...] }
  */
 export const convertBancoApiResponse = (response: any): Banco[] => {
+  // A API agora retorna { data: [...] }, então esta função é mantida apenas para compatibilidade
+  // mas não deve ser mais usada
+  console.warn("convertBancoApiResponse está deprecated. A API agora retorna { data: [...] }");
+  
   // Se a resposta é um array, retornar diretamente
   if (Array.isArray(response)) {
     return response.filter(isValidBanco);
