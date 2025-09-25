@@ -1,99 +1,88 @@
-/**
- * Utilitários de Máscaras
- *
- * Funções para aplicar máscaras em campos de entrada de dados,
- * garantindo formatação consistente em toda a aplicação.
- */
-
-/**
- * Aplica máscara de CNPJ no formato XX.XXX.XXX/XXXX-XX
- * @param value - Valor a ser mascarado
- * @returns String formatada como CNPJ
- */
-export const maskCNPJ = (value: string): string => {
-  return value
-    .replace(/\D/g, "")
-    .replace(/^(\d{2})(\d)/, "$1.$2")
-    .replace(/^(\d{2})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1/$2")
-    .replace(/(\d{4})(\d)/, "$1-$2")
-    .slice(0, 18);
-};
-
-/**
- * Aplica máscara de CEP no formato XXXXX-XXX
- * @param value - Valor a ser mascarado
- * @returns String formatada como CEP
- */
-export const maskCEP = (value: string): string => {
-  return value
-    .replace(/\D/g, "")
-    .replace(/^(\d{5})(\d)/, "$1-$2")
-    .slice(0, 9);
-};
-
-/**
- * Aplica máscara de telefone no formato (XX) XXXXX-XXXX ou (XX) XXXX-XXXX
- * @param value - Valor a ser mascarado
- * @returns String formatada como telefone
- */
-export const maskTelefone = (value: string): string => {
-  return value
-    .replace(/\D/g, "")
-    .replace(/^(\d{2})(\d)/, "($1) $2")
-    .replace(/(\d{4,5})(\d{4})$/, "$1-$2")
-    .slice(0, 15);
-};
-
-/**
- * Aplica máscara de CPF no formato XXX.XXX.XXX-XX
- * @param value - Valor a ser mascarado
- * @returns String formatada como CPF
- */
 export const maskCPF = (value: string): string => {
   return value
     .replace(/\D/g, "")
-    .replace(/^(\d{3})(\d)/, "$1.$2")
-    .replace(/^(\d{3})\.(\d{3})(\d)/, "$1.$2.$3")
-    .replace(/\.(\d{3})(\d)/, ".$1-$2")
-    .slice(0, 14);
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+    .replace(/(-\d{2})\d+?$/, "$1");
 };
 
-/**
- * Remove todos os caracteres não numéricos de uma string
- * @param value - Valor a ser limpo
- * @returns String apenas com números
- */
-export const removeNonNumbers = (value: string): string => {
-  return value.replace(/\D/g, "");
+export const maskCNPJ = (value: string): string => {
+  return value
+    .replace(/\D/g, "")
+    .replace(/(\d{2})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1/$2")
+    .replace(/(\d{4})(\d{1,2})/, "$1-$2")
+    .replace(/(-\d{2})\d+?$/, "$1");
 };
 
-/**
- * Valida se um CNPJ tem o formato correto (apenas números e tamanho)
- * @param cnpj - CNPJ a ser validado
- * @returns Boolean indicando se é válido
- */
-export const isValidCNPJFormat = (cnpj: string): boolean => {
-  const cleanCNPJ = removeNonNumbers(cnpj);
-  return cleanCNPJ.length === 14;
+export const maskCEP = (value: string): string => {
+  return value
+    .replace(/\D/g, "")
+    .replace(/(\d{5})(\d)/, "$1-$2")
+    .replace(/(-\d{3})\d+?$/, "$1");
 };
 
-/**
- * Valida se um CEP tem o formato correto (apenas números e tamanho)
- * @param cep - CEP a ser validado
- * @returns Boolean indicando se é válido
- */
-export const isValidCEPFormat = (cep: string): boolean => {
-  const cleanCEP = removeNonNumbers(cep);
-  return cleanCEP.length === 8;
+export const maskTelefone = (value: string): string => {
+  return value
+    .replace(/\D/g, "")
+    .replace(/(\d{2})(\d)/, "($1) $2")
+    .replace(/(\d{4})(\d)/, "$1-$2")
+    .replace(/(\d{4})-(\d)(\d{4})/, "$1$2-$3")
+    .replace(/(-\d{4})\d+?$/, "$1");
 };
 
-/**
- * Valida se um telefone tem o formato correto (10 ou 11 dígitos)
- * @param telefone - Telefone a ser validado
- * @returns Boolean indicando se é válido
- */
-export const isValidTelefoneFormat = (telefone: string): boolean => {
-  const cleanTelefone = removeNonNumbers(telefone);
-  return cleanTelefone.length >= 10 && cleanTelefone.length <= 11;
+export const validateCPF = (cpf: string): boolean => {
+  const cleanCPF = cpf.replace(/\D/g, "");
+
+  if (cleanCPF.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(cleanCPF)) return false;
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) {
+    sum += parseInt(cleanCPF.charAt(i)) * (10 - i);
+  }
+  let remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleanCPF.charAt(9))) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) {
+    sum += parseInt(cleanCPF.charAt(i)) * (11 - i);
+  }
+  remainder = (sum * 10) % 11;
+  if (remainder === 10 || remainder === 11) remainder = 0;
+  if (remainder !== parseInt(cleanCPF.charAt(10))) return false;
+
+  return true;
+};
+
+export const validateCNPJ = (cnpj: string): boolean => {
+  const cleanCNPJ = cnpj.replace(/\D/g, "");
+
+  if (cleanCNPJ.length !== 14) return false;
+  if (/^(\d)\1{13}$/.test(cleanCNPJ)) return false;
+
+  let sum = 0;
+  let weight = 2;
+  for (let i = 11; i >= 0; i--) {
+    sum += parseInt(cleanCNPJ.charAt(i)) * weight;
+    weight = weight === 9 ? 2 : weight + 1;
+  }
+  let remainder = sum % 11;
+  const firstDigit = remainder < 2 ? 0 : 11 - remainder;
+  if (firstDigit !== parseInt(cleanCNPJ.charAt(12))) return false;
+
+  sum = 0;
+  weight = 2;
+  for (let i = 12; i >= 0; i--) {
+    sum += parseInt(cleanCNPJ.charAt(i)) * weight;
+    weight = weight === 9 ? 2 : weight + 1;
+  }
+  remainder = sum % 11;
+  const secondDigit = remainder < 2 ? 0 : 11 - remainder;
+  if (secondDigit !== parseInt(cleanCNPJ.charAt(13))) return false;
+
+  return true;
 };

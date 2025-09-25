@@ -25,7 +25,7 @@ import { Entity } from "../types/entity";
 // Interface para representar uma entidade conforme retornada pela API
 export interface EntidadeApi {
   entidadeId: number;
-  entidadeNome: string;
+  nome: string;
   cnpj: string;
   urlSite?: string | null;
   urlLogo?: string | null;
@@ -158,7 +158,7 @@ export interface PaginatedResponse {
   duration?: string;
 }
 
-class EntidadeService {
+export class EntidadeService {
   private readonly baseEndpoint = "/entidade";
 
   // Buscar todas as entidades
@@ -267,7 +267,7 @@ class EntidadeService {
     const result = {
       // Dados básicos da entidade
       entidadeId: entidadeApi.entidadeId,
-      nome: entidadeApi.entidadeNome,
+      nome: entidadeApi.nome,
       cnpj: entidadeApi.cnpj || "",
       urlSite: entidadeApi.urlSite || undefined,
       urlLogo: entidadeApi.urlLogo || undefined,

@@ -1,0 +1,94 @@
+# Cursor Rules - ui-ct-one
+
+## Visão Geral do Projeto
+
+
+## Documentação de Referência
+
+
+## Padrões de Desenvolvimento
+
+### 🏗️ Arquitetura
+- **Modular**: Organização por módulos funcionais
+- **SOLID**: Princípios de design orientado a objetos
+- **Dependency Injection**: Via NestJS container
+- **Repository Pattern**: Acesso a dados via Sequelize
+
+
+### 🎨 Padrões de Estilo
+- **Arquivos**: kebab-case (`report-service.ts`)
+- **Classes**: PascalCase (`ReportService`)
+- **Interfaces**: PascalCase com prefixo I (`IReportData`)
+- **Constantes**: UPPER_SNAKE_CASE (`MAX_FILE_SIZE`)
+- **Variáveis/Funções**: camelCase (`generateReport`)
+
+
+## Regras de Desenvolvimento
+
+### ✅ Obrigatório
+1. **Sempre consulte** `docs/REUSABLE_COMPONENTS.md` antes de criar novos utilitários
+2. **Use CommonListing** para listagens paginadas
+4. **Valide inputs** com Class Validator + Zod
+6. **Mantenha arquivos < 300 linhas** - refatore quando necessário
+7. **Use TypeScript** com type safety adequado
+
+### ❌ Proibido
+1. **Não duplique código** - verifique utils existentes primeiro
+2. **Não use `any`** sem justificativa
+3. **Não ignore erros** - sempre trate adequadamente
+4. **Não hardcode** valores - use configurações
+5. **Não sobrescreva** `.env` sem confirmação
+6. **Sempre escreva comentários** no código (regra do projeto)
+
+
+### 🔧 Scripts Importantes
+```bash
+pnpm run start:dev      # Desenvolvimento
+pnpm run build:prod     # Build produção
+pnpm run lint           # ESLint
+pnpm run test           # Testes
+pnpm run start:pm2      # PM2
+```
+
+## Performance
+
+### ⚡ Otimizações
+- **Lazy Loading** para módulos pesados
+- **Caching** em múltiplas camadas
+- **Connection Pooling** para banco
+- **Streams** para arquivos grandes
+
+### 📊 Monitoramento
+- **Logs estruturados** em JSON
+- **Métricas** de performance
+- **Health checks** automáticos
+
+## Segurança
+
+### 🔒 Validações
+- **Input validation** em múltiplas camadas
+- **SQL injection** prevenção via ORM
+- **Rate limiting** via interceptors
+- **CORS** configurado adequadamente
+
+
+### 📋 Checklist
+- [ ] Testes passando
+- [ ] Lint sem erros
+- [ ] Build sem warnings
+- [ ] Variáveis de ambiente configuradas
+- [ ] Logs configurados
+- [ ] Health checks funcionando
+
+## Referências Rápidas
+
+
+
+### 📝 Convenções
+- **Métodos**: `get*`, `create*`, `update*`, `delete*`, `generate*`
+- **Arquivos**: `*.controller.ts`, `*.service.ts`, `*.module.ts`, `*.dto.ts`
+- **Classes**: `*Controller`, `*Service`, `*Module`, `*Dto`
+
+---
+
+**Lembre-se**: Sempre consulte a documentação em `docs/` antes de implementar novas funcionalidades ou modificar componentes existentes. 

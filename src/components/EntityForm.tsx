@@ -255,7 +255,7 @@ export function EntityForm({
 
           {/* CEP e busca manual */}
           <div className="space-y-2 border border-gray-300 rounded-md p-2">
-            <div className="flex gap-2 max-w-[15%]">
+            <div className="flex gap-2 max-w-[20%]">
               <ValidatedInput
                 id="cep"
                 name="cep"

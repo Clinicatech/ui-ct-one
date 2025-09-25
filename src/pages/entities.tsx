@@ -82,7 +82,13 @@ import { DEFAULT_ENTITY_FORM_DATA } from "../constants/entity-constants";
 
 // Interface Entity agora importada de types/entity.ts
 
-export function EntityManagement() {
+interface EntityManagementProps {
+  title?: string;
+}
+
+export function EntityManagement({
+  title = "Gestão de Entidades",
+}: EntityManagementProps) {
   // Estados para gerenciar as entidades e interface
   const [entities, setEntities] = useState<Entity[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -411,7 +417,7 @@ export function EntityManagement() {
       {/* Cabeçalho da página com título e botão de nova entidade */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-semibold">Gestão de Entidades</h2>
+          <h2 className="text-2xl font-semibold">{title}</h2>
         </div>
         <Dialog
           open={isCreateDialogOpen}
@@ -439,7 +445,8 @@ export function EntityManagement() {
             <DialogHeader>
               <DialogTitle>Criar Nova Entidade</DialogTitle>
               <DialogDescription>
-                Preencha as informações da nova entidade
+                Preencha as informações da nova entidade. Os campos marcados com * são
+                obrigatórios.
               </DialogDescription>
             </DialogHeader>
             <EntityForm
@@ -760,7 +767,8 @@ export function EntityManagement() {
           <DialogHeader>
             <DialogTitle>Editar Entidade</DialogTitle>
             <DialogDescription>
-              Atualize as informações da entidade
+              Atualize as informações da entidade. Os campos marcados com * são
+              obrigatórios.
             </DialogDescription>
           </DialogHeader>
           <EntityForm

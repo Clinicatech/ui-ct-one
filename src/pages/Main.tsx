@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { EntityManagement } from "./entities";
 import { NotExists } from "./notExists";
+import { SocioManagement } from "./socios";
 
 interface MainPageProps {
   activeTab?: string;
@@ -242,11 +243,11 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           </TabsContent>
 
           <TabsContent value="partners" className="space-y-6">
-            <NotExists title="Cadastro de Sócios" />
+            <SocioManagement title="Cadastro de Sócios" />
           </TabsContent>
 
           <TabsContent value="entity" className="space-y-6">
-            <EntityManagement />
+            <EntityManagement title="Cadastro de Entidades" />
           </TabsContent>
 
           <TabsContent value="management" className="space-y-6">
