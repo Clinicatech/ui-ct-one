@@ -113,7 +113,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
               <Building2 className="h-8 w-8 text-primary" />
-              <h1 className="text-xl font-semibold">
+              <h1 className="text-xl font-semibold font-nexa-bold">
                 CT One - Gestão ClinicaTech
               </h1>
             </div>
@@ -152,7 +152,9 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
 
           <TabsContent value="overview" className="space-y-6">
             <div>
-              <h2 className="text-2xl font-semibold mb-6">Visão Geral</h2>
+              <h2 className="text-2xl font-semibold mb-6 font-montserrat-medium">
+                Visão Geral
+              </h2>
 
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
