@@ -47,7 +47,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
       setActiveTab("customers");
       return;
     }
-    if (path === '/business-partners') {
+    if (path === "/business-partners") {
       setActiveTab("business-partners");
       return;
     }
@@ -59,7 +59,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
       setActiveTab("users");
       return;
     }
-    if (path === '/partners') {
+    if (path === "/partners") {
       setActiveTab("Sócios");
       return;
     }
@@ -106,9 +106,9 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-blue-50">
       {/* Header */}
-      <header className="bg-gray-300 shadow-sm border-b">
+      <header className="bg-blue-100 shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-4">
             <div className="flex items-center space-x-4">
@@ -119,7 +119,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
             </div>
             <div className="flex items-center space-x-4">
               <span className="text-sm text-muted-foreground">{userEmail}</span>
-              <Button variant="outline" size="sm" onClick={logout}>
+              <Button variant="default" size="sm" onClick={logout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
               </Button>
@@ -129,7 +129,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-gray-400 mt-5">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-blue-50 mt-5">
         <Tabs
           value={activeTab}
           onValueChange={(value) => {
@@ -228,19 +228,19 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           </TabsContent>
 
           <TabsContent value="customers">
-             <NotExists title="Cadastro de Clientes" />
+            <NotExists title="Cadastro de Clientes" />
           </TabsContent>
 
           <TabsContent value="business-partners" className="space-y-6">
-              <NotExists title="Cadastro de Parceiros" />
+            <NotExists title="Cadastro de Parceiros" />
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-6">
-             <NotExists title="Relatórios" />
+            <NotExists title="Relatórios" />
           </TabsContent>
 
           <TabsContent value="partners" className="space-y-6">
-             <NotExists title="Cadastro de Sócios" />
+            <NotExists title="Cadastro de Sócios" />
           </TabsContent>
 
           <TabsContent value="entity" className="space-y-6">
@@ -252,7 +252,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
-              <NotExists title="Cadastro de Usuários" />
+            <NotExists title="Cadastro de Usuários" />
           </TabsContent>
         </Tabs>
       </main>

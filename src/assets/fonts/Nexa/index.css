@@ -1,0 +1,15 @@
+@font-face {
+    font-family: 'NexaLight';
+    src: local('NexaLight'),
+    url('./NexaLight.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'NexaBold';
+    src: local('NexaBold'),
+    url('./NexaBold.otf') format('opentype');
+    font-weight: normal;
+    font-style: normal;
+}

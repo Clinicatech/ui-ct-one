@@ -52,7 +52,7 @@ export function LoginForm() {
       if (response.auth?.accessToken && response.user) {
         // Chama a função de login do contexto de autenticação
         login(email, password);
-                // Redireciona para o main
+        // Redireciona para o main
         navigate("/main");
       } else {
         throw new Error("Dados de autenticação incompletos");
@@ -61,19 +61,18 @@ export function LoginForm() {
       // Limpa storage em caso de erro
       localStorage.removeItem("jwtToken");
       localStorage.removeItem("userData");
-  
+
       if (error instanceof Error) {
         setError(error.message);
         console.error("Erro no login:", error);
       }
-
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-400 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center bg-blue-50 py-12 px-4 sm:px-6 lg:px-8">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-center">ClinicaTech</CardTitle>
