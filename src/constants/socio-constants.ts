@@ -6,7 +6,6 @@ export const DEFAULT_SOCIO_FORM_DATA: SocioFormData = {
     razao: "",
     documento: "",
     tipo: "PF",
-    entidade_id: 0,
     inscricao_estadual: "",
     inscricao_municipal: "",
   },

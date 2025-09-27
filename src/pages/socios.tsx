@@ -100,7 +100,6 @@ export function SocioManagement({
           razao: editingSocio.pessoa.razao,
           documento: editingSocio.pessoa.documento,
           tipo: editingSocio.pessoa.tipo,
-          entidade_id: editingSocio.pessoa.entidade_id,
           inscricao_estadual: editingSocio.pessoa.inscricao_estadual,
           inscricao_municipal: editingSocio.pessoa.inscricao_municipal,
         },
@@ -209,7 +208,6 @@ export function SocioManagement({
         razao: socio.pessoa.razao,
         documento: socio.pessoa.documento,
         tipo: socio.pessoa.tipo,
-        entidade_id: socio.pessoa.entidade_id,
         inscricao_estadual: socio.pessoa.inscricao_estadual,
         inscricao_municipal: socio.pessoa.inscricao_municipal,
       },
@@ -438,7 +436,6 @@ export function SocioManagement({
                     <TableHead>Nome</TableHead>
                     <TableHead>Documento</TableHead>
                     <TableHead>Tipo</TableHead>
-                    <TableHead>Entidade</TableHead>
                     <TableHead>% Rateio</TableHead>
                     <TableHead className="text-right">Ações</TableHead>
                   </TableRow>
@@ -461,7 +458,6 @@ export function SocioManagement({
                           {socio.pessoa.tipo}
                         </span>
                       </TableCell>
-                      <TableCell>{socio.pessoa.entidade_id}</TableCell>
                       <TableCell>{socio.perc_rateio}%</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-2">

@@ -53,7 +53,6 @@ export interface SocioFormData {
     razao?: string | null;
     documento: string;
     tipo: "PF" | "PJ";
-    entidade_id: number;
     inscricao_estadual?: string | null;
     inscricao_municipal?: string | null;
   };

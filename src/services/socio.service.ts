@@ -46,7 +46,6 @@ export class SocioService {
         razao: formData.pessoa.razao || undefined,
         documento: formData.pessoa.documento,
         tipo: formData.pessoa.tipo,
-        entidade_id: Number(formData.pessoa.entidade_id) || 0,
         inscricao_estadual: formData.pessoa.inscricao_estadual || undefined,
         inscricao_municipal: formData.pessoa.inscricao_municipal || undefined,
       },
@@ -68,19 +67,28 @@ export class SocioService {
               uf: formData.endereco.uf || undefined,
             }
           : undefined,
-      dadosBancarios: formData.dadosBancarios
-        ? {
-            banco_id: formData.dadosBancarios.banco_id
-              ? Number(formData.dadosBancarios.banco_id)
-              : undefined,
-            agencia: formData.dadosBancarios.agencia || undefined,
-            conta: formData.dadosBancarios.conta || undefined,
-            conta_tipo: formData.dadosBancarios.conta_tipo || undefined,
-            chave_pix: formData.dadosBancarios.chave_pix || undefined,
-            conta_digito: formData.dadosBancarios.conta_digito || undefined,
-            agencia_digito: formData.dadosBancarios.agencia_digito || undefined,
-          }
-        : undefined,
+      dadosBancarios:
+        formData.dadosBancarios &&
+        (formData.dadosBancarios.banco_id ||
+          formData.dadosBancarios.agencia ||
+          formData.dadosBancarios.conta ||
+          formData.dadosBancarios.conta_tipo ||
+          formData.dadosBancarios.chave_pix ||
+          formData.dadosBancarios.conta_digito ||
+          formData.dadosBancarios.agencia_digito)
+          ? {
+              banco_id: formData.dadosBancarios.banco_id
+                ? Number(formData.dadosBancarios.banco_id)
+                : undefined,
+              agencia: formData.dadosBancarios.agencia || undefined,
+              conta: formData.dadosBancarios.conta || undefined,
+              conta_tipo: formData.dadosBancarios.conta_tipo || undefined,
+              chave_pix: formData.dadosBancarios.chave_pix || undefined,
+              conta_digito: formData.dadosBancarios.conta_digito || undefined,
+              agencia_digito:
+                formData.dadosBancarios.agencia_digito || undefined,
+            }
+          : undefined,
       socioInfo: formData.socioInfo
         ? {
             perc_rateio: Number(formData.socioInfo.perc_rateio) || 0,

@@ -15,7 +15,6 @@ import { maskCPF, maskCNPJ, maskCEP } from "../utils/masks";
 import { ValidatedInput } from "./ui/validated-input";
 import { toast } from "sonner";
 import { SocioFormData } from "../types/socio";
-import { EntidadeService, EntidadeApi } from "../services/entidade.service";
 import { Banco } from "../services/banco.service";
 import {
   TIPO_PESSOA_OPTIONS,
@@ -51,12 +50,9 @@ export function SocioForm({
   const [bancoSelecionado, setBancoSelecionado] = useState<Banco | null>(null);
   const [bancoIdInput, setBancoIdInput] = useState<string>("");
   const [carregandoBancos, setCarregandoBancos] = useState(false);
-  const [entidades, setEntidades] = useState<EntidadeApi[]>([]);
-  const [isLoadingEntidades, setIsLoadingEntidades] = useState(false);
 
   useEffect(() => {
     loadBancos();
-    loadEntidades();
   }, []);
 
   // Sincronizar banco selecionado com formData
@@ -86,22 +82,6 @@ export function SocioForm({
       setBancos([]);
     } finally {
       setCarregandoBancos(false);
-    }
-  };
-
-  const loadEntidades = async () => {
-    setIsLoadingEntidades(true);
-    try {
-      const entidadeService = new EntidadeService();
-      const response = await entidadeService.findAll();
-      console.log("Entidades carregadas:", response);
-      setEntidades(Array.isArray(response) ? response : []);
-    } catch (error) {
-      console.error("Erro ao carregar entidades:", error);
-      toast.error("Erro ao carregar entidades");
-      setEntidades([]);
-    } finally {
-      setIsLoadingEntidades(false);
     }
   };
 
@@ -354,31 +334,6 @@ export function SocioForm({
           )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
-            <div className="space-y-2">
-              <Label htmlFor="entidade_id">Entidade *</Label>
-              <Select
-                value={formData.pessoa.entidade_id?.toString() || ""}
-                onValueChange={(value) =>
-                  handlePessoaChange("entidade_id", parseInt(value))
-                }
-                disabled={isLoadingEntidades}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione a entidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  {entidades?.map((entidade) => (
-                    <SelectItem
-                      key={entidade.entidadeId}
-                      value={entidade.entidadeId?.toString() || ""}
-                    >
-                      {entidade.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             {formData.pessoa.tipo === "PJ" && (
               <div className="space-y-2">
                 <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
