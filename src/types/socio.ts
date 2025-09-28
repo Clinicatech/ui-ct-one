@@ -21,6 +21,8 @@ export interface Socio {
     bairro: string | null;
     cidade: string | null;
     uf: string | null;
+    cidade_codigo?: string | null;
+    uf_codigo?: string | null;
     create_at: Date;
     update_at: Date;
   } | null;
@@ -64,6 +66,8 @@ export interface SocioFormData {
     bairro?: string | null;
     cidade?: string | null;
     uf?: string | null;
+    cidade_codigo?: string | null;
+    uf_codigo?: string | null;
   };
   dadosBancarios?: {
     banco_id?: number;

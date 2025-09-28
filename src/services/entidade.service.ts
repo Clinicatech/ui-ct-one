@@ -25,10 +25,11 @@ import { Entity } from "../types/entity";
 // Interface para representar uma entidade conforme retornada pela API
 export interface EntidadeApi {
   entidadeId: number;
-  nome: string;
+  nome: string; // Campo da view
   cnpj: string;
   urlSite?: string | null;
   urlLogo?: string | null;
+  bancoId?: number; // Campo da view
   //entidadeCreateAt?: string;
   // entidadeUpdateAt?: string;
   enderecos: EnderecoApi[];
@@ -68,7 +69,8 @@ export interface EnderecoApi {
 // Interface para conta bancária da API
 export interface ContaBancariaApi {
   entidadeContaBancariaId: number;
-  bancoId: number;
+  bancoId?: number; // Pode não vir da view atual
+  banco_nome?: string; // Nome do banco se disponível
   agencia: string;
   agenciaDigito?: string;
   conta: string;
@@ -77,6 +79,12 @@ export interface ContaBancariaApi {
   cedenteCodigo?: string;
   cedenteNome?: string;
   chavePix?: string;
+  banco?: {
+    bancoId: number;
+    codigo: string;
+    nome: string;
+    ativo: boolean;
+  };
 }
 
 // Interface para requisição de criação
@@ -94,7 +102,9 @@ export interface CreateEntidadeRequest {
     complemento?: string;
     bairro?: string;
     cidade?: string;
+    cidadeCodigo?: number;
     uf?: string;
+    ufCodigo?: number;
     contatoComercialNome?: string;
     contatoComercialTelefone1?: string;
     contatoComercialTelefone2?: string;
@@ -267,7 +277,7 @@ export class EntidadeService {
     const result = {
       // Dados básicos da entidade
       entidadeId: entidadeApi.entidadeId,
-      nome: entidadeApi.nome,
+      nome: entidadeApi.nome || "",
       cnpj: entidadeApi.cnpj || "",
       urlSite: entidadeApi.urlSite || undefined,
       urlLogo: entidadeApi.urlLogo || undefined,
@@ -309,7 +319,9 @@ export class EntidadeService {
       contatoFinanceiroTelefone3: endereco?.contatoFinanceiroTelefone3 || "",
 
       // Dados bancários
-      bancoId: contaBancaria?.bancoId,
+      bancoId: contaBancaria?.bancoId || contaBancaria?.banco?.bancoId,
+      bancoNome: contaBancaria?.banco?.nome || contaBancaria?.banco_nome || "",
+      bancoCodigo: contaBancaria?.banco?.codigo || "",
       agencia: contaBancaria?.agencia || "",
       agenciaDigito: contaBancaria?.agenciaDigito || "",
       conta: contaBancaria?.conta || "",
@@ -339,7 +351,13 @@ export class EntidadeService {
         complemento: frontendData.complemento,
         bairro: frontendData.bairro,
         cidade: frontendData.cidade,
+        cidadeCodigo: frontendData.cidadeCodigo
+          ? parseInt(frontendData.cidadeCodigo)
+          : undefined,
         uf: frontendData.uf,
+        ufCodigo: frontendData.ufCodigo
+          ? parseInt(frontendData.ufCodigo)
+          : undefined,
         contatoComercialNome: frontendData.contatoComercialNome,
         contatoComercialTelefone1: frontendData.contatoComercialTelefone1,
         contatoComercialTelefone2: frontendData.contatoComercialTelefone2,

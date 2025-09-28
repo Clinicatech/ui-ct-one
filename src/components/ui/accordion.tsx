@@ -1,4 +1,10 @@
 "use client";
+//Accordion é um componente do Radix UI que é usado para criar um accordion.
+//AccordionItem é um componente do Radix UI que é usado para criar um item do accordion.
+//AccordionTrigger é um componente do Radix UI que é usado para criar o trigger do accordion.
+//AccordionContent é um componente do Radix UI que é usado para criar o content do accordion.
+// doc em https://www.radix-ui.com/primitives/docs/components/accordion
+
 
 import * as React from "react";
 import * as AccordionPrimitive from "@radix-ui/react-accordion";

@@ -22,6 +22,8 @@ export interface Entity {
 
   // Campos individuais do formulário (para edição)
   bancoId?: number;
+  bancoNome?: string;
+  bancoCodigo?: string;
   cep?: string;
   logradouro?: string;
   numero?: string;

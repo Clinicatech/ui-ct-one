@@ -21,6 +21,8 @@ export interface Cliente {
     bairro: string | null;
     cidade: string | null;
     uf: string | null;
+    cidade_codigo?: string | null;
+    uf_codigo?: string | null;
     create_at: Date;
     update_at: Date;
   } | null;
@@ -44,6 +46,8 @@ export interface Cliente {
       bairro: string | null;
       cidade: string | null;
       uf: string | null;
+      cidade_codigo?: string | null;
+      uf_codigo?: string | null;
       create_at: Date;
       update_at: Date;
     } | null;
@@ -69,6 +73,8 @@ export interface ClienteFormData {
     bairro?: string | null;
     cidade?: string | null;
     uf?: string | null;
+    cidade_codigo?: string | null;
+    uf_codigo?: string | null;
     contato_comercial_telefone1?: string | null;
     contato_comercial_telefone2?: string | null;
     contato_comercial_email?: string | null;
@@ -89,6 +95,8 @@ export interface ClienteFormData {
     bairro?: string | null;
     cidade?: string | null;
     uf?: string | null;
+    cidade_codigo?: string | null;
+    uf_codigo?: string | null;
     contato_comercial_telefone1?: string | null;
     contato_comercial_telefone2?: string | null;
     contato_comercial_email?: string | null;

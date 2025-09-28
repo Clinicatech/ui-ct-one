@@ -2,6 +2,12 @@ import { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../components/ui/card";
+import {
   Table,
   TableBody,
   TableCell,
@@ -108,11 +114,6 @@ export function ClienteManagement({
             bairro: cliente.endereco.bairro,
             cidade: cliente.endereco.cidade,
             uf: cliente.endereco.uf,
-            contato_comercial_telefone1:
-              cliente.endereco.contato_comercial_telefone1,
-            contato_comercial_telefone2:
-              cliente.endereco.contato_comercial_telefone2,
-            contato_comercial_email: cliente.endereco.contato_comercial_email,
           }
         : undefined,
       responsavel: cliente.responsavel
@@ -181,75 +182,80 @@ export function ClienteManagement({
         </div>
       </div>
 
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Documento</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Responsável</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isLoading ? (
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Clientes ({filteredClientes.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
               <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  Carregando...
-                </TableCell>
+                <TableHead>Nome</TableHead>
+                <TableHead>Documento</TableHead>
+                <TableHead>Tipo</TableHead>
+                <TableHead>Responsável</TableHead>
+                <TableHead className="text-right">Ações</TableHead>
               </TableRow>
-            ) : filteredClientes.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center">
-                  Nenhum cliente encontrado
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredClientes.map((cliente) => (
-                <TableRow key={cliente.cliente_info_id}>
-                  <TableCell className="font-medium">
-                    {cliente.pessoa.nome}
-                  </TableCell>
-                  <TableCell>{cliente.pessoa.documento}</TableCell>
-                  <TableCell>
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                        cliente.pessoa.tipo === "PF"
-                          ? "bg-blue-100 text-blue-800"
-                          : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {cliente.pessoa.tipo}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    {cliente.responsavel ? cliente.responsavel.nome : "-"}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => openEditDialog(cliente)}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDelete(cliente.cliente_info_id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {isLoading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">
+                    Carregando...
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : filteredClientes.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center">
+                    Nenhum cliente encontrado
+                  </TableCell>
+                </TableRow>
+              ) : (
+                filteredClientes.map((cliente) => (
+                  <TableRow key={cliente.cliente_info_id}>
+                    <TableCell className="font-medium">
+                      {cliente.pessoa.nome}
+                    </TableCell>
+                    <TableCell>{cliente.pessoa.documento}</TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                          cliente.pessoa.tipo === "PF"
+                            ? "bg-blue-100 text-blue-800"
+                            : "bg-green-100 text-green-800"
+                        }`}
+                      >
+                        {cliente.pessoa.tipo}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {cliente.responsavel ? cliente.responsavel.nome : "-"}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => openEditDialog(cliente)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDelete(cliente.cliente_info_id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
 
       <ClienteForm
         isOpen={isCreateDialogOpen}

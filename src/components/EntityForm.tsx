@@ -223,7 +223,6 @@ export function EntityForm({
                     urlSite: e.target.value,
                   }))
                 }
-                placeholder="https://www.exemplo.com"
                 disabled={isCreating || isUpdating}
               />
             </div>
@@ -329,7 +328,6 @@ export function EntityForm({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, numero: e.target.value }))
                 }
-                placeholder="123"
                 disabled={isCreating || isUpdating}
               />
             </div>
@@ -408,7 +406,7 @@ export function EntityForm({
                   }))
                 }
                 placeholder="Código IBGE"
-                disabled={isCreating || isUpdating}
+                disabled
               />
             </div>
           </div>

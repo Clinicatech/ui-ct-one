@@ -30,39 +30,13 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "../components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../components/ui/table";
-import {
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  Building2,
-  Loader2,
-  X,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -74,13 +48,22 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../components/ui/alert-dialog";
+import { DataTable, Column } from "../components/ui/data-table";
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Building2,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import { entidadeService } from "../services/entidade.service";
 import { EntityForm } from "../components/EntityForm";
 import { Entity, EntityFormData } from "../types/entity";
 import { DEFAULT_ENTITY_FORM_DATA } from "../constants/entity-constants";
-
-// Interface Entity agora importada de types/entity.ts
 
 interface EntityManagementProps {
   title?: string;
@@ -89,6 +72,126 @@ interface EntityManagementProps {
 export function EntityManagement({
   title = "Gestão de Entidades",
 }: EntityManagementProps) {
+  // Definição das colunas da tabela
+  const columns: Column<Entity>[] = [
+    {
+      key: "entidadeId",
+      header: "Código",
+      render: (entity) => entity.entidadeId || "SEM ID",
+    },
+    {
+      key: "nome",
+      header: "Nome",
+      render: (entity) => (
+        <div className="flex items-center space-x-2">
+          <Building2 className="h-4 w-4 text-muted-foreground" />
+          <span>{entity.nome || "SEM NOME"}</span>
+        </div>
+      ),
+    },
+    {
+      key: "cnpj",
+      header: "CNPJ",
+      className: "font-mono text-sm",
+    },
+    {
+      key: "contato",
+      header: "Contato",
+      render: (entity) => (
+        <div className="text-sm">
+          {entity.enderecos?.[0] ? (
+            <div>
+              <div className="font-medium">
+                {entity.enderecos[0].contatoComercialNome || "Sem nome"}
+              </div>
+              <div className="text-muted-foreground">
+                {entity.enderecos[0].contatoComercialTelefone1 ||
+                  "Sem telefone"}
+              </div>
+            </div>
+          ) : (
+            <span className="text-muted-foreground">Sem contato</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "endereco",
+      header: "Endereço",
+      render: (entity) => (
+        <div className="text-sm">
+          {entity.enderecos?.[0] ? (
+            <div>
+              <div>
+                {entity.enderecos[0].cidade} - {entity.enderecos[0].uf}
+              </div>
+              <div className="text-muted-foreground">
+                {entity.enderecos[0].logradouro}, {entity.enderecos[0].numero}
+              </div>
+            </div>
+          ) : (
+            <span className="text-muted-foreground">Sem endereço</span>
+          )}
+        </div>
+      ),
+    },
+    {
+      key: "actions",
+      header: "Ações",
+      className: "text-right",
+      render: (entity) => (
+        <div className="flex justify-end space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleEdit(entity)}
+            disabled={isUpdating || isDeleting}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isUpdating || isDeleting}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Excluir Entidade</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja excluir a entidade "{entity.nome}"?
+                  Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={isDeleting}>
+                  Cancelar
+                </AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDelete(entity.entidadeId.toString())}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Excluindo...
+                    </>
+                  ) : (
+                    "Excluir"
+                  )}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      ),
+    },
+  ];
+
   // Estados para gerenciar as entidades e interface
   const [entities, setEntities] = useState<Entity[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -98,135 +201,213 @@ export function EntityManagement({
 
   // Estados para controle de carregamento e paginação
   const [isLoading, setIsLoading] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
-  const [activeTab, setActiveTab] = useState("dados-basicos");
-
-  // Estados para controlar mudanças não salvas
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
-
-  // Estados para paginação
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [totalItems, setTotalItems] = useState(0);
-  const [perPage] = useState(3); // Limite temporário de 3 itens por página para testar paginação
+  const [perPage] = useState(10);
 
-  // Ref para controlar o timeout do debounce
-  const searchTimeoutRef = useRef<number | null>(null);
-  // Ref para manter o foco no input de pesquisa
-  const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // Resetar tab ativa quando abrir dialogs
-  useEffect(() => {
-    if (isCreateDialogOpen || isEditDialogOpen) {
-      setActiveTab("dados-basicos");
-    }
-  }, [isCreateDialogOpen, isEditDialogOpen]);
-
-  // Limpar campos quando abrir dialog de criação
-  useEffect(() => {
-    if (isCreateDialogOpen) {
-      setFormData(DEFAULT_ENTITY_FORM_DATA);
-    }
-  }, [isCreateDialogOpen]);
-
-  // Estado do formulário para criação/edição de entidades
+  // Estados para controle de formulário
   const [formData, setFormData] = useState<EntityFormData>(
     DEFAULT_ENTITY_FORM_DATA
   );
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+  const [activeTab, setActiveTab] = useState("dados-basicos");
+  const [isCreating, setIsCreating] = useState(false);
 
-  // Função para carregar entidades da API (memoizada para evitar re-criação)
-  const loadEntities = useCallback(
-    async (searchTerm?: string, page: number = 1) => {
+  // Refs para debounce
+  const searchTimeoutRef = useRef<number | null>(null);
+
+  // Filtros e paginação
+  const filteredEntities = useMemo(() => {
+    if (!searchTerm || searchTerm.length < 2) {
+      return entities;
+    }
+
+    const term = searchTerm.toLowerCase();
+    return entities.filter((entity) => {
+      return (
+        entity.nome?.toLowerCase().includes(term) ||
+        entity.cnpj?.toLowerCase().includes(term) ||
+        entity.enderecos?.[0]?.contatoComercialNome
+          ?.toLowerCase()
+          .includes(term) ||
+        entity.enderecos?.[0]?.cidade?.toLowerCase().includes(term)
+      );
+    });
+  }, [entities, searchTerm]);
+
+  const totalItems = filteredEntities.length;
+  const totalPages = Math.ceil(totalItems / perPage);
+  const startIndex = (currentPage - 1) * perPage;
+  const endIndex = startIndex + perPage;
+  const currentEntities = filteredEntities.slice(startIndex, endIndex);
+
+  // Função para carregar entidades
+  const loadEntities = useCallback(async () => {
+    try {
       setIsLoading(true);
-      try {
-        let response;
+      const response = await entidadeService.findAllView({
+        page: 1,
+        limit: 1000, // Carregar todas as entidades
+      });
+      const convertedData = response.data.map((entidade) =>
+        entidadeService.convertToFrontendFormat(entidade)
+      );
+      setEntities(convertedData);
+    } catch (error) {
+      console.error("Erro ao carregar entidades:", error);
+      toast.error("Erro ao carregar entidades");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
-        // Usar endpoint com filtros e paginação
-        if (searchTerm && searchTerm.trim()) {
-          response = await entidadeService.findAllView({
-            search: searchTerm.trim(),
-            page: page,
-            limit: perPage,
-          });
-        } else {
-          response = await entidadeService.findAllView({
-            page: page,
-            limit: perPage,
-          });
-        }
+  // Função para lidar com mudanças no termo de pesquisa
+  const handleSearchChange = useCallback((value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1); // Reset para primeira página ao pesquisar
 
-        // Atualizar estados de paginação
-        setTotalPages(response.totalPages || 1);
-        setTotalItems(response.totalItems || 0);
-        setCurrentPage(response.page || page);
+    // Debounce para evitar muitas requisições
+    if (searchTimeoutRef.current) {
+      clearTimeout(searchTimeoutRef.current);
+    }
 
-        // Validar se data é um array válido
-        if (!Array.isArray(response.data)) {
-          console.error("Resposta da API não é um array:", response.data);
-          setEntities([]);
-          return;
-        }
+    searchTimeoutRef.current = setTimeout(() => {
+      // Aqui você pode adicionar lógica adicional se necessário
+    }, 300);
+  }, []);
 
-        const entitiesFormatted = response.data.map(
-          entidadeService.convertToFrontendFormat
-        );
+  // Função para lidar com mudanças na página
+  const handlePageChange = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
 
-        setEntities(entitiesFormatted);
-      } catch (error) {
-        console.error("Erro ao carregar entidades:", error);
-        toast.error("Erro ao carregar entidades");
-        setEntities([]); // Limpar lista em caso de erro
-      } finally {
-        setIsLoading(false);
-      }
+  // Função para abrir dialog de criação
+  const openCreateDialog = useCallback(() => {
+    setFormData(DEFAULT_ENTITY_FORM_DATA);
+    setHasUnsavedChanges(false);
+    setActiveTab("dados-basicos");
+    setIsCreating(true);
+    setIsCreateDialogOpen(true);
+  }, []);
+
+  // Função para fechar dialog de criação
+  const closeCreateDialog = useCallback(() => {
+    if (hasUnsavedChanges) {
+      setShowCloseConfirmation(true);
+    } else {
+      setIsCreateDialogOpen(false);
+      setFormData(DEFAULT_ENTITY_FORM_DATA);
+      setHasUnsavedChanges(false);
+      setIsCreating(false);
+    }
+  }, [hasUnsavedChanges]);
+
+  // Função para abrir dialog de edição
+  const handleEdit = useCallback((entity: Entity) => {
+    setEditingEntity(entity);
+    // Usar os dados já convertidos corretamente pelo convertToFrontendFormat
+    setFormData(entity);
+    setHasUnsavedChanges(false);
+    setActiveTab("dados-basicos");
+    setIsCreating(false);
+    setIsEditDialogOpen(true);
+  }, []);
+
+  // Função para lidar com mudanças no formulário
+  const handleFormDataChange = useCallback(
+    (
+      newFormData: EntityFormData | ((prev: EntityFormData) => EntityFormData)
+    ) => {
+      setFormData(newFormData);
+      setHasUnsavedChanges(true);
     },
-    [perPage]
+    []
   );
 
-  // Carregar entidades quando o componente for montado
+  // Função para criar entidade
+  const handleCreate = useCallback(async () => {
+    try {
+      setIsUpdating(true);
+      const apiData = entidadeService.convertToApiFormat(formData);
+      await entidadeService.create(apiData);
+      toast.success("Entidade criada com sucesso!");
+      setIsCreateDialogOpen(false);
+      setFormData(DEFAULT_ENTITY_FORM_DATA);
+      setHasUnsavedChanges(false);
+      setIsCreating(false);
+      await loadEntities();
+    } catch (error) {
+      console.error("Erro ao criar entidade:", error);
+      toast.error("Erro ao criar entidade");
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [formData, loadEntities]);
+
+  // Função para atualizar entidade
+  const handleUpdate = useCallback(async () => {
+    if (!editingEntity) return;
+
+    try {
+      setIsUpdating(true);
+      const apiData = entidadeService.convertToApiFormat(formData);
+      await entidadeService.update(editingEntity.entidadeId, apiData);
+      toast.success("Entidade atualizada com sucesso!");
+      setIsEditDialogOpen(false);
+      setEditingEntity(null);
+      setFormData(DEFAULT_ENTITY_FORM_DATA);
+      setHasUnsavedChanges(false);
+      await loadEntities();
+    } catch (error) {
+      console.error("Erro ao atualizar entidade:", error);
+      toast.error("Erro ao atualizar entidade");
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [editingEntity, formData, loadEntities]);
+
+  // Função para excluir entidade
+  const handleDelete = useCallback(
+    async (id: string) => {
+      try {
+        setIsDeleting(true);
+        await entidadeService.delete(parseInt(id));
+        toast.success("Entidade excluída com sucesso!");
+        await loadEntities();
+      } catch (error) {
+        console.error("Erro ao excluir entidade:", error);
+        toast.error("Erro ao excluir entidade");
+      } finally {
+        setIsDeleting(false);
+      }
+    },
+    [loadEntities]
+  );
+
+  // Função para fechar dialog com confirmação
+  const handleCloseDialog = useCallback((type: "create" | "edit") => {
+    if (type === "create") {
+      setIsCreateDialogOpen(false);
+      setFormData(DEFAULT_ENTITY_FORM_DATA);
+      setHasUnsavedChanges(false);
+      setIsCreating(false);
+    } else {
+      setIsEditDialogOpen(false);
+      setEditingEntity(null);
+      setFormData(DEFAULT_ENTITY_FORM_DATA);
+      setHasUnsavedChanges(false);
+    }
+    setShowCloseConfirmation(false);
+  }, []);
+
+  // Carregar entidades ao montar o componente
   useEffect(() => {
     loadEntities();
   }, [loadEntities]);
 
-  // Função para lidar com mudanças no termo de pesquisa com debounce
-  const handleSearchChange = useCallback(
-    (newSearchTerm: string) => {
-      // Limpar timeout anterior se existir
-      if (searchTimeoutRef.current) {
-        clearTimeout(searchTimeoutRef.current);
-      }
-
-      // Definir novo timeout
-      searchTimeoutRef.current = setTimeout(() => {
-        if (newSearchTerm !== "" && newSearchTerm.length >= 2) {
-          // Só pesquisar se tiver pelo menos 2 caracteres
-          setCurrentPage(1); // Resetar para primeira página
-          loadEntities(newSearchTerm, 1);
-        } else if (newSearchTerm === "") {
-          // Se estiver vazio, carregar todas
-          setCurrentPage(1); // Resetar para primeira página
-          loadEntities(undefined, 1);
-        }
-        // Se tiver 1 caractere, não fazer nada (aguardar mais caracteres)
-      }, 500);
-    },
-    [perPage]
-  );
-
-  // Debounce para pesquisa - aguarda 500ms após o usuário parar de digitar
-  useEffect(() => {
-    // Não executar na primeira renderização (quando searchTerm está vazio)
-    if (searchTerm === "" && entities.length === 0) {
-      return;
-    }
-
-    handleSearchChange(searchTerm);
-  }, [searchTerm, handleSearchChange]);
-
-  // Limpar timeout quando o componente for desmontado
+  // Cleanup do timeout ao desmontar
   useEffect(() => {
     return () => {
       if (searchTimeoutRef.current) {
@@ -235,516 +416,156 @@ export function EntityManagement({
     };
   }, []);
 
-  // Restaurar foco no input de pesquisa após carregamento
-  useEffect(() => {
-    if (!isLoading && searchInputRef.current && searchTerm) {
-      // Pequeno delay para garantir que o DOM foi atualizado
-      setTimeout(() => {
-        searchInputRef.current?.focus();
-      }, 0);
-    }
-  }, [isLoading, searchTerm]);
-
-  // Função para mudar de página
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-    loadEntities(searchTerm || undefined, page);
-  };
-
-  // Função para detectar mudanças no formulário
-  const handleFormDataChange = useCallback((newFormData: any) => {
-    setFormData(newFormData);
-    setHasUnsavedChanges(true);
-  }, []);
-
-  // Função para fechar dialog com confirmação
-  const handleCloseDialog = useCallback(
-    (dialogType: "create" | "edit") => {
-      if (hasUnsavedChanges) {
-        setShowCloseConfirmation(true);
-      } else {
-        if (dialogType === "create") {
-          setIsCreateDialogOpen(false);
-          setFormData(DEFAULT_ENTITY_FORM_DATA);
-        } else {
-          setIsEditDialogOpen(false);
-          setEditingEntity(null);
-        }
-        setHasUnsavedChanges(false);
-      }
-    },
-    [hasUnsavedChanges]
-  );
-
-  // Função para confirmar fechamento
-  const confirmClose = useCallback(() => {
-    setShowCloseConfirmation(false);
-    setHasUnsavedChanges(false);
-    setIsCreateDialogOpen(false);
-    setIsEditDialogOpen(false);
-    setEditingEntity(null);
-    setFormData(DEFAULT_ENTITY_FORM_DATA);
-  }, []);
-
-  // Função para cancelar fechamento
-  const cancelClose = useCallback(() => {
-    setShowCloseConfirmation(false);
-  }, []);
-
-  // Usar todas as entidades (filtros são feitos na API)
-  const filteredEntities = useMemo(() => {
-    return entities;
-  }, [entities]);
-
-  // Função para criar nova entidade via API
-  const handleCreate = async () => {
-    if (!formData.nome || !formData.cnpj) {
-      toast.error("Por favor, preencha todos os campos obrigatórios");
-      return;
-    }
-
-    setIsCreating(true);
-    try {
-      // Converter dados do frontend para formato da API
-      const apiData = entidadeService.convertToApiFormat(formData);
-
-      // Criar entidade na API
-      const newEntityApi = await entidadeService.create(apiData);
-
-      // Converter resposta da API para formato do frontend
-      const newEntity =
-        entidadeService.convertCreateUpdateToFrontendFormat(newEntityApi);
-
-      // Adicionar nova entidade à lista local
-      setEntities((prevEntities) => [...prevEntities, newEntity]);
-
-      // Limpar formulário e fechar dialog
-      setFormData(DEFAULT_ENTITY_FORM_DATA);
-      setHasUnsavedChanges(false);
-      setIsCreateDialogOpen(false);
-      toast.success("Entidade criada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao criar entidade:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Erro ao criar entidade";
-      toast.error(errorMessage);
-    } finally {
-      setIsCreating(false);
-    }
-  };
-
-  // Função para iniciar edição de entidade
-  const handleEdit = (entity: Entity) => {
-    setEditingEntity(entity);
-    setFormData(entity); // Agora Entity e EntityFormData são a mesma coisa
-    setActiveTab("dados-basicos"); // Resetar para primeira tab
-    setHasUnsavedChanges(false); // Resetar estado de mudanças
-    setIsEditDialogOpen(true);
-  };
-
-  // Função para atualizar entidade via API
-  const handleUpdate = async () => {
-    if (!formData.nome || !formData.cnpj) {
-      toast.error("Por favor, preencha todos os campos obrigatórios");
-      return;
-    }
-
-    if (!editingEntity) return;
-
-    setIsUpdating(true);
-    try {
-      // Converter dados do frontend para formato de atualização da API
-      const updateData = entidadeService.convertToApiFormat(formData);
-
-      // Atualizar entidade na API
-      const updatedEntityApi = await entidadeService.update(
-        editingEntity.entidadeId,
-        updateData
-      );
-
-      const updatedEntity =
-        entidadeService.convertCreateUpdateToFrontendFormat(updatedEntityApi);
-
-      // Atualizar entidade na lista local
-      setEntities((prevEntities) =>
-        prevEntities.map((entity) =>
-          entity.entidadeId === editingEntity.entidadeId
-            ? updatedEntity
-            : entity
-        )
-      );
-
-      // Limpar estado e fechar dialog
-      setEditingEntity(null);
-      setFormData(DEFAULT_ENTITY_FORM_DATA);
-      setHasUnsavedChanges(false);
-      setIsEditDialogOpen(false);
-      toast.success("Entidade atualizada com sucesso!");
-    } catch (error) {
-      console.error("Erro ao atualizar entidade:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Erro ao atualizar entidade";
-      toast.error(errorMessage);
-    } finally {
-      setIsUpdating(false);
-    }
-  };
-
-  // Função para excluir entidade via API
-  const handleDelete = async (id: string) => {
-    setIsDeleting(true);
-    try {
-      // Excluir entidade na API
-      await entidadeService.delete(parseInt(id));
-
-      // Atualizar lista local
-      setEntities(
-        entities.filter((entity) => entity.entidadeId !== parseInt(id))
-      );
-      toast.success("Entidade excluída com sucesso!");
-    } catch (error) {
-      console.error("Erro ao excluir entidade:", error);
-      const errorMessage =
-        error instanceof Error ? error.message : "Erro ao excluir entidade";
-      toast.error(errorMessage);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   return (
     <div className="space-y-6">
-      {/* Cabeçalho da página com título e botão de nova entidade */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h2 className="text-2xl font-semibold">{title}</h2>
-        </div>
-        <Dialog
-          open={isCreateDialogOpen}
-          onOpenChange={(open) => {
-            if (open) {
-              setIsCreateDialogOpen(true);
-            } else {
-              if (hasUnsavedChanges) {
-                setShowCloseConfirmation(true);
-              } else {
-                setIsCreateDialogOpen(false);
-                setFormData(DEFAULT_ENTITY_FORM_DATA);
-                setHasUnsavedChanges(false);
-              }
-            }
-          }}
-        >
-          <DialogTrigger asChild>
-            <Button disabled={isLoading}>
-              <Plus className="h-4 w-4 mr-2" />
-              Nova Entidade
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="min-w-[65vw] min-h-[35vw] max-h-[35vw] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Criar Nova Entidade</DialogTitle>
-              <DialogDescription>
-                Preencha as informações da nova entidade. Os campos marcados com * são
-                obrigatórios.
-              </DialogDescription>
-            </DialogHeader>
-            <EntityForm
-              formData={formData}
-              setFormData={handleFormDataChange}
-              isCreating={isCreating}
-              isUpdating={isUpdating}
-              activeTab={activeTab}
-              setActiveTab={setActiveTab}
-            />
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => handleCloseDialog("create")}
-                disabled={isCreating}
-              >
-                Cancelar
-              </Button>
-              <Button onClick={handleCreate} disabled={isCreating}>
-                {isCreating ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Criando...
-                  </>
-                ) : (
-                  "Criar Entidade"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold tracking-tight">{title}</h1>
+        <Button onClick={openCreateDialog}>
+          <Plus className="mr-2 h-4 w-4" />
+          Nova Entidade
+        </Button>
       </div>
 
-      {/* Seção de pesquisa e filtros */}
-      <Card>
-        <CardContent>
-          <div className="flex gap-4 max-h-5">
-            <div className="flex-1 mt-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  ref={searchInputRef}
-                  placeholder={
-                    searchTerm.length === 1
-                      ? "Digite pelo menos 2 caracteres para pesquisar..."
-                      : "Pesquisar por razão social ou CNPJ..."
-                  }
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-10"
-                  disabled={isLoading}
-                  autoComplete="off"
-                />
-                {searchTerm && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="absolute right-1 top-1 h-8 w-8 p-0"
-                    onClick={() => setSearchTerm("")}
-                    disabled={isLoading}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            </div>
+      {/* Barra de pesquisa */}
+      <div className="flex items-center space-x-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Pesquisar entidades..."
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+      </div>
+
+      <DataTable
+        title="Lista de Entidades"
+        data={currentEntities}
+        columns={columns}
+        isLoading={isLoading}
+        loadingText="Carregando entidades..."
+        emptyText="Nenhuma entidade encontrada"
+        keyExtractor={(entity) =>
+          entity.entidadeId || `entity-${Math.random()}`
+        }
+      />
+
+      {/* Paginação */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-2 py-4">
+          <div className="text-sm text-muted-foreground">
+            Mostrando {startIndex + 1} a {Math.min(endIndex, totalItems)} de{" "}
+            {totalItems} entidades
           </div>
-        </CardContent>
-      </Card>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1 || isLoading}
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Anterior
+            </Button>
 
-      {/* Tabela de entidades */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Entidades ({filteredEntities.length})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="flex items-center justify-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin mr-2" />
-              <span>Carregando entidades...</span>
+            <div className="flex items-center space-x-1">
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+
+                return (
+                  <Button
+                    key={pageNum}
+                    variant={currentPage === pageNum ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => handlePageChange(pageNum)}
+                    disabled={isLoading}
+                    className="w-8 h-8 p-0"
+                  >
+                    {pageNum}
+                  </Button>
+                );
+              })}
             </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Código</TableHead>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>CNPJ</TableHead>
-                    <TableHead>Contato</TableHead>
-                    <TableHead>Endereço</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredEntities.map((entity, index) => {
-                    return (
-                      <TableRow key={entity.entidadeId || `entity-${index}`}>
-                        <TableCell>{entity.entidadeId || "SEM ID"}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center space-x-2">
-                            <Building2 className="h-4 w-4 text-muted-foreground" />
-                            <span>{entity.nome || "SEM NOME"}</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {entity.cnpj}
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {entity.enderecos?.[0] ? (
-                              <div>
-                                <div className="font-medium">
-                                  {entity.enderecos[0].contatoComercialNome ||
-                                    "Sem nome"}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  {entity.enderecos[0]
-                                    .contatoComercialTelefone1 ||
-                                    "Sem telefone"}
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">
-                                Sem contato
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="text-sm">
-                            {entity.enderecos?.[0] ? (
-                              <div>
-                                <div>
-                                  {entity.enderecos[0].cidade} -{" "}
-                                  {entity.enderecos[0].uf}
-                                </div>
-                                <div className="text-muted-foreground">
-                                  {entity.enderecos[0].logradouro},{" "}
-                                  {entity.enderecos[0].numero}
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="text-muted-foreground">
-                                Sem endereço
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => handleEdit(entity)}
-                              disabled={isUpdating || isDeleting}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  disabled={isUpdating || isDeleting}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>
-                                    Excluir Entidade
-                                  </AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Tem certeza que deseja excluir a entidade "
-                                    {entity.nome}"? Esta ação não pode ser
-                                    desfeita.
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel disabled={isDeleting}>
-                                    Cancelar
-                                  </AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() =>
-                                      handleDelete(entity.entidadeId.toString())
-                                    }
-                                    disabled={isDeleting}
-                                  >
-                                    {isDeleting ? (
-                                      <>
-                                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                        Excluindo...
-                                      </>
-                                    ) : (
-                                      "Excluir"
-                                    )}
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
 
-              {filteredEntities.length === 0 && !isLoading && (
-                <div className="text-center py-8">
-                  <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                  <h3 className="text-lg font-medium mb-2">
-                    {searchTerm.length === 1
-                      ? "Digite pelo menos 2 caracteres para pesquisar"
-                      : searchTerm.length >= 2
-                      ? "Nenhuma entidade encontrada"
-                      : "Nenhuma entidade encontrada"}
-                  </h3>
-                  <p className="text-muted-foreground">
-                    {searchTerm.length === 1
-                      ? "A pesquisa requer pelo menos 2 caracteres"
-                      : searchTerm.length >= 2
-                      ? "Tente ajustar os filtros de pesquisa"
-                      : "Comece criando uma nova entidade"}
-                  </p>
-                </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || isLoading}
+            >
+              Próxima
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Dialog de criação de entidade */}
+      <Dialog
+        open={isCreateDialogOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            setIsCreateDialogOpen(true);
+            return;
+          }
+
+          if (hasUnsavedChanges) {
+            setShowCloseConfirmation(true);
+          } else {
+            setIsCreateDialogOpen(false);
+            setFormData(DEFAULT_ENTITY_FORM_DATA);
+            setHasUnsavedChanges(false);
+            setIsCreating(false);
+          }
+        }}
+      >
+        <DialogContent className="min-w-[65vw] min-h-[35vw] max-h-[35vw] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Nova Entidade</DialogTitle>
+            <DialogDescription>
+              Preencha as informações da nova entidade. Os campos marcados com *
+              são obrigatórios.
+            </DialogDescription>
+          </DialogHeader>
+          <EntityForm
+            formData={formData}
+            setFormData={handleFormDataChange}
+            isCreating={isCreating}
+            isUpdating={isUpdating}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={closeCreateDialog}
+              disabled={isUpdating}
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleCreate} disabled={isUpdating}>
+              {isUpdating ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Criando...
+                </>
+              ) : (
+                "Criar Entidade"
               )}
-
-              {/* Paginação */}
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between px-2 py-4">
-                  <div className="text-sm text-muted-foreground">
-                    Mostrando {(currentPage - 1) * perPage + 1} a{" "}
-                    {Math.min(currentPage * perPage, totalItems)} de{" "}
-                    {totalItems} entidades
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1 || isLoading}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                      Anterior
-                    </Button>
-
-                    <div className="flex items-center space-x-1">
-                      {Array.from(
-                        { length: Math.min(5, totalPages) },
-                        (_, i) => {
-                          let pageNum;
-                          if (totalPages <= 5) {
-                            pageNum = i + 1;
-                          } else if (currentPage <= 3) {
-                            pageNum = i + 1;
-                          } else if (currentPage >= totalPages - 2) {
-                            pageNum = totalPages - 4 + i;
-                          } else {
-                            pageNum = currentPage - 2 + i;
-                          }
-
-                          return (
-                            <Button
-                              key={pageNum}
-                              variant={
-                                currentPage === pageNum ? "default" : "outline"
-                              }
-                              size="sm"
-                              onClick={() => handlePageChange(pageNum)}
-                              disabled={isLoading}
-                              className="w-8 h-8 p-0"
-                            >
-                              {pageNum}
-                            </Button>
-                          );
-                        }
-                      )}
-                    </div>
-
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages || isLoading}
-                    >
-                      Próxima
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog de edição de entidade */}
       <Dialog
@@ -752,14 +573,15 @@ export function EntityManagement({
         onOpenChange={(open) => {
           if (open) {
             setIsEditDialogOpen(true);
+            return;
+          }
+
+          if (hasUnsavedChanges) {
+            setShowCloseConfirmation(true);
           } else {
-            if (hasUnsavedChanges) {
-              setShowCloseConfirmation(true);
-            } else {
-              setIsEditDialogOpen(false);
-              setEditingEntity(null);
-              setHasUnsavedChanges(false);
-            }
+            setIsEditDialogOpen(false);
+            setEditingEntity(null);
+            setHasUnsavedChanges(false);
           }
         }}
       >
@@ -790,36 +612,48 @@ export function EntityManagement({
             <Button onClick={handleUpdate} disabled={isUpdating}>
               {isUpdating ? (
                 <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Salvando...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Atualizando...
                 </>
               ) : (
-                "Salvar Alterações"
+                "Atualizar Entidade"
               )}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Dialog de confirmação para fechar com mudanças não salvas */}
+      {/* Dialog de confirmação de fechamento */}
       <Dialog
         open={showCloseConfirmation}
         onOpenChange={setShowCloseConfirmation}
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Mudanças não salvas</DialogTitle>
+            <DialogTitle>Descartar alterações?</DialogTitle>
             <DialogDescription>
-              Você tem mudanças não salvas. Tem certeza que deseja fechar sem
-              salvar?
+              Você tem alterações não salvas. Tem certeza que deseja descartar
+              essas alterações?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={cancelClose}>
+            <Button
+              variant="outline"
+              onClick={() => setShowCloseConfirmation(false)}
+            >
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={confirmClose}>
-              Fechar sem salvar
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (isCreateDialogOpen) {
+                  handleCloseDialog("create");
+                } else {
+                  handleCloseDialog("edit");
+                }
+              }}
+            >
+              Descartar
             </Button>
           </DialogFooter>
         </DialogContent>

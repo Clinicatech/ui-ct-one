@@ -2,12 +2,6 @@ import { useState, useMemo, useEffect, useCallback, useRef } from "react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "../components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -16,24 +10,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "../components/ui/dialog";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../components/ui/table";
-import {
-  Search,
-  Plus,
-  Edit,
-  Trash2,
-  User,
-  Loader2,
-  ChevronLeft,
-  ChevronRight,
-} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -45,6 +21,16 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../components/ui/alert-dialog";
+import { DataTable, Column } from "../components/ui/data-table";
+import {
+  Search,
+  Plus,
+  Edit,
+  Trash2,
+  Loader2,
+  ChevronLeft,
+  ChevronRight,
+} from "lucide-react";
 import { toast } from "sonner";
 import { socioService } from "../services/socio.service";
 import { SocioForm } from "../components/SocioForm";
@@ -55,9 +41,99 @@ interface SocioManagementProps {
   title?: string;
 }
 
+//esta função cria a pagina de gestão de sócios
 export function SocioManagement({
   title = "Gestão de Sócios",
 }: SocioManagementProps) {
+  // Definição das colunas da tabela
+  const columns: Column<Socio>[] = [
+    {
+      key: "pessoa.nome",
+      header: "Nome",
+      render: (socio) => (
+        <span className="font-medium">{socio.pessoa.nome}</span>
+      ),
+    },
+    {
+      key: "pessoa.documento",
+      header: "Documento",
+      render: (socio) => socio.pessoa.documento,
+    },
+    {
+      key: "pessoa.tipo",
+      header: "Tipo",
+      render: (socio) => (
+        <span
+          className={`px-2 py-1 rounded-full text-xs ${
+            socio.pessoa.tipo === "PF"
+              ? "bg-blue-100 text-blue-800"
+              : "bg-green-100 text-green-800"
+          }`}
+        >
+          {socio.pessoa.tipo}
+        </span>
+      ),
+    },
+    {
+      key: "perc_rateio",
+      header: "% Rateio",
+      render: (socio) => `${socio.perc_rateio}%`,
+    },
+    {
+      key: "actions",
+      header: "Ações",
+      className: "text-right",
+      render: (socio) => (
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => handleEdit(socio)}>
+            <Edit className="w-4 h-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="outline" size="sm">
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Tem certeza que deseja remover o sócio "{socio.pessoa.nome}"?
+                  Esta ação não pode ser desfeita.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={() => handleDelete(socio)}
+                  disabled={isDeleting}
+                >
+                  {isDeleting && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
+                  Remover
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      ),
+    },
+  ];
+  // O useState é um Hook do React que permite adicionar estado a componentes funcionais.
+  // Ele retorna um array com dois elementos: o valor atual do estado e uma função para atualizá-lo.
+  // socios: variável que armazena o valor atual do estado
+  // setSocios: função para atualizar o estado
+  // O React rerenderiza o componente quando o estado muda
+  // exemplo:
+  //  const adicionarSocio = () => {
+  //   const novoSocio: Socio = {
+  //     id: 1,
+  //     nome: "João",
+  //     idade: 30
+  //   };
+  //   setSocios([...socios, novoSocio]);
+  // };
   const [socios, setSocios] = useState<Socio[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingSocio, setEditingSocio] = useState<Socio | null>(null);
@@ -78,8 +154,34 @@ export function SocioManagement({
   const [totalItems, setTotalItems] = useState(0);
   const [perPage] = useState(10);
 
+  //   O useRef é um Hook do React que retorna um objeto mutável cuja propriedade .current é inicializada com o valor passado como argumento. Ele é útil para:
+  // Acessar elementos DOM diretamente
+  // Armazenar valores que persistem entre renderizações
+  // Manter valores que não causam rerender quando alterados
+  // exemplo:
+  // function Component() {
+  //   const renderCount = useRef(0);
+
+  //   renderCount.current += 1; // Não causa rerender!
+
+  //   return <div>Renderizou {renderCount.current} vezes</div>;
+  // }
+
+  // useState	useRef
+  // Causa rerender quando alterado	Não causa rerender
+  // Valor imutável (usa setter)	Valor mutável (diretamente em .current)
+  // Ideal para estado da UI	Ideal para valores "internos"
+
   const searchTimeoutRef = useRef<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
+
+  // O useEffect é um Hook do React que permite executar efeitos colaterais em componentes funcionais
+  // Ele é útil para:
+  // Executar efeitos colaterais
+  // Limpar efeitos
+  // Executar efeitos quando o componente é montado
+  // Executar efeitos quando o componente é atualizado
+  // Executar efeitos quando o componente é desmontado
 
   useEffect(() => {
     if (isCreateDialogOpen || isEditDialogOpen) {
@@ -241,10 +343,11 @@ export function SocioManagement({
     setHasUnsavedChanges(false);
     setIsEditDialogOpen(true);
   };
-
+  //botão  Atualizar Sócio dispara esta função
   const handleUpdate = async () => {
+    // Early return/guard clause
     if (!editingSocio) return;
-
+    // Inicia o estado de atualização
     setIsUpdating(true);
     try {
       const apiData = socioService.convertToApiFormat(formData);
@@ -277,7 +380,7 @@ export function SocioManagement({
       setIsUpdating(false);
     }
   };
-
+  //botão Remover Sócio dispara esta função
   const handleDelete = async (socio: Socio) => {
     setIsDeleting(true);
     try {
@@ -295,7 +398,7 @@ export function SocioManagement({
       setIsDeleting(false);
     }
   };
-
+  // Função para atualizar o estado do formulário
   const handleFormDataChange = (newFormData: SocioFormData) => {
     setFormData(newFormData);
     setHasUnsavedChanges(true);
@@ -334,7 +437,7 @@ export function SocioManagement({
   const cancelClose = useCallback(() => {
     setShowCloseConfirmation(false);
   }, []);
-
+  // Função para atualizar a página
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
@@ -352,14 +455,15 @@ export function SocioManagement({
           onOpenChange={(open) => {
             if (open) {
               setIsCreateDialogOpen(true);
+              return;
+            }
+
+            if (hasUnsavedChanges) {
+              setShowCloseConfirmation(true);
             } else {
-              if (hasUnsavedChanges) {
-                setShowCloseConfirmation(true);
-              } else {
-                setIsCreateDialogOpen(false);
-                setFormData(DEFAULT_SOCIO_FORM_DATA);
-                setHasUnsavedChanges(false);
-              }
+              setIsCreateDialogOpen(false);
+              setFormData(DEFAULT_SOCIO_FORM_DATA);
+              setHasUnsavedChanges(false);
             }
           }}
         >
@@ -403,142 +507,58 @@ export function SocioManagement({
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Lista de Sócios
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center space-x-2 mb-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                ref={searchInputRef}
-                placeholder="Pesquisar sócios..."
-                value={searchTerm}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                className="pl-8"
-              />
-            </div>
+      <div className="flex items-center space-x-2 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            ref={searchInputRef}
+            placeholder="Pesquisar sócios..."
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="pl-8"
+          />
+        </div>
+      </div>
+
+      <DataTable
+        title="Lista de Sócios"
+        data={currentSocios}
+        columns={columns}
+        isLoading={isLoading}
+        loadingText="Carregando sócios..."
+        emptyText="Nenhum sócio encontrado"
+        keyExtractor={(socio) => socio.socio_info_id}
+      />
+
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between mt-4">
+          <div className="text-sm text-muted-foreground">
+            Mostrando {startIndex + 1} a {Math.min(endIndex, totalItems)} de{" "}
+            {totalItems} sócios
           </div>
-
-          {isLoading ? (
-            <div className="flex justify-center items-center py-8">
-              <Loader2 className="h-8 w-8 animate-spin" />
-            </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nome</TableHead>
-                    <TableHead>Documento</TableHead>
-                    <TableHead>Tipo</TableHead>
-                    <TableHead>% Rateio</TableHead>
-                    <TableHead className="text-right">Ações</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {currentSocios.map((socio) => (
-                    <TableRow key={socio.socio_info_id}>
-                      <TableCell className="font-medium">
-                        {socio.pessoa.nome}
-                      </TableCell>
-                      <TableCell>{socio.pessoa.documento}</TableCell>
-                      <TableCell>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            socio.pessoa.tipo === "PF"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
-                        >
-                          {socio.pessoa.tipo}
-                        </span>
-                      </TableCell>
-                      <TableCell>{socio.perc_rateio}%</TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex justify-end gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(socio)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <Button variant="outline" size="sm">
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>
-                                  Confirmar Exclusão
-                                </AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Tem certeza que deseja remover o sócio "
-                                  {socio.pessoa.nome}"? Esta ação não pode ser
-                                  desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDelete(socio)}
-                                  disabled={isDeleting}
-                                >
-                                  {isDeleting && (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                  )}
-                                  Remover
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-
-              {totalPages > 1 && (
-                <div className="flex items-center justify-between mt-4">
-                  <div className="text-sm text-muted-foreground">
-                    Mostrando {startIndex + 1} a{" "}
-                    {Math.min(endIndex, totalItems)} de {totalItems} sócios
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage - 1)}
-                      disabled={currentPage === 1}
-                    >
-                      <ChevronLeft className="h-4 w-4" />
-                    </Button>
-                    <span className="text-sm">
-                      Página {currentPage} de {totalPages}
-                    </span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handlePageChange(currentPage + 1)}
-                      disabled={currentPage === totalPages}
-                    >
-                      <ChevronRight className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+          <div className="flex items-center space-x-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <span className="text-sm">
+              Página {currentPage} de {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
 
       <Dialog
         open={isEditDialogOpen}

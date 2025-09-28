@@ -1,5 +1,14 @@
 "use client";
 
+//Dialog é um componente do Radix UI que é usado para criar um modal.
+//DialogTrigger é um componente do Radix UI que é usado para abrir o modal.
+//DialogPortal é um componente do Radix UI que é usado para renderizar o modal.
+//DialogClose é um componente do Radix UI que é usado para fechar o modal.
+//DialogOverlay é um componente do Radix UI que é usado para criar o fundo do modal.
+//DialogContent é um componente do Radix UI que é usado para criar o conteúdo do modal.
+//DialogHeader é um componente do Radix UI que é usado para criar o cabeçalho do modal.
+// doc em https://www.radix-ui.com/primitives/docs/components/dialog
+
 import * as React from "react";
 import * as DialogPrimitive from "@radix-ui/react-dialog";
 import { XIcon } from "lucide-react";

@@ -64,7 +64,13 @@ export class SocioService {
               complemento: formData.endereco.complemento || undefined,
               bairro: formData.endereco.bairro || undefined,
               cidade: formData.endereco.cidade || undefined,
+              cidadeCodigo: formData.endereco.cidade_codigo
+                ? parseInt(formData.endereco.cidade_codigo)
+                : undefined,
               uf: formData.endereco.uf || undefined,
+              ufCodigo: formData.endereco.uf_codigo
+                ? parseInt(formData.endereco.uf_codigo)
+                : undefined,
             }
           : undefined,
       dadosBancarios:

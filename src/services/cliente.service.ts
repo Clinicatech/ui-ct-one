@@ -91,7 +91,13 @@ export class ClienteService {
               complemento: formData.endereco.complemento || undefined,
               bairro: formData.endereco.bairro || undefined,
               cidade: formData.endereco.cidade || undefined,
+              cidadeCodigo: formData.endereco.cidade_codigo
+                ? parseInt(formData.endereco.cidade_codigo)
+                : undefined,
               uf: formData.endereco.uf || undefined,
+              ufCodigo: formData.endereco.uf_codigo
+                ? parseInt(formData.endereco.uf_codigo)
+                : undefined,
             }
           : undefined,
       responsavel:
@@ -118,7 +124,13 @@ export class ClienteService {
                       formData.enderecoResponsavel.complemento || undefined,
                     bairro: formData.enderecoResponsavel.bairro || undefined,
                     cidade: formData.enderecoResponsavel.cidade || undefined,
+                    cidadeCodigo: formData.enderecoResponsavel.cidade_codigo
+                      ? parseInt(formData.enderecoResponsavel.cidade_codigo)
+                      : undefined,
                     uf: formData.enderecoResponsavel.uf || undefined,
+                    ufCodigo: formData.enderecoResponsavel.uf_codigo
+                      ? parseInt(formData.enderecoResponsavel.uf_codigo)
+                      : undefined,
                   }
                 : undefined,
             }

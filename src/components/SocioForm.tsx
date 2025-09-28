@@ -172,6 +172,8 @@ export function SocioForm({
           bairro: data.bairro,
           cidade: data.localidade,
           uf: data.uf,
+          cidade_codigo: data.ibge,
+          uf_codigo: data.ibge ? data.ibge.substring(0, 2) : undefined,
         },
       });
 

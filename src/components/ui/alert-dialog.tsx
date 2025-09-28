@@ -1,4 +1,16 @@
 "use client";
+//AlertDialog é um componente do Radix UI que é usado para criar um alerta.
+//AlertDialogTrigger é um componente do Radix UI que é usado para abrir o alerta.
+//AlertDialogPortal é um componente do Radix UI que é usado para renderizar o alerta.
+//AlertDialogOverlay é um componente do Radix UI que é usado para criar o fundo do alerta.
+//AlertDialogContent é um componente do Radix UI que é usado para criar o conteúdo do alerta.
+//AlertDialogHeader é um componente do Radix UI que é usado para criar o cabeçalho do alerta.
+//AlertDialogFooter é um componente do Radix UI que é usado para criar o rodapé do alerta.
+//AlertDialogTitle é um componente do Radix UI que é usado para criar o título do alerta.
+//AlertDialogDescription é um componente do Radix UI que é usado para criar a descrição do alerta.
+//AlertDialogAction é um componente do Radix UI que é usado para criar o botão de ação do alerta.
+//AlertDialogCancel é um componente do Radix UI que é usado para criar o botão de cancelar do alerta.
+// doc em https://www.radix-ui.com/primitives/docs/components/alert-dialog
 
 import * as React from "react";
 import * as AlertDialogPrimitive from "@radix-ui/react-alert-dialog";
