@@ -108,7 +108,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
   ];
 
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-blue-500">
       {/* Header */}
       <header className="bg-blue-100 shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -131,7 +131,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
       </header>
 
       {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-blue-50 mt-5">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 bg-blue-900 mt-5">
         <Tabs
           value={activeTab}
           onValueChange={(value) => {
@@ -154,7 +154,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
 
           <TabsContent value="overview" className="space-y-6">
             <div>
-              <h2 className="text-2xl font-semibold mb-6 font-montserrat-medium">
+              <h2 className="text-2xl font-semibold mb-6 font-montserrat-medium text-white">
                 Visão Geral
               </h2>
 

@@ -449,7 +449,7 @@ export function SocioManagement({
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">{title}</h1>
+        <h1 className="text-3xl font-bold text-white">{title}</h1>
         <Dialog
           open={isCreateDialogOpen}
           onOpenChange={(open) => {
@@ -468,7 +468,7 @@ export function SocioManagement({
           }}
         >
           <DialogTrigger asChild>
-            <Button className="flex items-center gap-2">
+            <Button variant="outline" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
               Novo Sócio
             </Button>

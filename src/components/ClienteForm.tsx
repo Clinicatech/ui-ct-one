@@ -389,7 +389,6 @@ export function ClienteForm({
                     onChange={(e) =>
                       handleEnderecoChange("endereco", e.target.value)
                     }
-                    placeholder="Rua, Avenida, etc."
                   />
                 </div>
 
@@ -414,7 +413,6 @@ export function ClienteForm({
                     onChange={(e) =>
                       handleEnderecoChange("complemento", e.target.value)
                     }
-                    placeholder="Apto, Sala, etc."
                   />
                 </div>
 
@@ -440,7 +438,6 @@ export function ClienteForm({
                     onChange={(e) =>
                       handleEnderecoChange("cidade", e.target.value)
                     }
-                    placeholder="Nome da cidade"
                   />
                 </div>
 
@@ -450,7 +447,6 @@ export function ClienteForm({
                     id="uf"
                     value={formData.endereco?.uf || ""}
                     onChange={(e) => handleEnderecoChange("uf", e.target.value)}
-                    placeholder="SP"
                     maxLength={2}
                   />
                 </div>
@@ -534,7 +530,6 @@ export function ClienteForm({
                     onChange={(e) =>
                       handleResponsavelChange("nome", e.target.value)
                     }
-                    placeholder="Nome completo"
                   />
                 </div>
 
@@ -659,7 +654,6 @@ export function ClienteForm({
                         e.target.value
                       )
                     }
-                    placeholder="Rua, Avenida, etc."
                   />
                 </div>
 
@@ -687,7 +681,6 @@ export function ClienteForm({
                         e.target.value
                       )
                     }
-                    placeholder="Apto, Sala, etc."
                   />
                 </div>
 
@@ -699,7 +692,6 @@ export function ClienteForm({
                     onChange={(e) =>
                       handleEnderecoResponsavelChange("bairro", e.target.value)
                     }
-                    placeholder="Nome do bairro"
                   />
                 </div>
               </div>
@@ -713,7 +705,6 @@ export function ClienteForm({
                     onChange={(e) =>
                       handleEnderecoResponsavelChange("cidade", e.target.value)
                     }
-                    placeholder="Nome da cidade"
                   />
                 </div>
 
@@ -725,7 +716,6 @@ export function ClienteForm({
                     onChange={(e) =>
                       handleEnderecoResponsavelChange("uf", e.target.value)
                     }
-                    placeholder="SP"
                     maxLength={2}
                   />
                 </div>

@@ -163,8 +163,8 @@ export function ClienteManagement({
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold">{title}</h1>
-        <Button onClick={() => setIsCreateDialogOpen(true)}>
+        <h1 className="text-2xl font-bold text-white">{title}</h1>
+        <Button variant="outline" onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
           Novo Cliente
         </Button>

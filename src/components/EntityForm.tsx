@@ -181,7 +181,6 @@ export function EntityForm({
                   nome: e.target.value,
                 }))
               }
-              placeholder="Nome da empresa"
               disabled={isCreating || isUpdating}
               isRequired={true}
               validationMessage="Razão Social é obrigatória"
@@ -239,7 +238,6 @@ export function EntityForm({
                     urlLogo: e.target.value,
                   }))
                 }
-                placeholder="https://www.exemplo.com/logo.png"
                 disabled={isCreating || isUpdating}
               />
             </div>
@@ -315,7 +313,6 @@ export function EntityForm({
                     logradouro: e.target.value,
                   }))
                 }
-                placeholder="Rua, Avenida, etc."
                 disabled={isCreating || isUpdating}
               />
             </div>
@@ -346,7 +343,6 @@ export function EntityForm({
                     complemento: e.target.value,
                   }))
                 }
-                placeholder="Sala, Andar, etc."
                 disabled={isCreating || isUpdating}
               />
             </div>
@@ -359,7 +355,6 @@ export function EntityForm({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, bairro: e.target.value }))
                 }
-                placeholder="Nome do bairro"
                 disabled={isCreating || isUpdating}
               />
             </div>
@@ -375,7 +370,6 @@ export function EntityForm({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, cidade: e.target.value }))
                 }
-                placeholder="Nome da cidade"
                 disabled={isCreating || isUpdating}
               />
             </div>
@@ -388,7 +382,6 @@ export function EntityForm({
                 onChange={(e) =>
                   setFormData((prev) => ({ ...prev, uf: e.target.value }))
                 }
-                placeholder="SP"
                 maxLength={2}
                 disabled={isCreating || isUpdating}
               />
@@ -405,7 +398,6 @@ export function EntityForm({
                     cidadeCodigo: e.target.value,
                   }))
                 }
-                placeholder="Código IBGE"
                 disabled
               />
             </div>
@@ -427,7 +419,6 @@ export function EntityForm({
                       contatoComercialNome: e.target.value,
                     }))
                   }
-                  placeholder="Nome do contato comercial"
                   disabled={isCreating || isUpdating}
                 />
               </div>
