@@ -9,8 +9,6 @@ export interface Socio {
     entidade_id: number;
     inscricao_estadual: string | null;
     inscricao_municipal: string | null;
-    create_at: Date;
-    update_at: Date;
   };
   endereco: {
     endereco_id: number;
@@ -23,8 +21,6 @@ export interface Socio {
     uf: string | null;
     cidade_codigo?: string | null;
     uf_codigo?: string | null;
-    create_at: Date;
-    update_at: Date;
   } | null;
   dadosBancarios: {
     dados_bancarios_id: number;
@@ -35,8 +31,6 @@ export interface Socio {
     chave_pix: string | null;
     conta_digito: string | null;
     agencia_digito: string | null;
-    create_at: Date;
-    update_at: Date;
     banco: {
       banco_id: number;
       codigo: string;
@@ -45,8 +39,6 @@ export interface Socio {
     };
   } | null;
   perc_rateio: number;
-  create_at: Date;
-  update_at: Date;
 }
 
 export interface SocioFormData {
@@ -96,6 +88,4 @@ export interface Entidade {
   cnpj: string;
   url_site?: string;
   url_logo?: string;
-  create_at: Date;
-  update_at: Date;
 }

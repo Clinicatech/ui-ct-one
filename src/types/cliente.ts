@@ -9,8 +9,6 @@ export interface Cliente {
     entidade_id: number;
     inscricao_estadual: string | null;
     inscricao_municipal: string | null;
-    create_at: Date;
-    update_at: Date;
   };
   endereco: {
     endereco_id: number;
@@ -23,8 +21,6 @@ export interface Cliente {
     uf: string | null;
     cidade_codigo?: string | null;
     uf_codigo?: string | null;
-    create_at: Date;
-    update_at: Date;
   } | null;
   responsavel: {
     pessoa_id: number;
@@ -35,8 +31,6 @@ export interface Cliente {
     entidade_id: number;
     inscricao_estadual: string | null;
     inscricao_municipal: string | null;
-    create_at: Date;
-    update_at: Date;
     endereco: {
       endereco_id: number;
       cep: string;
@@ -48,12 +42,8 @@ export interface Cliente {
       uf: string | null;
       cidade_codigo?: string | null;
       uf_codigo?: string | null;
-      create_at: Date;
-      update_at: Date;
     } | null;
   } | null;
-  create_at: Date;
-  update_at: Date;
 }
 
 export interface ClienteFormData {

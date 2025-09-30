@@ -67,8 +67,6 @@ export interface EntityTableRow {
   cnpj: string;
   urlSite: string;
   urlLogo: string;
-  //createAt: string;
-  //updateAt: string;
 }
 
 export interface EntitySearchParams {

@@ -30,8 +30,6 @@ export interface EntidadeApi {
   urlSite?: string | null;
   urlLogo?: string | null;
   bancoId?: number; // Campo da view
-  //entidadeCreateAt?: string;
-  // entidadeUpdateAt?: string;
   enderecos: EnderecoApi[];
   contasBancarias: ContaBancariaApi[];
 }
@@ -337,7 +335,7 @@ export class EntidadeService {
 
   // Converter dados do frontend para formato da API
   convertToApiFormat(frontendData: Entity): CreateEntidadeRequest {
-    return {
+    const result = {
       entidade: {
         nome: frontendData.nome,
         cnpj: frontendData.cnpj,
@@ -377,9 +375,9 @@ export class EntidadeService {
       entidadeContaBancaria: frontendData.bancoId
         ? {
             bancoId: frontendData.bancoId,
-            agencia: frontendData.agencia || "",
+            agencia: frontendData.agencia,
             agenciaDigito: frontendData.agenciaDigito,
-            conta: frontendData.conta || "",
+            conta: frontendData.conta,
             contaDigito: frontendData.contaDigito,
             carteira: frontendData.carteira,
             cedenteCodigo: frontendData.cedenteCodigo,
@@ -388,6 +386,8 @@ export class EntidadeService {
           }
         : undefined,
     };
+
+    return result;
   }
 
   // Converter resposta de criação/atualização para formato do frontend
