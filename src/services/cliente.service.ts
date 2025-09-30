@@ -41,11 +41,13 @@ export class ClienteService {
 
   static async update(id: number, formData: ClienteFormData): Promise<Cliente> {
     try {
+      const apiData = this.convertToApiFormat(formData);
+
       const response = await apiRequest<{ cliente: Cliente }>(
         `/cliente/${id}`,
         {
           method: "PATCH",
-          body: JSON.stringify(this.convertToApiFormat(formData)),
+          body: JSON.stringify(apiData),
         }
       );
       return response.cliente;
@@ -100,42 +102,48 @@ export class ClienteService {
                 : undefined,
             }
           : undefined,
-      responsavel:
-        formData.responsavel &&
-        (formData.responsavel.nome ||
-          formData.responsavel.documento ||
-          formData.responsavel.tipo)
-          ? {
-              nome: formData.responsavel.nome,
-              razao: formData.responsavel.razao || undefined,
-              documento: formData.responsavel.documento,
-              tipo: formData.responsavel.tipo,
-              inscricao_estadual:
-                formData.responsavel.inscricao_estadual || undefined,
-              inscricao_municipal:
-                formData.responsavel.inscricao_municipal || undefined,
-              endereco: formData.enderecoResponsavel
-                ? {
-                    cep: formData.enderecoResponsavel.cep || undefined,
-                    logradouro:
-                      formData.enderecoResponsavel.endereco || undefined,
-                    numero: formData.enderecoResponsavel.numero || undefined,
-                    complemento:
-                      formData.enderecoResponsavel.complemento || undefined,
-                    bairro: formData.enderecoResponsavel.bairro || undefined,
-                    cidade: formData.enderecoResponsavel.cidade || undefined,
-                    cidadeCodigo: formData.enderecoResponsavel.cidade_codigo
-                      ? parseInt(formData.enderecoResponsavel.cidade_codigo)
-                      : undefined,
-                    uf: formData.enderecoResponsavel.uf || undefined,
-                    ufCodigo: formData.enderecoResponsavel.uf_codigo
-                      ? parseInt(formData.enderecoResponsavel.uf_codigo)
-                      : undefined,
-                  }
-                : undefined,
-            }
+      responsavel: formData.responsavel?.documento
+        ? {
+            nome: formData.responsavel.nome,
+            razao: formData.responsavel.razao || undefined,
+            documento: formData.responsavel.documento,
+            tipo: formData.responsavel.tipo,
+            inscricao_estadual:
+              formData.responsavel.inscricao_estadual || undefined,
+            inscricao_municipal:
+              formData.responsavel.inscricao_municipal || undefined,
+            endereco: formData.enderecoResponsavel
+              ? {
+                  cep: formData.enderecoResponsavel.cep || undefined,
+                  logradouro:
+                    formData.enderecoResponsavel.endereco || undefined,
+                  numero: formData.enderecoResponsavel.numero || undefined,
+                  complemento:
+                    formData.enderecoResponsavel.complemento || undefined,
+                  bairro: formData.enderecoResponsavel.bairro || undefined,
+                  cidade: formData.enderecoResponsavel.cidade || undefined,
+                  cidadeCodigo: formData.enderecoResponsavel.cidade_codigo
+                    ? parseInt(formData.enderecoResponsavel.cidade_codigo)
+                    : undefined,
+                  uf: formData.enderecoResponsavel.uf || undefined,
+                  ufCodigo: formData.enderecoResponsavel.uf_codigo
+                    ? parseInt(formData.enderecoResponsavel.uf_codigo)
+                    : undefined,
+                }
+              : undefined,
+          }
+        : undefined,
+      clienteInfo: {
+        clienteInfoId: formData.clienteInfo?.clienteInfoId
+          ? Number(formData.clienteInfo.clienteInfoId)
           : undefined,
-      clienteInfo: undefined,
+        pessoaId: formData.clienteInfo?.pessoaId
+          ? Number(formData.clienteInfo.pessoaId)
+          : undefined,
+        pessoaResponsavelId: formData.clienteInfo?.pessoaResponsavelId
+          ? Number(formData.clienteInfo.pessoaResponsavelId)
+          : null,
+      },
     };
 
     return apiData;

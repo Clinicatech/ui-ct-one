@@ -28,6 +28,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./ui/tooltip";
+import { PersonSearchDialog } from "./PersonSearchDialog";
+import { Pessoa } from "../services/pessoa.service";
 
 interface SocioFormProps {
   formData: SocioFormData;
@@ -50,6 +52,7 @@ export function SocioForm({
   const [bancoSelecionado, setBancoSelecionado] = useState<Banco | null>(null);
   const [bancoIdInput, setBancoIdInput] = useState<string>("");
   const [carregandoBancos, setCarregandoBancos] = useState(false);
+  const [isPersonSearchOpen, setIsPersonSearchOpen] = useState(false);
 
   useEffect(() => {
     loadBancos();
@@ -246,269 +249,219 @@ export function SocioForm({
     handleEnderecoChange("cep", maskedValue);
   };
 
+  // Função para seleção de pessoa
+  const handleSelectPerson = (person: Pessoa) => {
+    setFormData({
+      ...formData,
+      pessoa: {
+        nome: person.nome,
+        razao: person.razao || null,
+        documento: person.documento,
+        tipo: person.tipo,
+        inscricao_estadual: person.inscricaoEstadual || null,
+        inscricao_municipal: person.inscricaoMunicipal || null,
+      },
+      endereco:
+        person.enderecos && person.enderecos.length > 0
+          ? {
+              cep: person.enderecos[0].cep,
+              endereco: person.enderecos[0].logradouro || null,
+              numero: person.enderecos[0].numero || null,
+              complemento: person.enderecos[0].complemento || null,
+              bairro: person.enderecos[0].bairro || null,
+              cidade: person.enderecos[0].cidade || null,
+              uf: person.enderecos[0].uf || null,
+              cidade_codigo: person.enderecos[0].cidadeCodigo || null,
+              uf_codigo: person.enderecos[0].ufCodigo || null,
+            }
+          : undefined,
+      dadosBancarios:
+        person.dadosBancarios && person.dadosBancarios.length > 0
+          ? {
+              banco_id: person.dadosBancarios[0].bancoId,
+              agencia: person.dadosBancarios[0].agencia,
+              conta: person.dadosBancarios[0].conta,
+              conta_tipo: person.dadosBancarios[0].contaTipo as 1 | 2,
+              chave_pix: person.dadosBancarios[0].chavePix || null,
+              conta_digito: person.dadosBancarios[0].contaDigito || null,
+              agencia_digito: person.dadosBancarios[0].agenciaDigito || null,
+            }
+          : undefined,
+    });
+
+    // Sincronizar banco selecionado se houver dados bancários
+    if (person.dadosBancarios && person.dadosBancarios.length > 0) {
+      const banco = bancos.find(
+        (b) => b.bancoId === person.dadosBancarios![0].bancoId
+      );
+      if (banco) {
+        setBancoSelecionado(banco);
+        setBancoIdInput(banco.bancoId.toString());
+      }
+    }
+
+    toast.success("Dados da pessoa carregados com sucesso!");
+  };
+
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="pessoa" className="flex items-center gap-2">
-          <User className="h-4 w-4" />
-          Pessoa
-        </TabsTrigger>
-        <TabsTrigger value="endereco" className="flex items-center gap-2">
-          <Home className="h-4 w-4" />
-          Endereço
-        </TabsTrigger>
-        <TabsTrigger
-          value="dados-bancarios"
-          className="flex items-center gap-2"
-        >
-          <CreditCard className="h-4 w-4" />
-          Dados Bancários
-        </TabsTrigger>
-        <TabsTrigger value="socio-info" className="flex items-center gap-2">
-          <Percent className="h-4 w-4" />
-          Participação
-        </TabsTrigger>
-      </TabsList>
+    <>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="pessoa" className="flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Pessoa
+          </TabsTrigger>
+          <TabsTrigger value="endereco" className="flex items-center gap-2">
+            <Home className="h-4 w-4" />
+            Endereço
+          </TabsTrigger>
+          <TabsTrigger
+            value="dados-bancarios"
+            className="flex items-center gap-2"
+          >
+            <CreditCard className="h-4 w-4" />
+            Dados Bancários
+          </TabsTrigger>
+          <TabsTrigger value="socio-info" className="flex items-center gap-2">
+            <Percent className="h-4 w-4" />
+            Participação
+          </TabsTrigger>
+        </TabsList>
 
-      {/* Tab: Pessoa */}
-      <TabsContent value="pessoa" className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Dados da Pessoa</h3>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
-            <div className="space-y-2">
-              <Label htmlFor="tipo">Tipo *</Label>
-              <Select
-                value={formData.pessoa.tipo}
-                onValueChange={(value: "PF" | "PJ") =>
-                  handlePessoaChange("tipo", value)
-                }
+        {/* Tab: Pessoa */}
+        <TabsContent value="pessoa" className="space-y-6">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium">Dados da Pessoa</h3>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsPersonSearchOpen(true)}
+                className="flex items-center gap-2"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo" />
-                </SelectTrigger>
-                <SelectContent>
-                  {TIPO_PESSOA_OPTIONS?.map((option) => (
-                    <SelectItem key={option.value} value={option.value || ""}>
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <User className="h-4 w-4" />
+                Buscar Pessoa
+              </Button>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="documento">Documento *</Label>
-              <Input
-                id="documento"
-                placeholder={
-                  formData.pessoa.tipo === "PF"
-                    ? "000.000.000-00"
-                    : "00.000.000/0000-00"
-                }
-                value={formData.pessoa.documento}
-                onChange={(e) => handleDocumentoChange(e.target.value)}
-                maxLength={formData.pessoa.tipo === "PF" ? 14 : 18}
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
+              <div className="space-y-2">
+                <Label htmlFor="tipo">Tipo *</Label>
+                <Select
+                  value={formData.pessoa.tipo}
+                  onValueChange={(value: "PF" | "PJ") =>
+                    handlePessoaChange("tipo", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {TIPO_PESSOA_OPTIONS?.map((option) => (
+                      <SelectItem key={option.value} value={option.value || ""}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="documento">Documento *</Label>
+                <Input
+                  id="documento"
+                  placeholder={
+                    formData.pessoa.tipo === "PF"
+                      ? "000.000.000-00"
+                      : "00.000.000/0000-00"
+                  }
+                  value={formData.pessoa.documento}
+                  onChange={(e) => handleDocumentoChange(e.target.value)}
+                  maxLength={formData.pessoa.tipo === "PF" ? 14 : 18}
+                />
+              </div>
             </div>
-          </div>
 
-          <div className="space-y-2 border border-gray-300 rounded-md p-2">
-            <Label htmlFor="nome">Nome *</Label>
-            <Input
-              id="nome"
-              placeholder="Nome completo"
-              value={formData.pessoa.nome}
-              onChange={(e) => handlePessoaChange("nome", e.target.value)}
-            />
-          </div>
-
-          {formData.pessoa.tipo === "PJ" && (
             <div className="space-y-2 border border-gray-300 rounded-md p-2">
-              <Label htmlFor="razao">Razão Social</Label>
+              <Label htmlFor="nome">Nome *</Label>
               <Input
-                id="razao"
-                placeholder="Razão social"
-                value={formData.pessoa.razao || ""}
-                onChange={(e) => handlePessoaChange("razao", e.target.value)}
+                id="nome"
+                placeholder="Nome completo"
+                value={formData.pessoa.nome}
+                onChange={(e) => handlePessoaChange("nome", e.target.value)}
               />
             </div>
-          )}
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
+            {formData.pessoa.tipo === "PJ" && (
+              <div className="space-y-2 border border-gray-300 rounded-md p-2">
+                <Label htmlFor="razao">Razão Social</Label>
+                <Input
+                  id="razao"
+                  placeholder="Razão social"
+                  value={formData.pessoa.razao || ""}
+                  onChange={(e) => handlePessoaChange("razao", e.target.value)}
+                />
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
+              {formData.pessoa.tipo === "PJ" && (
+                <div className="space-y-2">
+                  <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
+                  <Input
+                    id="inscricao_estadual"
+                    placeholder="Inscrição estadual"
+                    value={formData.pessoa.inscricao_estadual || ""}
+                    onChange={(e) =>
+                      handlePessoaChange("inscricao_estadual", e.target.value)
+                    }
+                  />
+                </div>
+              )}
+            </div>
+
             {formData.pessoa.tipo === "PJ" && (
               <div className="space-y-2">
-                <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
+                <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
                 <Input
-                  id="inscricao_estadual"
-                  placeholder="Inscrição estadual"
-                  value={formData.pessoa.inscricao_estadual || ""}
+                  id="inscricao_municipal"
+                  placeholder="Inscrição municipal"
+                  value={formData.pessoa.inscricao_municipal || ""}
                   onChange={(e) =>
-                    handlePessoaChange("inscricao_estadual", e.target.value)
+                    handlePessoaChange("inscricao_municipal", e.target.value)
                   }
                 />
               </div>
             )}
           </div>
+        </TabsContent>
 
-          {formData.pessoa.tipo === "PJ" && (
-            <div className="space-y-2">
-              <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
-              <Input
-                id="inscricao_municipal"
-                placeholder="Inscrição municipal"
-                value={formData.pessoa.inscricao_municipal || ""}
-                onChange={(e) =>
-                  handlePessoaChange("inscricao_municipal", e.target.value)
-                }
-              />
-            </div>
-          )}
-        </div>
-      </TabsContent>
+        {/* Tab: Endereço */}
+        <TabsContent value="endereco" className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Endereço</h3>
 
-      {/* Tab: Endereço */}
-      <TabsContent value="endereco" className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Endereço</h3>
-
-          {/* CEP e busca manual */}
-          <div className="space-y-2 border border-gray-300 rounded-md p-2">
-            <div className="flex gap-2 max-w-[20%]">
-              <ValidatedInput
-                id="cep"
-                name="cep"
-                label="CEP"
-                value={formData.endereco?.cep || ""}
-                onChange={(e) => {
-                  const maskedValue = maskCEP(e.target.value);
-                  handleCepChange(maskedValue);
-                }}
-                placeholder="00000-000"
-                isRequired={true}
-                validationMessage="CEP é obrigatório"
-                customValidation={(value) => {
-                  // Validação básica de CEP (8 dígitos)
-                  const digits = value.replace(/\D/g, "");
-                  return digits.length === 8;
-                }}
-                className="flex-1"
-              />
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleBuscarCEP}
-                      disabled={
-                        !formData.endereco?.cep ||
-                        formData.endereco.cep.replace(/\D/g, "").length !== 8
-                      }
-                      className="px-3"
-                    >
-                      🔍
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Pesquisar CEP</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-[80%_15%] gap-4 border border-gray-300 rounded-md p-2">
-            <div className="space-y-2">
-              <Label htmlFor="endereco">Logradouro</Label>
-              <Input
-                id="endereco"
-                placeholder="Rua, Avenida, etc."
-                value={formData.endereco?.endereco || ""}
-                onChange={(e) =>
-                  handleEnderecoChange("endereco", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="numero">Número</Label>
-              <Input
-                id="numero"
-                name="numero"
-                placeholder="123"
-                value={formData.endereco?.numero || ""}
-                onChange={(e) => handleEnderecoChange("numero", e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2 border border-gray-300 rounded-md p-2">
-            <Label htmlFor="complemento">Complemento</Label>
-            <Input
-              id="complemento"
-              placeholder="Apartamento, sala, etc."
-              value={formData.endereco?.complemento || ""}
-              onChange={(e) =>
-                handleEnderecoChange("complemento", e.target.value)
-              }
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-gray-300 rounded-md p-2">
-            <div className="space-y-2">
-              <Label htmlFor="bairro">Bairro</Label>
-              <Input
-                id="bairro"
-                placeholder="Bairro"
-                value={formData.endereco?.bairro || ""}
-                onChange={(e) => handleEnderecoChange("bairro", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="cidade">Cidade</Label>
-              <Input
-                id="cidade"
-                placeholder="Cidade"
-                value={formData.endereco?.cidade || ""}
-                onChange={(e) => handleEnderecoChange("cidade", e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="uf">UF</Label>
-              <Input
-                id="uf"
-                placeholder="SP"
-                value={formData.endereco?.uf || ""}
-                onChange={(e) => handleEnderecoChange("uf", e.target.value)}
-                maxLength={2}
-              />
-            </div>
-          </div>
-        </div>
-      </TabsContent>
-
-      {/* Tab: Dados Bancários */}
-      <TabsContent value="dados-bancarios" className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Dados Bancários</h3>
-
-          <div className="space-y-2 border border-gray-300 rounded-md p-2">
-            <Label htmlFor="banco_id">Banco</Label>
-            <div className="flex gap-2">
-              {/* Input para buscar por ID */}
-              <div className="flex gap-2 flex-1 max-w-[20%]">
-                <Input
-                  id="banco_id"
-                  name="banco_id"
-                  placeholder="000"
-                  value={bancoIdInput}
-                  onChange={(e) => setBancoIdInput(e.target.value)}
-                  onBlur={() => buscarBancoPorId(bancoIdInput)}
-                  disabled={isCreating || isUpdating}
+            {/* CEP e busca manual */}
+            <div className="space-y-2 border border-gray-300 rounded-md p-2">
+              <div className="flex gap-2 max-w-[20%]">
+                <ValidatedInput
+                  id="cep"
+                  name="cep"
+                  label="CEP"
+                  value={formData.endereco?.cep || ""}
+                  onChange={(e) => {
+                    const maskedValue = maskCEP(e.target.value);
+                    handleCepChange(maskedValue);
+                  }}
+                  placeholder="00000-000"
+                  isRequired={true}
+                  validationMessage="CEP é obrigatório"
+                  customValidation={(value) => {
+                    // Validação básica de CEP (8 dígitos)
+                    const digits = value.replace(/\D/g, "");
+                    return digits.length === 8;
+                  }}
                   className="flex-1"
                 />
                 <TooltipProvider>
@@ -518,165 +471,297 @@ export function SocioForm({
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={() => buscarBancoPorId(bancoIdInput)}
-                        disabled={isCreating || isUpdating || !bancoIdInput}
+                        onClick={handleBuscarCEP}
+                        disabled={
+                          !formData.endereco?.cep ||
+                          formData.endereco.cep.replace(/\D/g, "").length !== 8
+                        }
                         className="px-3"
                       >
                         🔍
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Buscar banco por Nº</p>
+                      <p>Pesquisar CEP</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
+            </div>
 
-              {/* Select para escolher banco */}
-              <div className="flex-1">
-                <Select
-                  value={bancoSelecionado?.bancoId?.toString() || ""}
-                  onValueChange={selecionarBanco}
-                  disabled={isCreating || isUpdating || carregandoBancos}
-                >
-                  <SelectTrigger>
-                    <SelectValue
-                      placeholder={
-                        carregandoBancos
-                          ? "Carregando bancos..."
-                          : "Selecione um banco"
-                      }
-                    />
-                  </SelectTrigger>
-                  <SelectContent className="max-h-[200px] overflow-y-auto">
-                    {Array.isArray(bancos) &&
-                      bancos.map((banco) => (
-                        <SelectItem
-                          key={banco.bancoId}
-                          value={banco.bancoId.toString()}
-                        >
-                          {formatBancoDisplay(banco)}
-                        </SelectItem>
-                      ))}
-                  </SelectContent>
-                </Select>
+            <div className="grid grid-cols-[80%_15%] gap-4 border border-gray-300 rounded-md p-2">
+              <div className="space-y-2">
+                <Label htmlFor="endereco">Logradouro</Label>
+                <Input
+                  id="endereco"
+                  placeholder="Rua, Avenida, etc."
+                  value={formData.endereco?.endereco || ""}
+                  onChange={(e) =>
+                    handleEnderecoChange("endereco", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="numero">Número</Label>
+                <Input
+                  id="numero"
+                  name="numero"
+                  placeholder="123"
+                  value={formData.endereco?.numero || ""}
+                  onChange={(e) =>
+                    handleEnderecoChange("numero", e.target.value)
+                  }
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 border border-gray-300 rounded-md p-2">
+              <Label htmlFor="complemento">Complemento</Label>
+              <Input
+                id="complemento"
+                placeholder="Apartamento, sala, etc."
+                value={formData.endereco?.complemento || ""}
+                onChange={(e) =>
+                  handleEnderecoChange("complemento", e.target.value)
+                }
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 border border-gray-300 rounded-md p-2">
+              <div className="space-y-2">
+                <Label htmlFor="bairro">Bairro</Label>
+                <Input
+                  id="bairro"
+                  placeholder="Bairro"
+                  value={formData.endereco?.bairro || ""}
+                  onChange={(e) =>
+                    handleEnderecoChange("bairro", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="cidade">Cidade</Label>
+                <Input
+                  id="cidade"
+                  placeholder="Cidade"
+                  value={formData.endereco?.cidade || ""}
+                  onChange={(e) =>
+                    handleEnderecoChange("cidade", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="uf">UF</Label>
+                <Input
+                  id="uf"
+                  placeholder="SP"
+                  value={formData.endereco?.uf || ""}
+                  onChange={(e) => handleEnderecoChange("uf", e.target.value)}
+                  maxLength={2}
+                />
               </div>
             </div>
           </div>
+        </TabsContent>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
-            <div className="space-y-2">
-              <Label htmlFor="agencia">Agência</Label>
-              <Input
-                id="agencia"
-                value={formData.dadosBancarios?.agencia || ""}
-                onChange={(e) =>
-                  handleDadosBancariosChange("agencia", e.target.value)
-                }
-              />
-            </div>
+        {/* Tab: Dados Bancários */}
+        <TabsContent value="dados-bancarios" className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Dados Bancários</h3>
 
-            <div className="space-y-2">
-              <Label htmlFor="agencia_digito">Dígito da Agência</Label>
-              <Input
-                id="agencia_digito"
-                value={formData.dadosBancarios?.agencia_digito || ""}
-                onChange={(e) =>
-                  handleDadosBancariosChange("agencia_digito", e.target.value)
-                }
-                maxLength={1}
-              />
-            </div>
-          </div>
+            <div className="space-y-2 border border-gray-300 rounded-md p-2">
+              <Label htmlFor="banco_id">Banco</Label>
+              <div className="flex gap-2">
+                {/* Input para buscar por ID */}
+                <div className="flex gap-2 flex-1 max-w-[20%]">
+                  <Input
+                    id="banco_id"
+                    name="banco_id"
+                    placeholder="000"
+                    value={bancoIdInput}
+                    onChange={(e) => setBancoIdInput(e.target.value)}
+                    onBlur={() => buscarBancoPorId(bancoIdInput)}
+                    disabled={isCreating || isUpdating}
+                    className="flex-1"
+                  />
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => buscarBancoPorId(bancoIdInput)}
+                          disabled={isCreating || isUpdating || !bancoIdInput}
+                          className="px-3"
+                        >
+                          🔍
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Buscar banco por Nº</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
-            <div className="space-y-2">
-              <Label htmlFor="conta">Conta</Label>
-              <Input
-                id="conta"
-                value={formData.dadosBancarios?.conta || ""}
-                onChange={(e) =>
-                  handleDadosBancariosChange("conta", e.target.value)
-                }
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="conta_digito">Dígito da Conta</Label>
-              <Input
-                id="conta_digito"
-                value={formData.dadosBancarios?.conta_digito || ""}
-                onChange={(e) =>
-                  handleDadosBancariosChange("conta_digito", e.target.value)
-                }
-                maxLength={1}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-2 border border-gray-300 rounded-md p-2">
-            <Label htmlFor="conta_tipo">Tipo de Conta</Label>
-            <Select
-              value={formData.dadosBancarios?.conta_tipo?.toString() || ""}
-              onValueChange={(value) =>
-                handleDadosBancariosChange("conta_tipo", parseInt(value))
-              }
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o tipo de conta" />
-              </SelectTrigger>
-              <SelectContent>
-                {CONTA_TIPO_OPTIONS?.map((option) => (
-                  <SelectItem
-                    key={option.value}
-                    value={option.value.toString()}
+                {/* Select para escolher banco */}
+                <div className="flex-1">
+                  <Select
+                    value={bancoSelecionado?.bancoId?.toString() || ""}
+                    onValueChange={selecionarBanco}
+                    disabled={isCreating || isUpdating || carregandoBancos}
                   >
-                    {option.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+                    <SelectTrigger>
+                      <SelectValue
+                        placeholder={
+                          carregandoBancos
+                            ? "Carregando bancos..."
+                            : "Selecione um banco"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent className="max-h-[200px] overflow-y-auto">
+                      {Array.isArray(bancos) &&
+                        bancos.map((banco) => (
+                          <SelectItem
+                            key={banco.bancoId}
+                            value={banco.bancoId.toString()}
+                          >
+                            {formatBancoDisplay(banco)}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="chave_pix">Chave PIX</Label>
-            <Input
-              id="chave_pix"
-              placeholder="Chave PIX"
-              value={formData.dadosBancarios?.chave_pix || ""}
-              onChange={(e) =>
-                handleDadosBancariosChange("chave_pix", e.target.value)
-              }
-            />
-          </div>
-        </div>
-      </TabsContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
+              <div className="space-y-2">
+                <Label htmlFor="agencia">Agência</Label>
+                <Input
+                  id="agencia"
+                  value={formData.dadosBancarios?.agencia || ""}
+                  onChange={(e) =>
+                    handleDadosBancariosChange("agencia", e.target.value)
+                  }
+                />
+              </div>
 
-      {/* Tab: Participação */}
-      <TabsContent value="socio-info" className="space-y-6">
-        <div className="space-y-4">
-          <h3 className="text-lg font-medium">Participação</h3>
+              <div className="space-y-2">
+                <Label htmlFor="agencia_digito">Dígito da Agência</Label>
+                <Input
+                  id="agencia_digito"
+                  value={formData.dadosBancarios?.agencia_digito || ""}
+                  onChange={(e) =>
+                    handleDadosBancariosChange("agencia_digito", e.target.value)
+                  }
+                  maxLength={1}
+                />
+              </div>
+            </div>
 
-          <div className="space-y-2 border border-gray-300 rounded-md p-2">
-            <Label htmlFor="perc_rateio">Percentual de Rateio (%)</Label>
-            <Input
-              id="perc_rateio"
-              type="number"
-              min="0"
-              max="100"
-              step="0.01"
-              placeholder="0.00"
-              value={formData.socioInfo?.perc_rateio || 0}
-              onChange={(e) =>
-                handleSocioInfoChange(
-                  "perc_rateio",
-                  parseFloat(e.target.value) || 0
-                )
-              }
-            />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
+              <div className="space-y-2">
+                <Label htmlFor="conta">Conta</Label>
+                <Input
+                  id="conta"
+                  value={formData.dadosBancarios?.conta || ""}
+                  onChange={(e) =>
+                    handleDadosBancariosChange("conta", e.target.value)
+                  }
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="conta_digito">Dígito da Conta</Label>
+                <Input
+                  id="conta_digito"
+                  value={formData.dadosBancarios?.conta_digito || ""}
+                  onChange={(e) =>
+                    handleDadosBancariosChange("conta_digito", e.target.value)
+                  }
+                  maxLength={1}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2 border border-gray-300 rounded-md p-2">
+              <Label htmlFor="conta_tipo">Tipo de Conta</Label>
+              <Select
+                value={formData.dadosBancarios?.conta_tipo?.toString() || ""}
+                onValueChange={(value) =>
+                  handleDadosBancariosChange("conta_tipo", parseInt(value))
+                }
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo de conta" />
+                </SelectTrigger>
+                <SelectContent>
+                  {CONTA_TIPO_OPTIONS?.map((option) => (
+                    <SelectItem
+                      key={option.value}
+                      value={option.value.toString()}
+                    >
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="chave_pix">Chave PIX</Label>
+              <Input
+                id="chave_pix"
+                placeholder="Chave PIX"
+                value={formData.dadosBancarios?.chave_pix || ""}
+                onChange={(e) =>
+                  handleDadosBancariosChange("chave_pix", e.target.value)
+                }
+              />
+            </div>
           </div>
-        </div>
-      </TabsContent>
-    </Tabs>
+        </TabsContent>
+
+        {/* Tab: Participação */}
+        <TabsContent value="socio-info" className="space-y-6">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium">Participação</h3>
+
+            <div className="space-y-2 border border-gray-300 rounded-md p-2">
+              <Label htmlFor="perc_rateio">Percentual de Rateio (%)</Label>
+              <Input
+                id="perc_rateio"
+                type="number"
+                min="0"
+                max="100"
+                step="0.01"
+                placeholder="0.00"
+                value={formData.socioInfo?.perc_rateio || 0}
+                onChange={(e) =>
+                  handleSocioInfoChange(
+                    "perc_rateio",
+                    parseFloat(e.target.value) || 0
+                  )
+                }
+              />
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialog de pesquisa de pessoas */}
+      <PersonSearchDialog
+        isOpen={isPersonSearchOpen}
+        onClose={() => setIsPersonSearchOpen(false)}
+        onSelectPerson={handleSelectPerson}
+        title="Buscar Pessoa para Sócio"
+      />
+    </>
   );
 }

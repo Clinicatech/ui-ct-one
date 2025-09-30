@@ -91,5 +91,9 @@ export interface ClienteFormData {
     contato_comercial_telefone2?: string | null;
     contato_comercial_email?: string | null;
   } | null;
-  clienteInfo?: {};
+  clienteInfo?: {
+    clienteInfoId?: number;
+    pessoaId?: number;
+    pessoaResponsavelId?: number;
+  };
 }

@@ -32,60 +32,136 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
-import { socioService } from "../services/socio.service";
-import { SocioForm } from "../components/SocioForm";
-import { Socio, SocioFormData } from "../types/socio";
-import { DEFAULT_SOCIO_FORM_DATA } from "../constants/socio-constants";
+import { parceiroService } from "../services/parceiro.service";
+import { ParceiroForm } from "../components/ParceiroForm";
+import { Parceiro, ParceiroFormData } from "../types/parceiro";
 
-interface SocioManagementProps {
+const DEFAULT_PARCEIRO_FORM_DATA: ParceiroFormData = {
+  pessoa: {
+    nome: "",
+    razao: null,
+    documento: "",
+    tipo: "PF",
+    inscricaoEstadual: null,
+    inscricaoMunicipal: null,
+  },
+  endereco: {
+    cep: "",
+    endereco: null,
+    numero: null,
+    complemento: null,
+    bairro: null,
+    cidade: null,
+    uf: null,
+    cidadeCodigo: null,
+    ufCodigo: null,
+  },
+  dadosBancarios: {
+    bancoId: undefined,
+    agencia: "",
+    conta: "",
+    contaTipo: undefined,
+    chavePix: null,
+    contaDigito: null,
+    agenciaDigito: null,
+  },
+  responsavel: {
+    nome: "",
+    razao: null,
+    documento: "",
+    tipo: "PF",
+    inscricaoEstadual: null,
+    inscricaoMunicipal: null,
+  },
+  enderecoResponsavel: {
+    cep: "",
+    endereco: null,
+    numero: null,
+    complemento: null,
+    bairro: null,
+    cidade: null,
+    uf: null,
+    cidadeCodigo: null,
+    ufCodigo: null,
+    contatoComercialTelefone1: null,
+    contatoComercialTelefone2: null,
+    contatoComercialEmail: null,
+  },
+  parceiroInfo: {
+    pessoaResponsavelId: undefined,
+    atividadeParceiroId: null,
+    percIndicacao: 0,
+    percMensalidade: 0,
+  },
+};
+
+interface ParceiroManagementProps {
   title?: string;
 }
 
-//esta função cria a pagina de gestão de sócios
-export function SocioManagement({
-  title = "Gestão de Sócios",
-}: SocioManagementProps) {
+//esta função cria a pagina de gestão de parceiros
+export function ParceiroManagement({
+  title = "Gestão de Parceiros",
+}: ParceiroManagementProps) {
   // Definição das colunas da tabela
-  const columns: Column<Socio>[] = [
+  const columns: Column<Parceiro>[] = [
     {
       key: "pessoa.nome",
       header: "Nome",
-      render: (socio) => (
-        <span className="font-medium">{socio.pessoa.nome}</span>
+      render: (parceiro) => (
+        <span className="font-medium">{parceiro.pessoa.nome}</span>
       ),
     },
     {
       key: "pessoa.documento",
       header: "Documento",
-      render: (socio) => socio.pessoa.documento,
+      render: (parceiro) => parceiro.pessoa.documento,
     },
     {
       key: "pessoa.tipo",
       header: "Tipo",
-      render: (socio) => (
+      render: (parceiro) => (
         <span
           className={`px-2 py-1 rounded-full text-xs ${
-            socio.pessoa.tipo === "PF"
+            parceiro.pessoa.tipo === "PF"
               ? "bg-blue-100 text-blue-800"
               : "bg-green-100 text-green-800"
           }`}
         >
-          {socio.pessoa.tipo}
+          {parceiro.pessoa.tipo}
         </span>
       ),
     },
     {
-      key: "perc_rateio",
-      header: "% Rateio",
-      render: (socio) => `${socio.perc_rateio}%`,
+      key: "responsavel.nome",
+      header: "Responsável",
+      render: (parceiro) => (
+        <span className="text-sm">
+          {parceiro.responsavel?.nome || "Não informado"}
+        </span>
+      ),
+    },
+    {
+      key: "percIndicacao",
+      header: "% Indicação",
+      render: (parceiro) => `${parceiro.percIndicacao}%`,
+    },
+    {
+      key: "percMensalidade",
+      header: "% Mensalidade",
+      render: (parceiro) => `${parceiro.percMensalidade}%`,
     },
     {
       key: "actions",
       header: "Ações",
       className: "text-right",
-      render: (socio) => (
+      render: (parceiro) => (
         <div className="flex justify-end gap-2">
-          <Button variant="outline" size="sm" onClick={() => handleEdit(socio)}>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleEdit(parceiro)}
+          >
             <Edit className="w-4 h-4" />
           </Button>
           <AlertDialog>
@@ -98,14 +174,14 @@ export function SocioManagement({
               <AlertDialogHeader>
                 <AlertDialogTitle>Confirmar Exclusão</AlertDialogTitle>
                 <AlertDialogDescription>
-                  Tem certeza que deseja remover o sócio "{socio.pessoa.nome}"?
-                  Esta ação não pode ser desfeita.
+                  Tem certeza que deseja remover o parceiro "
+                  {parceiro.pessoa.nome}"? Esta ação não pode ser desfeita.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                 <AlertDialogAction
-                  onClick={() => handleDelete(socio)}
+                  onClick={() => handleDelete(parceiro)}
                   disabled={isDeleting}
                 >
                   {isDeleting && (
@@ -120,11 +196,10 @@ export function SocioManagement({
       ),
     },
   ];
-  // O useState é um Hook do React que permite adicionar estado a componentes funcionais.
-  // Ele retorna um array com dois elementos: o valor atual do estado e uma função para atualizá-lo.
-  const [socios, setSocios] = useState<Socio[]>([]);
+
+  const [parceiros, setParceiros] = useState<Parceiro[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [editingSocio, setEditingSocio] = useState<Socio | null>(null);
+  const [editingParceiro, setEditingParceiro] = useState<Parceiro | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
 
@@ -142,34 +217,8 @@ export function SocioManagement({
   const [totalItems, setTotalItems] = useState(0);
   const [perPage] = useState(10);
 
-  //   O useRef é um Hook do React que retorna um objeto mutável cuja propriedade .current é inicializada com o valor passado como argumento. Ele é útil para:
-  // Acessar elementos DOM diretamente
-  // Armazenar valores que persistem entre renderizações
-  // Manter valores que não causam rerender quando alterados
-  // exemplo:
-  // function Component() {
-  //   const renderCount = useRef(0);
-
-  //   renderCount.current += 1; // Não causa rerender!
-
-  //   return <div>Renderizou {renderCount.current} vezes</div>;
-  // }
-
-  // useState	useRef
-  // Causa rerender quando alterado	Não causa rerender
-  // Valor imutável (usa setter)	Valor mutável (diretamente em .current)
-  // Ideal para estado da UI	Ideal para valores "internos"
-
   const searchTimeoutRef = useRef<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
-
-  // O useEffect é um Hook do React que permite executar efeitos colaterais em componentes funcionais
-  // Ele é útil para:
-  // Executar efeitos colaterais
-  // Limpar efeitos
-  // Executar efeitos quando o componente é montado
-  // Executar efeitos quando o componente é atualizado
-  // Executar efeitos quando o componente é desmontado
 
   useEffect(() => {
     if (isCreateDialogOpen || isEditDialogOpen) {
@@ -178,53 +227,82 @@ export function SocioManagement({
   }, [isCreateDialogOpen, isEditDialogOpen]);
 
   useEffect(() => {
-    setFormData(DEFAULT_SOCIO_FORM_DATA);
+    setFormData(DEFAULT_PARCEIRO_FORM_DATA);
     setHasUnsavedChanges(false);
   }, [isCreateDialogOpen]);
 
   useEffect(() => {
-    if (editingSocio) {
+    if (editingParceiro) {
       setFormData({
         pessoa: {
-          nome: editingSocio.pessoa.nome,
-          razao: editingSocio.pessoa.razao,
-          documento: editingSocio.pessoa.documento,
-          tipo: editingSocio.pessoa.tipo,
-          inscricao_estadual: editingSocio.pessoa.inscricao_estadual,
-          inscricao_municipal: editingSocio.pessoa.inscricao_municipal,
+          nome: editingParceiro.pessoa.nome,
+          razao: editingParceiro.pessoa.razao,
+          documento: editingParceiro.pessoa.documento,
+          tipo: editingParceiro.pessoa.tipo,
+          inscricaoEstadual: editingParceiro.pessoa.inscricaoEstadual,
+          inscricaoMunicipal: editingParceiro.pessoa.inscricaoMunicipal,
         },
-        endereco: editingSocio.endereco
+        endereco: editingParceiro.endereco
           ? {
-              cep: editingSocio.endereco.cep,
-              endereco: editingSocio.endereco.endereco,
-              numero: editingSocio.endereco.numero,
-              complemento: editingSocio.endereco.complemento,
-              bairro: editingSocio.endereco.bairro,
-              cidade: editingSocio.endereco.cidade,
-              uf: editingSocio.endereco.uf,
+              cep: editingParceiro.endereco.cep,
+              endereco: editingParceiro.endereco.endereco,
+              numero: editingParceiro.endereco.numero,
+              complemento: editingParceiro.endereco.complemento,
+              bairro: editingParceiro.endereco.bairro,
+              cidade: editingParceiro.endereco.cidade,
+              uf: editingParceiro.endereco.uf,
+              cidadeCodigo: editingParceiro.endereco.cidadeCodigo,
+              ufCodigo: editingParceiro.endereco.ufCodigo,
             }
           : undefined,
-        dadosBancarios: editingSocio.dadosBancarios
+        dadosBancarios: editingParceiro.dadosBancarios
           ? {
-              banco_id: editingSocio.dadosBancarios.banco_id,
-              agencia: editingSocio.dadosBancarios.agencia,
-              conta: editingSocio.dadosBancarios.conta,
-              conta_tipo: editingSocio.dadosBancarios.conta_tipo as 1 | 2,
-              chave_pix: editingSocio.dadosBancarios.chave_pix,
-              conta_digito: editingSocio.dadosBancarios.conta_digito,
-              agencia_digito: editingSocio.dadosBancarios.agencia_digito,
+              bancoId: editingParceiro.dadosBancarios.bancoId,
+              agencia: editingParceiro.dadosBancarios.agencia,
+              conta: editingParceiro.dadosBancarios.conta,
+              contaTipo: editingParceiro.dadosBancarios.contaTipo as 1 | 2,
+              chavePix: editingParceiro.dadosBancarios.chavePix,
+              contaDigito: editingParceiro.dadosBancarios.contaDigito,
+              agenciaDigito: editingParceiro.dadosBancarios.agenciaDigito,
             }
           : undefined,
-        socioInfo: {
-          perc_rateio: editingSocio.perc_rateio,
+        responsavel: editingParceiro.responsavel
+          ? {
+              nome: editingParceiro.responsavel.nome,
+              razao: editingParceiro.responsavel.razao,
+              documento: editingParceiro.responsavel.documento,
+              tipo: editingParceiro.responsavel.tipo,
+              inscricaoEstadual: editingParceiro.responsavel.inscricaoEstadual,
+              inscricaoMunicipal:
+                editingParceiro.responsavel.inscricaoMunicipal,
+            }
+          : undefined,
+        enderecoResponsavel: editingParceiro.responsavel?.endereco
+          ? {
+              cep: editingParceiro.responsavel.endereco.cep,
+              endereco: editingParceiro.responsavel.endereco.endereco,
+              numero: editingParceiro.responsavel.endereco.numero,
+              complemento: editingParceiro.responsavel.endereco.complemento,
+              bairro: editingParceiro.responsavel.endereco.bairro,
+              cidade: editingParceiro.responsavel.endereco.cidade,
+              uf: editingParceiro.responsavel.endereco.uf,
+              cidadeCodigo: editingParceiro.responsavel.endereco.cidadeCodigo,
+              ufCodigo: editingParceiro.responsavel.endereco.ufCodigo,
+            }
+          : undefined,
+        parceiroInfo: {
+          pessoaResponsavelId: editingParceiro.pessoaResponsavelId,
+          atividadeParceiroId: editingParceiro.atividadeParceiroId,
+          percIndicacao: editingParceiro.percIndicacao,
+          percMensalidade: editingParceiro.percMensalidade,
         },
       });
       setHasUnsavedChanges(false);
     }
-  }, [editingSocio]);
+  }, [editingParceiro]);
 
-  const [formData, setFormData] = useState<SocioFormData>(
-    DEFAULT_SOCIO_FORM_DATA
+  const [formData, setFormData] = useState<ParceiroFormData>(
+    DEFAULT_PARCEIRO_FORM_DATA
   );
 
   const handleSearchChange = useCallback((value: string) => {
@@ -235,32 +313,32 @@ export function SocioManagement({
     }
 
     searchTimeoutRef.current = window.setTimeout(() => {
-      loadSocios();
+      loadParceiros();
     }, 500);
   }, []);
 
-  const loadSocios = useCallback(async () => {
+  const loadParceiros = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await socioService.findAll();
-      setSocios(response.data);
+      const response = await parceiroService.findAll();
+      setParceiros(response.data);
       setTotalItems(response.total);
       setTotalPages(Math.ceil(response.total / perPage));
     } catch (error) {
-      console.error("Erro ao carregar sócios:", error);
-      toast.error("Erro ao carregar sócios");
+      console.error("Erro ao carregar parceiros:", error);
+      toast.error("Erro ao carregar parceiros");
     } finally {
       setIsLoading(false);
     }
   }, [perPage]);
 
   useEffect(() => {
-    loadSocios();
-  }, [loadSocios]);
+    loadParceiros();
+  }, [loadParceiros]);
 
-  const filteredSocios = useMemo(() => {
-    return socios;
-  }, [socios]);
+  const filteredParceiros = useMemo(() => {
+    return parceiros;
+  }, [parceiros]);
 
   const handleCreate = async () => {
     if (!formData.pessoa.nome || !formData.pessoa.documento) {
@@ -268,126 +346,161 @@ export function SocioManagement({
       return;
     }
 
+    // Validação do responsável é opcional
+
     setIsCreating(true);
     try {
-      const apiData = socioService.convertToApiFormat(formData);
-      const newSocioApi = await socioService.create(apiData);
-      const newSocio =
-        socioService.convertCreateUpdateToFrontendFormat(newSocioApi);
+      const apiData = parceiroService.convertToApiFormat(formData);
+      const newParceiroApi = await parceiroService.create(apiData);
+      const newParceiro =
+        parceiroService.convertCreateUpdateToFrontendFormat(newParceiroApi);
 
-      setSocios((prevSocios) => [...prevSocios, newSocio]);
-      setFormData(DEFAULT_SOCIO_FORM_DATA);
+      setParceiros((prevParceiros) => [...prevParceiros, newParceiro]);
+      setFormData(DEFAULT_PARCEIRO_FORM_DATA);
       setHasUnsavedChanges(false);
       setIsCreateDialogOpen(false);
-      toast.success("Sócio criado com sucesso!");
+      toast.success("Parceiro criado com sucesso!");
     } catch (error) {
-      console.error("Erro ao criar sócio:", error);
+      console.error("Erro ao criar parceiro:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Erro ao criar sócio";
+        error instanceof Error ? error.message : "Erro ao criar parceiro";
       toast.error(errorMessage);
     } finally {
       setIsCreating(false);
     }
   };
 
-  const handleEdit = (socio: Socio) => {
-    setEditingSocio(socio);
+  const handleEdit = (parceiro: Parceiro) => {
+    setEditingParceiro(parceiro);
     setFormData({
       pessoa: {
-        nome: socio.pessoa.nome,
-        razao: socio.pessoa.razao,
-        documento: socio.pessoa.documento,
-        tipo: socio.pessoa.tipo,
-        inscricao_estadual: socio.pessoa.inscricao_estadual,
-        inscricao_municipal: socio.pessoa.inscricao_municipal,
+        nome: parceiro.pessoa.nome,
+        razao: parceiro.pessoa.razao,
+        documento: parceiro.pessoa.documento,
+        tipo: parceiro.pessoa.tipo,
+        inscricaoEstadual: parceiro.pessoa.inscricaoEstadual,
+        inscricaoMunicipal: parceiro.pessoa.inscricaoMunicipal,
       },
-      endereco: socio.endereco
+      endereco: parceiro.endereco
         ? {
-            cep: socio.endereco.cep,
-            endereco: socio.endereco.endereco,
-            numero: socio.endereco.numero,
-            complemento: socio.endereco.complemento,
-            bairro: socio.endereco.bairro,
-            cidade: socio.endereco.cidade,
-            uf: socio.endereco.uf,
+            cep: parceiro.endereco.cep,
+            endereco: parceiro.endereco.endereco,
+            numero: parceiro.endereco.numero,
+            complemento: parceiro.endereco.complemento,
+            bairro: parceiro.endereco.bairro,
+            cidade: parceiro.endereco.cidade,
+            uf: parceiro.endereco.uf,
+            cidadeCodigo: parceiro.endereco.cidadeCodigo,
+            ufCodigo: parceiro.endereco.ufCodigo,
           }
         : undefined,
-      dadosBancarios: socio.dadosBancarios
+      dadosBancarios: parceiro.dadosBancarios
         ? {
-            banco_id: socio.dadosBancarios.banco_id,
-            agencia: socio.dadosBancarios.agencia,
-            conta: socio.dadosBancarios.conta,
-            conta_tipo: socio.dadosBancarios.conta_tipo as 1 | 2,
-            chave_pix: socio.dadosBancarios.chave_pix,
-            conta_digito: socio.dadosBancarios.conta_digito,
-            agencia_digito: socio.dadosBancarios.agencia_digito,
+            bancoId: parceiro.dadosBancarios.bancoId,
+            agencia: parceiro.dadosBancarios.agencia,
+            conta: parceiro.dadosBancarios.conta,
+            contaTipo: parceiro.dadosBancarios.contaTipo as 1 | 2,
+            chavePix: parceiro.dadosBancarios.chavePix,
+            contaDigito: parceiro.dadosBancarios.contaDigito,
+            agenciaDigito: parceiro.dadosBancarios.agenciaDigito,
           }
         : undefined,
-      socioInfo: {
-        perc_rateio: socio.perc_rateio,
+      responsavel: parceiro.responsavel
+        ? {
+            nome: parceiro.responsavel.nome,
+            razao: parceiro.responsavel.razao,
+            documento: parceiro.responsavel.documento,
+            tipo: parceiro.responsavel.tipo,
+            inscricaoEstadual: parceiro.responsavel.inscricaoEstadual,
+            inscricaoMunicipal: parceiro.responsavel.inscricaoMunicipal,
+          }
+        : undefined,
+      enderecoResponsavel: parceiro.responsavel?.endereco
+        ? {
+            cep: parceiro.responsavel.endereco.cep,
+            endereco: parceiro.responsavel.endereco.endereco,
+            numero: parceiro.responsavel.endereco.numero,
+            complemento: parceiro.responsavel.endereco.complemento,
+            bairro: parceiro.responsavel.endereco.bairro,
+            cidade: parceiro.responsavel.endereco.cidade,
+            uf: parceiro.responsavel.endereco.uf,
+            cidadeCodigo: parceiro.responsavel.endereco.cidadeCodigo,
+            ufCodigo: parceiro.responsavel.endereco.ufCodigo,
+          }
+        : undefined,
+      parceiroInfo: {
+        pessoaResponsavelId: parceiro.pessoaResponsavelId,
+        atividadeParceiroId: parceiro.atividadeParceiroId,
+        percIndicacao: parceiro.percIndicacao,
+        percMensalidade: parceiro.percMensalidade,
       },
     });
     setActiveTab("pessoa");
     setHasUnsavedChanges(false);
     setIsEditDialogOpen(true);
   };
-  //botão  Atualizar Sócio dispara esta função
+
+  //botão  Atualizar Parceiro dispara esta função
   const handleUpdate = async () => {
     // Early return/guard clause
-    if (!editingSocio) return;
+    if (!editingParceiro) return;
     // Inicia o estado de atualização
     setIsUpdating(true);
     try {
-      const apiData = socioService.convertToApiFormat(formData);
-      const updatedSocioApi = await socioService.update(
-        editingSocio.socio_info_id,
+      const apiData = parceiroService.convertToApiFormat(formData);
+      const updatedParceiroApi = await parceiroService.update(
+        editingParceiro.parceiroInfoId,
         apiData
       );
-      const updatedSocio =
-        socioService.convertCreateUpdateToFrontendFormat(updatedSocioApi);
+      const updatedParceiro =
+        parceiroService.convertCreateUpdateToFrontendFormat(updatedParceiroApi);
 
-      setSocios((prevSocios) =>
-        prevSocios.map((socio) =>
-          socio.socio_info_id === editingSocio.socio_info_id
-            ? updatedSocio
-            : socio
+      setParceiros((prevParceiros) =>
+        prevParceiros.map((parceiro) =>
+          parceiro.parceiroInfoId === editingParceiro.parceiroInfoId
+            ? updatedParceiro
+            : parceiro
         )
       );
 
-      setEditingSocio(null);
-      setFormData(DEFAULT_SOCIO_FORM_DATA);
+      setEditingParceiro(null);
+      setFormData(DEFAULT_PARCEIRO_FORM_DATA);
       setHasUnsavedChanges(false);
       setIsEditDialogOpen(false);
-      toast.success("Sócio atualizado com sucesso!");
+      toast.success("Parceiro atualizado com sucesso!");
     } catch (error) {
-      console.error("Erro ao atualizar sócio:", error);
+      console.error("Erro ao atualizar parceiro:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Erro ao atualizar sócio";
+        error instanceof Error ? error.message : "Erro ao atualizar parceiro";
       toast.error(errorMessage);
     } finally {
       setIsUpdating(false);
     }
   };
-  //botão Remover Sócio dispara esta função
-  const handleDelete = async (socio: Socio) => {
+
+  //botão Remover Parceiro dispara esta função
+  const handleDelete = async (parceiro: Parceiro) => {
     setIsDeleting(true);
     try {
-      await socioService.remove(socio.socio_info_id);
-      setSocios((prevSocios) =>
-        prevSocios.filter((s) => s.socio_info_id !== socio.socio_info_id)
+      await parceiroService.remove(parceiro.parceiroInfoId);
+      setParceiros((prevParceiros) =>
+        prevParceiros.filter(
+          (p) => p.parceiroInfoId !== parceiro.parceiroInfoId
+        )
       );
-      toast.success("Sócio removido com sucesso!");
+      toast.success("Parceiro removido com sucesso!");
     } catch (error) {
-      console.error("Erro ao remover sócio:", error);
+      console.error("Erro ao remover parceiro:", error);
       const errorMessage =
-        error instanceof Error ? error.message : "Erro ao remover sócio";
+        error instanceof Error ? error.message : "Erro ao remover parceiro";
       toast.error(errorMessage);
     } finally {
       setIsDeleting(false);
     }
   };
+
   // Função para atualizar o estado do formulário
-  const handleFormDataChange = (newFormData: SocioFormData) => {
+  const handleFormDataChange = (newFormData: ParceiroFormData) => {
     setFormData(newFormData);
     setHasUnsavedChanges(true);
   };
@@ -400,10 +513,10 @@ export function SocioManagement({
       } else {
         if (dialogType === "create") {
           setIsCreateDialogOpen(false);
-          setFormData(DEFAULT_SOCIO_FORM_DATA);
+          setFormData(DEFAULT_PARCEIRO_FORM_DATA);
         } else {
           setIsEditDialogOpen(false);
-          setEditingSocio(null);
+          setEditingParceiro(null);
         }
         setHasUnsavedChanges(false);
       }
@@ -417,14 +530,15 @@ export function SocioManagement({
     setHasUnsavedChanges(false);
     setIsCreateDialogOpen(false);
     setIsEditDialogOpen(false);
-    setEditingSocio(null);
-    setFormData(DEFAULT_SOCIO_FORM_DATA);
+    setEditingParceiro(null);
+    setFormData(DEFAULT_PARCEIRO_FORM_DATA);
   }, []);
 
   // Função para cancelar fechamento
   const cancelClose = useCallback(() => {
     setShowCloseConfirmation(false);
   }, []);
+
   // Função para atualizar a página
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
@@ -432,7 +546,7 @@ export function SocioManagement({
 
   const startIndex = (currentPage - 1) * perPage;
   const endIndex = startIndex + perPage;
-  const currentSocios = filteredSocios.slice(startIndex, endIndex);
+  const currentParceiros = filteredParceiros.slice(startIndex, endIndex);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -450,7 +564,7 @@ export function SocioManagement({
               setShowCloseConfirmation(true);
             } else {
               setIsCreateDialogOpen(false);
-              setFormData(DEFAULT_SOCIO_FORM_DATA);
+              setFormData(DEFAULT_PARCEIRO_FORM_DATA);
               setHasUnsavedChanges(false);
             }
           }}
@@ -458,18 +572,18 @@ export function SocioManagement({
           <DialogTrigger asChild>
             <Button variant="outline" className="flex items-center gap-2">
               <Plus className="h-4 w-4" />
-              Novo Sócio
+              Novo Parceiro
             </Button>
           </DialogTrigger>
           <DialogContent className="min-w-[65vw] min-h-[35vw] max-h-[35vw] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Criar Novo Sócio</DialogTitle>
+              <DialogTitle>Criar Novo Parceiro</DialogTitle>
               <DialogDescription>
-                Preencha as informações do sócio. Os campos marcados com * são
-                obrigatórios.
+                Preencha as informações do parceiro. Os campos marcados com *
+                são obrigatórios.
               </DialogDescription>
             </DialogHeader>
-            <SocioForm
+            <ParceiroForm
               formData={formData}
               setFormData={handleFormDataChange}
               isCreating={isCreating}
@@ -488,7 +602,7 @@ export function SocioManagement({
                 {isCreating && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Criar Sócio
+                Criar Parceiro
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -500,7 +614,7 @@ export function SocioManagement({
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             ref={searchInputRef}
-            placeholder="Pesquisar sócios..."
+            placeholder="Pesquisar parceiros..."
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-8"
@@ -509,20 +623,20 @@ export function SocioManagement({
       </div>
 
       <DataTable
-        title="Lista de Sócios"
-        data={currentSocios}
+        title="Lista de Parceiros"
+        data={currentParceiros}
         columns={columns}
         isLoading={isLoading}
-        loadingText="Carregando sócios..."
-        emptyText="Nenhum sócio encontrado"
-        keyExtractor={(socio) => socio.socio_info_id}
+        loadingText="Carregando parceiros..."
+        emptyText="Nenhum parceiro encontrado"
+        keyExtractor={(parceiro) => parceiro.parceiroInfoId}
       />
 
       {totalPages > 1 && (
         <div className="flex items-center justify-between mt-4">
           <div className="text-sm text-muted-foreground">
             Mostrando {startIndex + 1} a {Math.min(endIndex, totalItems)} de{" "}
-            {totalItems} sócios
+            {totalItems} parceiros
           </div>
           <div className="flex items-center space-x-2">
             <Button
@@ -558,7 +672,7 @@ export function SocioManagement({
               setShowCloseConfirmation(true);
             } else {
               setIsEditDialogOpen(false);
-              setEditingSocio(null);
+              setEditingParceiro(null);
               setHasUnsavedChanges(false);
             }
           }
@@ -566,13 +680,13 @@ export function SocioManagement({
       >
         <DialogContent className="min-w-[65vw] min-h-[35vw] max-h-[35vw] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Editar Sócio</DialogTitle>
+            <DialogTitle>Editar Parceiro</DialogTitle>
             <DialogDescription>
-              Atualize as informações do sócio. Os campos marcados com * são
+              Atualize as informações do parceiro. Os campos marcados com * são
               obrigatórios.
             </DialogDescription>
           </DialogHeader>
-          <SocioForm
+          <ParceiroForm
             formData={formData}
             setFormData={handleFormDataChange}
             isCreating={false}
@@ -586,7 +700,7 @@ export function SocioManagement({
             </Button>
             <Button onClick={handleUpdate} disabled={isUpdating}>
               {isUpdating && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              Atualizar Sócio
+              Atualizar Parceiro
             </Button>
           </DialogFooter>
         </DialogContent>

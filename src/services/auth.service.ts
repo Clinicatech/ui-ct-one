@@ -55,19 +55,25 @@ export class AuthService {
 
       // Verificação de tipo segura
       if (error instanceof Error) {
-        if (error.name === 'AbortError') {
-          throw new Error('Tempo de conexão esgotado. Verifique sua internet e tente novamente.');
+        if (error.name === "AbortError") {
+          throw new Error(
+            "Tempo de conexão esgotado. Verifique sua internet e tente novamente."
+          );
         }
-        if (error.message.includes('ECONNREFUSED')) {
-          throw new Error('Servidor indisponível. Por favor, tente novamente mais tarde.'); 
+        if (error.message.includes("ECONNREFUSED")) {
+          throw new Error(
+            "Servidor indisponível. Por favor, tente novamente mais tarde."
+          );
         }
-        if (error.message.includes('HTTP error!')) {
-          throw new Error('Servidor indisponível. Por favor, tente novamente mais tarde.'); 
-        }        
-        throw error; 
-      }      
-      
-      throw new Error('Ocorreu um erro desconhecido durante o login');
+        if (error.message.includes("HTTP error!")) {
+          throw new Error(
+            "Servidor indisponível. Por favor, tente novamente mais tarde."
+          );
+        }
+        throw error;
+      }
+
+      throw new Error("Ocorreu um erro desconhecido durante o login");
     }
   }
 
@@ -80,7 +86,6 @@ export class AuthService {
   // Verificar se está autenticado
   static isAuthenticated(): boolean {
     const token = TOKEN_STORAGE.getToken();
-    //console.log('isAuthenticated', token);
     if (!token) return false;
 
     // Verificar se o token não está expirado

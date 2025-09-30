@@ -137,7 +137,11 @@ export function ClienteManagement({
             uf: cliente.responsavel.endereco.uf,
           }
         : undefined,
-      clienteInfo: {},
+      clienteInfo: {
+        clienteInfoId: cliente.cliente_info_id,
+        pessoaId: cliente.pessoa.pessoa_id,
+        pessoaResponsavelId: cliente.pessoa_responsavel_id || undefined,
+      },
     });
 
     setIsEditDialogOpen(true);

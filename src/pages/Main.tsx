@@ -26,6 +26,7 @@ import { EntityManagement } from "./entities";
 import { NotExists } from "./notExists";
 import { SocioManagement } from "./socios";
 import { ClienteManagement } from "./clientes";
+import { ParceiroManagement } from "./parceiros";
 
 interface MainPageProps {
   activeTab?: string;
@@ -236,7 +237,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           </TabsContent>
 
           <TabsContent value="business-partners" className="space-y-6">
-            <NotExists title="Cadastro de Parceiros" />
+            <ParceiroManagement title="Cadastro de Parceiros" />
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-6">
