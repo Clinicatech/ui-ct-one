@@ -189,7 +189,7 @@ export class EntidadeService {
       if (params.search) {
         queryParams.append("search", params.search);
         // Quando há busca, especificar em quais campos buscar
-        queryParams.append("searchIn", "entidade_nome,cnpj");
+        queryParams.append("searchIn", "nome,cnpj");
       }
       queryParams.append("page", params.page.toString());
       queryParams.append("limit", params.limit.toString());

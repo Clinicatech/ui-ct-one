@@ -80,7 +80,7 @@ export const DEFAULT_PAGINATION = {
  */
 export const DEFAULT_SEARCH_CONFIG = {
   minSearchLength: 2,
-  searchIn: "entidade_nome,cnpj",
+  searchIn: "nome,cnpj",
   debounceDelay: 500,
 };
 
