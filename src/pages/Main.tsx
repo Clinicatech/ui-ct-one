@@ -27,6 +27,7 @@ import { NotExists } from "./notExists";
 import { SocioManagement } from "./socios";
 import { ClienteManagement } from "./clientes";
 import { ParceiroManagement } from "./parceiros";
+import { ContratoManagement } from "./contratos";
 
 interface MainPageProps {
   activeTab?: string;
@@ -72,6 +73,10 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
     }
     if (path.includes("/entity")) {
       setActiveTab("Entidades");
+      return;
+    }
+    if (path.includes("/contratos")) {
+      setActiveTab("contratos");
       return;
     }
     setActiveTab("overview");
@@ -140,9 +145,9 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
             navigate(`/main/${value}`);
           }}
         >
-          <TabsList className="grid w-full h-18 grid-cols-5">
+          <TabsList className="grid w-full h-18 grid-cols-6">
             {" "}
-            {/* grid-cols-5 - aqui determina o numero de colunas que vai ter no header */}
+            {/* grid-cols-6 - aqui determina o numero de colunas que vai ter no header */}
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="customers">Clientes</TabsTrigger>
             <TabsTrigger value="business-partners">Parceiros</TabsTrigger>
@@ -150,6 +155,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
             <TabsTrigger value="partners">Sócios</TabsTrigger>
             <TabsTrigger value="entity">Entidades</TabsTrigger>
             <TabsTrigger value="management">Gestão Financeira</TabsTrigger>
+            <TabsTrigger value="contratos">Contratos</TabsTrigger>
             <TabsTrigger value="reports">Relatórios</TabsTrigger>
           </TabsList>
 
@@ -254,6 +260,10 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
 
           <TabsContent value="management" className="space-y-6">
             <NotExists title="Gestão Financeira" />
+          </TabsContent>
+
+          <TabsContent value="contratos" className="space-y-6">
+            <ContratoManagement />
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">

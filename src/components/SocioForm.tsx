@@ -15,12 +15,11 @@ import { maskCPF, maskCNPJ, maskCEP } from "../utils/masks";
 import { ValidatedInput } from "./ui/validated-input";
 import { toast } from "sonner";
 import { SocioFormData } from "../types/socio";
-import { Banco } from "../services/banco.service";
 import {
   TIPO_PESSOA_OPTIONS,
   CONTA_TIPO_OPTIONS,
 } from "../constants/socio-constants";
-import { BancoService } from "../services/banco.service";
+import { bancoService, EntidadeContaBancaria } from "../services/banco.service";
 import { isValidBancoId, formatBancoDisplay } from "../utils/bancoUtils";
 import {
   Tooltip,
@@ -48,8 +47,9 @@ export function SocioForm({
   activeTab,
   setActiveTab,
 }: SocioFormProps) {
-  const [bancos, setBancos] = useState<Banco[]>([]);
-  const [bancoSelecionado, setBancoSelecionado] = useState<Banco | null>(null);
+  const [bancos, setBancos] = useState<EntidadeContaBancaria[]>([]);
+  const [bancoSelecionado, setBancoSelecionado] =
+    useState<EntidadeContaBancaria | null>(null);
   const [bancoIdInput, setBancoIdInput] = useState<string>("");
   const [carregandoBancos, setCarregandoBancos] = useState(false);
   const [isPersonSearchOpen, setIsPersonSearchOpen] = useState(false);
@@ -78,7 +78,7 @@ export function SocioForm({
   const loadBancos = async () => {
     setCarregandoBancos(true);
     try {
-      const bancosData = await BancoService.findAll();
+      const bancosData = await bancoService.findAll();
       setBancos(Array.isArray(bancosData) ? bancosData : []);
     } catch (error) {
       console.error("Erro ao carregar bancos:", error);

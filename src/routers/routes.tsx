@@ -57,6 +57,10 @@ export const router = createBrowserRouter([
             path: "entity",
             element: <MainPage activeTab="entity" />,
           },
+          {
+            path: "contratos",
+            element: <MainPage activeTab="contratos" />,
+          },
         ],
       },
       // {

@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { ValidatedInput } from "./ui/validated-input";
-import { BancoService, Banco } from "../services/banco.service";
+import { bancoService, EntidadeContaBancaria } from "../services/banco.service";
 import { maskCNPJ, maskCEP, maskTelefone } from "../utils/masks";
 import {
   findBancoById,
@@ -49,8 +49,9 @@ export function EntityForm({
   // Hook para validação de formulário (não usado no momento, mas disponível para futuras implementações)
   // const { showValidation } = useFormValidation();
   // Estados para gerenciar bancos
-  const [bancos, setBancos] = useState<Banco[]>([]);
-  const [bancoSelecionado, setBancoSelecionado] = useState<Banco | null>(null);
+  const [bancos, setBancos] = useState<EntidadeContaBancaria[]>([]);
+  const [bancoSelecionado, setBancoSelecionado] =
+    useState<EntidadeContaBancaria | null>(null);
   const [bancoIdInput, setBancoIdInput] = useState<string>("");
   const [carregandoBancos, setCarregandoBancos] = useState(false);
 
@@ -59,7 +60,7 @@ export function EntityForm({
     const carregarBancos = async () => {
       setCarregandoBancos(true);
       try {
-        const bancosData = await BancoService.findAll();
+        const bancosData = await bancoService.findAll();
         // Garantir que sempre temos um array válido
         setBancos(Array.isArray(bancosData) ? bancosData : []);
       } catch (error) {
@@ -99,7 +100,7 @@ export function EntityForm({
 
     if (banco) {
       setBancoSelecionado(banco);
-      setFormData((prev) => ({ ...prev, bancoId: banco.bancoId }));
+      setFormData((prev) => ({ ...prev, bancoId: banco.banco.bancoId }));
     } else {
       setBancoSelecionado(null);
       setFormData((prev) => ({ ...prev, bancoId: undefined }));
@@ -108,11 +109,11 @@ export function EntityForm({
 
   // Função para selecionar banco do select
   const selecionarBanco = (bancoId: string) => {
-    const banco = bancos.find((b) => b.bancoId === Number(bancoId));
+    const banco = bancos.find((b) => b.banco.bancoId === Number(bancoId));
     if (banco) {
       setBancoSelecionado(banco);
-      setBancoIdInput(banco.bancoId.toString());
-      setFormData((prev) => ({ ...prev, bancoId: banco.bancoId }));
+      setBancoIdInput(banco.banco.bancoId.toString());
+      setFormData((prev) => ({ ...prev, bancoId: banco.banco.bancoId }));
     }
   };
 
