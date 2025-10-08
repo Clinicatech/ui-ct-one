@@ -86,7 +86,7 @@ export function ContratoManagement() {
       // Carrega todos os contratos sem filtros iniciais
       const response = await contratoService.findAll({
         page: 1,
-        perPage: 200, // Máximo permitido pela API
+        perPage: 25, // Padrão de 25 itens por página
       });
 
       setContratos(response.data);
@@ -104,7 +104,6 @@ export function ContratoManagement() {
       const response = await contratoTipoService.findAll();
       setContratoTipos(response.data || []);
     } catch (err) {
-      console.error("Erro ao carregar tipos de contrato:", err);
       setContratoTipos([]);
     }
   }, []);
@@ -185,10 +184,6 @@ export function ContratoManagement() {
   const handleSaveContrato = async (data: ContratoFormData) => {
     try {
       setIsSubmitting(true);
-      console.log("💾 Dados sendo enviados para API:", data);
-      console.log("💾 Itens do contrato:", data.itens);
-      console.log("💾 Estrutura do primeiro item:", data.itens[0]);
-      console.log("💾 Campos do primeiro item:", Object.keys(data.itens[0]));
 
       if (editingContrato) {
         await contratoService.patch(editingContrato.contratoId, data);
@@ -216,7 +211,6 @@ export function ContratoManagement() {
       await loadContratos();
       toast.success("Contrato removido com sucesso!");
     } catch (error) {
-      console.error("Erro ao remover contrato:", error);
       toast.error("Erro ao remover contrato");
     }
   };

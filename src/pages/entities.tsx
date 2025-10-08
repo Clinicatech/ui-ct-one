@@ -204,7 +204,7 @@ export function EntityManagement({
   const [isUpdating, setIsUpdating] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [perPage] = useState(10);
+  const [perPage] = useState(25);
 
   // Estados para controle de formulário
   const [formData, setFormData] = useState<EntityFormData>(

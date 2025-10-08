@@ -140,7 +140,7 @@ export function SocioManagement({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
-  const [perPage] = useState(10);
+  const [perPage] = useState(25);
 
   //   O useRef é um Hook do React que retorna um objeto mutável cuja propriedade .current é inicializada com o valor passado como argumento. Ele é útil para:
   // Acessar elementos DOM diretamente

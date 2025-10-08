@@ -117,7 +117,7 @@ export class ContratoService {
       queryParams.append("page", params.page.toString());
     }
     if (params.perPage) {
-      const perPage = params.perPage > 200 ? 200 : params.perPage;
+      const perPage = params.perPage > 25 ? 25 : params.perPage;
       queryParams.append("perPage", perPage.toString());
     }
 
