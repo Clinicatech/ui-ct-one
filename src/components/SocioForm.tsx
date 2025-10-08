@@ -359,7 +359,7 @@ export function SocioForm({
                   </SelectTrigger>
                   <SelectContent>
                     {TIPO_PESSOA_OPTIONS?.map((option) => (
-                      <SelectItem key={option.value} value={option.value || ""}>
+                      <SelectItem key={option.value} value={option.value || "default"}>
                         {option.label}
                       </SelectItem>
                     ))}

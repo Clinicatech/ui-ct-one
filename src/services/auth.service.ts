@@ -4,7 +4,11 @@ import {
   USER_STORAGE,
   apiRequest,
 } from "../config/api";
-import { getEmailFromToken, isTokenExpired } from "../utils/jwt";
+import {
+  getEmailFromToken,
+  getEntidadeIdFromToken,
+  isTokenExpired,
+} from "../utils/jwt";
 
 const API_TIMEOUT = 10000;
 // Tipos para a resposta de login
@@ -116,5 +120,13 @@ export class AuthService {
   static getUser(): { codigo: number; nome: string; email: string } | null {
     const user = USER_STORAGE.getUser();
     return user;
+  }
+
+  // Obter entidadeId do usuário atual
+  static getEntidadeId(): number | null {
+    const token = TOKEN_STORAGE.getToken();
+    if (!token) return null;
+
+    return getEntidadeIdFromToken(token);
   }
 }

@@ -185,9 +185,13 @@ export function ContratoManagement() {
   const handleSaveContrato = async (data: ContratoFormData) => {
     try {
       setIsSubmitting(true);
+      console.log("💾 Dados sendo enviados para API:", data);
+      console.log("💾 Itens do contrato:", data.itens);
+      console.log("💾 Estrutura do primeiro item:", data.itens[0]);
+      console.log("💾 Campos do primeiro item:", Object.keys(data.itens[0]));
 
       if (editingContrato) {
-        await contratoService.update(editingContrato.contratoId, data);
+        await contratoService.patch(editingContrato.contratoId, data);
         toast.success("Contrato atualizado com sucesso");
       } else {
         await contratoService.create(data);

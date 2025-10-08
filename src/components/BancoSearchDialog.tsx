@@ -20,28 +20,14 @@ import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Search, Building2, CreditCard } from "lucide-react";
 import { toast } from "sonner";
-import { bancoService } from "../services/banco.service";
-
-// Tipos
-interface EntidadeContaBancaria {
-  entidadeContaBancariaId: number;
-  banco?: {
-    bancoId: number;
-    nome: string;
-    codigo: string;
-  };
-  banco_nome?: string;
-  agencia: string;
-  conta: string;
-  tipoConta?: string;
-  ativo?: boolean;
-}
+import { bancoService, EntidadeContaBancaria } from "../services/banco.service";
 
 interface BancoSearchDialogProps {
   isOpen: boolean;
   onClose: () => void;
   onSelectBanco: (banco: EntidadeContaBancaria) => void;
   title?: string;
+  entidadeId?: number;
 }
 
 export function BancoSearchDialog({
@@ -49,36 +35,75 @@ export function BancoSearchDialog({
   onClose,
   onSelectBanco,
   title = "Buscar Conta Bancária",
+  entidadeId,
 }: BancoSearchDialogProps) {
   const [bancos, setBancos] = useState<EntidadeContaBancaria[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchParams, setSearchParams] = useState({
     search: "",
-    tipoConta: "",
-    ativo: "",
+    tipoConta: "all",
   });
 
   // Buscar contas bancárias reais
   const performSearch = useCallback(async () => {
     setLoading(true);
     try {
-      // Buscar dados reais da API
-      const response = await bancoService.findAll({
-        search: searchParams.search || undefined,
-        tipoConta: searchParams.tipoConta || undefined,
-        ativo: searchParams.ativo ? searchParams.ativo === "true" : undefined,
-      });
+      let response;
 
-      // A API já faz o filtro, então usar os dados diretamente
-      const bancosData = response.data || [];
+      let bancosData: EntidadeContaBancaria[] = [];
+
+      if (entidadeId) {
+        // Se temos entidadeId, buscar apenas contas dessa entidade
+        response = await bancoService.findByEntidade(entidadeId);
+
+        // Aplicar filtros no frontend
+        bancosData = response.data || [];
+
+        // Filtro por texto de busca
+        if (searchParams.search) {
+          const searchTerm = searchParams.search.toLowerCase();
+          bancosData = bancosData.filter((banco) => {
+            const bancoNome =
+              banco.banco?.nome?.toLowerCase() ||
+              banco.bancoNome?.toLowerCase() ||
+              "";
+            const agencia = banco.agencia?.toLowerCase() || "";
+            const conta = banco.conta?.toLowerCase() || "";
+            return (
+              bancoNome.includes(searchTerm) ||
+              agencia.includes(searchTerm) ||
+              conta.includes(searchTerm)
+            );
+          });
+        }
+
+        // Filtro por tipo de conta
+        if (searchParams.tipoConta && searchParams.tipoConta !== "all") {
+          bancosData = bancosData.filter(
+            (banco) => banco.tipoConta === searchParams.tipoConta
+          );
+        }
+      } else {
+        // Fallback: buscar todas as contas (comportamento antigo)
+        response = await bancoService.findAll({
+          search: searchParams.search || undefined,
+          tipoConta:
+            searchParams.tipoConta && searchParams.tipoConta !== "all"
+              ? searchParams.tipoConta
+              : undefined,
+        });
+
+        // A API já faz o filtro, então usar os dados diretamente
+        bancosData = response.data || [];
+      }
+
       setBancos(bancosData);
 
       // Se há apenas uma conta bancária e não há filtros aplicados, selecionar automaticamente
       if (
         bancosData.length === 1 &&
         !searchParams.search &&
-        !searchParams.tipoConta &&
-        !searchParams.ativo
+        searchParams.tipoConta === "all"
       ) {
         toast.success("Conta bancária selecionada automaticamente");
         onSelectBanco(bancosData[0]);
@@ -91,7 +116,7 @@ export function BancoSearchDialog({
     } finally {
       setLoading(false);
     }
-  }, [searchParams, onSelectBanco, onClose]);
+  }, [searchParams, onSelectBanco, onClose, entidadeId]);
 
   useEffect(() => {
     if (isOpen) {
@@ -160,27 +185,10 @@ export function BancoSearchDialog({
                   <SelectValue placeholder="Todos os tipos" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os tipos</SelectItem>
+                  <SelectItem value="all">Todos os tipos</SelectItem>
                   <SelectItem value="CORRENTE">Conta Corrente</SelectItem>
                   <SelectItem value="POUPANCA">Poupança</SelectItem>
                   <SelectItem value="SALARIO">Conta Salário</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Status</Label>
-              <Select
-                value={searchParams.ativo}
-                onValueChange={(value) => handleInputChange("ativo", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">Todos</SelectItem>
-                  <SelectItem value="true">Ativos</SelectItem>
-                  <SelectItem value="false">Inativos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -217,7 +225,10 @@ export function BancoSearchDialog({
                           <div>
                             <p className="font-medium">{banco.banco.nome}</p>
                             <p className="text-sm text-muted-foreground">
-                              Código: {banco.banco.codigo}
+                              Código:{" "}
+                              {banco.banco?.bancoId
+                                ?.toString()
+                                .padStart(3, "0") || "N/A"}
                             </p>
                           </div>
                         </div>
@@ -241,11 +252,6 @@ export function BancoSearchDialog({
                           }
                         >
                           {getTipoContaLabel(banco.tipoConta)}
-                        </Badge>
-                        <Badge
-                          variant={banco.ativo ? "default" : "destructive"}
-                        >
-                          {banco.ativo ? "Ativo" : "Inativo"}
                         </Badge>
                       </div>
                     </div>

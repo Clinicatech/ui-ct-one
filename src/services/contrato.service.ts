@@ -189,6 +189,19 @@ export class ContratoService {
   }
 
   /**
+   * Atualiza parcialmente um contrato existente
+   */
+  async patch(
+    id: number,
+    data: Partial<ContratoFormData>
+  ): Promise<ContratoUpdateResponse> {
+    return await apiRequest<ContratoUpdateResponse>(`${this.baseUrl}/${id}`, {
+      method: "PATCH",
+      body: JSON.stringify(data),
+    });
+  }
+
+  /**
    * Remove um contrato
    */
   async remove(id: number): Promise<void> {

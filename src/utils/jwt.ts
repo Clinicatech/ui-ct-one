@@ -3,6 +3,7 @@ export interface JWTPayload {
   sub: string;
   email: string;
   name?: string;
+  entidadeId?: number;
   exp: number;
   iat: number;
 }
@@ -39,4 +40,10 @@ export function isTokenExpired(token: string): boolean {
 export function getEmailFromToken(token: string): string | null {
   const payload = decodeJWT(token);
   return payload?.email || null;
+}
+
+// Extrair entidadeId do token
+export function getEntidadeIdFromToken(token: string): number | null {
+  const payload = decodeJWT(token);
+  return payload?.entidadeId || null;
 }

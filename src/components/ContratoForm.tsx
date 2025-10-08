@@ -20,6 +20,7 @@ import { PessoaSearchDialog } from "./PessoaSearchDialog";
 import { Pessoa } from "../services/pessoa.service";
 import { BancoSearchDialog } from "./BancoSearchDialog";
 import { EntidadeContaBancaria, bancoService } from "../services/banco.service";
+import { AuthService } from "../services/auth.service";
 
 // Funções para máscara de valor
 const formatCurrency = (value: number): string => {
@@ -28,16 +29,6 @@ const formatCurrency = (value: number): string => {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-};
-
-const parseCurrency = (value: string): number => {
-  if (!value) return 0;
-  // Remove tudo exceto números, vírgulas e pontos
-  const cleanValue = value.replace(/[^\d,.-]/g, "");
-  // Substitui vírgula por ponto para parseFloat
-  const normalizedValue = cleanValue.replace(",", ".");
-  const parsed = parseFloat(normalizedValue) || 0;
-  return Math.round(parsed * 100) / 100; // Arredonda para 2 casas decimais
 };
 
 // Função para buscar contas bancárias de uma entidade
@@ -81,6 +72,7 @@ interface ContratoTipo {
 }
 
 interface ContratoItem {
+  contratoItemId?: number; // ID do item (para itens existentes)
   descricao: string;
   valor: number;
   dataIni: string;
@@ -149,8 +141,6 @@ export function ContratoForm({
   const [selectedPessoa, setSelectedPessoa] = useState<Pessoa | null>(null);
   const [isBancoSearchOpen, setIsBancoSearchOpen] = useState(false);
   const [currentItemIndex, setCurrentItemIndex] = useState<number | null>(null);
-  const [entidadeTemApenasUmaConta, setEntidadeTemApenasUmaConta] =
-    useState(false);
 
   // Armazenar a pessoa original para restaurar se necessário
   const [originalPessoa, setOriginalPessoa] = useState<Pessoa | null>(null);
@@ -158,8 +148,7 @@ export function ContratoForm({
     "cliente" | "parceiro" | "socio" | ""
   >("");
 
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showCloseConfirmation, setShowCloseConfirmation] = useState(false);
+  const [valorInputs, setValorInputs] = useState<Record<number, string>>({});
 
   // Inicializar dados do formulário
   useEffect(() => {
@@ -178,6 +167,8 @@ export function ContratoForm({
         itens: (contrato.itens || []).map((item) => ({
           ...item,
           contaBancaria: item.contaBancaria || undefined,
+          mesVencimento: item.mesVencimento || 0,
+          anoVencimento: item.anoVencimento || 0,
         })),
       });
 
@@ -213,6 +204,18 @@ export function ContratoForm({
         (t) => t.contratoTipoId === formData.contratoTipoId
       );
       setSelectedContratoTipo(tipo || null);
+
+      // Atualizar operação dos itens existentes
+      if (tipo) {
+        const novaOperacao = tipo.tipo === "R" ? "C" : "D";
+        setFormData((prev) => ({
+          ...prev,
+          itens: prev.itens.map((item) => ({
+            ...item,
+            operacao: novaOperacao,
+          })),
+        }));
+      }
     }
   }, [formData.contratoTipoId, contratoTipos]);
 
@@ -226,7 +229,6 @@ export function ContratoForm({
 
   const handleInputChange = (field: keyof ContratoFormData, value: any) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    setHasUnsavedChanges(true);
   };
 
   const handleTipoPessoaChange = (tipo: "cliente" | "parceiro" | "socio") => {
@@ -263,8 +265,6 @@ export function ContratoForm({
           socioInfoId: undefined,
         }));
       }
-
-      setHasUnsavedChanges(true);
     }
   };
 
@@ -280,67 +280,41 @@ export function ContratoForm({
     } else if (selectedTipoPessoa === "socio") {
       setFormData((prev) => ({ ...prev, socioInfoId: 1 })); // Simulado
     }
-    setHasUnsavedChanges(true);
   };
-
-  // Verificar se a entidade tem apenas uma conta quando uma pessoa é selecionada
-  useEffect(() => {
-    const verificarContas = async () => {
-      if (selectedPessoa) {
-        // Se a entidade é sempre a do usuário logado, usar uma entidade fixa por enquanto
-        // Em produção, isso deveria vir do contexto de autenticação
-        const entidadeId = selectedPessoa.entidadeId || 48; // Fallback para entidade 48
-
-        const temApenasUma = await verificarContasBancariasEntidade(entidadeId);
-        setEntidadeTemApenasUmaConta(temApenasUma);
-      } else {
-        setEntidadeTemApenasUmaConta(false);
-      }
-    };
-
-    verificarContas();
-  }, [selectedPessoa]);
 
   const handleOpenBancoSearch = async (itemIndex: number) => {
     setCurrentItemIndex(itemIndex);
 
-    // Se há uma pessoa selecionada, buscar suas contas bancárias
-    if (selectedPessoa) {
-      try {
-        const entidadeId = selectedPessoa.entidadeId;
+    try {
+      // Usar sempre a entidade do usuário logado
+      const entidadeId = AuthService.getEntidadeId();
 
-        const contasBancarias = await buscarContasBancariasEntidade(entidadeId);
-
-        if (contasBancarias.length === 1) {
-          // Se há apenas uma conta, selecionar automaticamente
-          handleSelectBanco(contasBancarias[0]);
-          toast.success("Conta bancária selecionada automaticamente");
-          return;
-        } else if (contasBancarias.length > 1) {
-          // Se há múltiplas contas, abrir modal para seleção
-          setIsBancoSearchOpen(true);
-          return;
-        }
-      } catch (error) {
-        console.error("Erro ao buscar contas bancárias:", error);
+      if (!entidadeId) {
+        toast.error("Erro: Entidade do usuário não encontrada");
+        return;
       }
+
+      const contasBancarias = await buscarContasBancariasEntidade(entidadeId);
+
+      if (contasBancarias.length === 1) {
+        // Se há apenas uma conta, selecionar automaticamente
+        handleSelectBanco(contasBancarias[0]);
+        toast.success("Conta bancária selecionada automaticamente");
+        return;
+      } else if (contasBancarias.length > 1) {
+        // Se há múltiplas contas, abrir modal para seleção
+        setIsBancoSearchOpen(true);
+        return;
+      } else {
+        toast.error("Nenhuma conta bancária encontrada para esta entidade");
+      }
+    } catch (error) {
+      console.error("Erro ao buscar contas bancárias:", error);
+      toast.error("Erro ao buscar contas bancárias");
     }
 
     // Se não há pessoa selecionada ou erro, abrir modal normal
     setIsBancoSearchOpen(true);
-  };
-
-  // Função para verificar se a entidade tem apenas uma conta bancária
-  const verificarContasBancariasEntidade = async (
-    entidadeId: number
-  ): Promise<boolean> => {
-    try {
-      const contasBancarias = await buscarContasBancariasEntidade(entidadeId);
-      return contasBancarias.length === 1;
-    } catch (error) {
-      console.error("Erro ao verificar contas bancárias:", error);
-      return false;
-    }
   };
 
   const handleSelectBanco = (banco: EntidadeContaBancaria) => {
@@ -357,13 +331,13 @@ export function ContratoForm({
             : item
         ),
       }));
-      setHasUnsavedChanges(true);
     }
     setIsBancoSearchOpen(false);
     setCurrentItemIndex(null);
   };
 
   const handleAddItem = () => {
+    const currentDate = new Date();
     const newItem: ContratoItem = {
       descricao: "",
       valor: 0,
@@ -377,16 +351,19 @@ export function ContratoForm({
       instrucoesBanco: "",
       operacao: selectedContratoTipo?.tipo === "R" ? "C" : "D",
       entidadeContaBancariaId: undefined,
-      mesVencimento: 0,
-      anoVencimento: 0,
+      mesVencimento: selectedContratoTipo?.recorrente
+        ? currentDate.getMonth() + 1
+        : 0,
+      anoVencimento: selectedContratoTipo?.recorrente
+        ? currentDate.getFullYear()
+        : 0,
       contaBancaria: undefined,
     };
 
     setFormData((prev) => ({
       ...prev,
-      itens: [...prev.itens, newItem],
+      itens: [newItem, ...prev.itens],
     }));
-    setHasUnsavedChanges(true);
   };
 
   const handleRemoveItem = (index: number) => {
@@ -394,7 +371,23 @@ export function ContratoForm({
       ...prev,
       itens: prev.itens.filter((_, i) => i !== index),
     }));
-    setHasUnsavedChanges(true);
+
+    // Limpar o estado do input de valor
+    setValorInputs((prev) => {
+      const newState = { ...prev };
+      delete newState[index];
+      // Reindexar os inputs restantes
+      const reindexed: Record<number, string> = {};
+      Object.keys(newState).forEach((key) => {
+        const oldIndex = parseInt(key);
+        if (oldIndex > index) {
+          reindexed[oldIndex - 1] = newState[oldIndex];
+        } else if (oldIndex < index) {
+          reindexed[oldIndex] = newState[oldIndex];
+        }
+      });
+      return reindexed;
+    });
   };
 
   const handleItemChange = (
@@ -408,7 +401,6 @@ export function ContratoForm({
         i === index ? { ...item, [field]: value } : item
       ),
     }));
-    setHasUnsavedChanges(true);
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -451,32 +443,182 @@ export function ContratoForm({
       }
     }
 
-    onSubmit(formData);
-    setHasUnsavedChanges(false);
+    // Para edição, usar apenas dados modificados
+    const dataToSubmit = contrato ? getChangedData() : formData;
+
+    // Se há itens no formulário, sempre incluir na submissão
+    if (formData.itens && formData.itens.length > 0) {
+      dataToSubmit.itens = formData.itens;
+      console.log("📤 Itens incluídos na submissão:", formData.itens.length);
+    }
+
+    // Limpar dados antes de enviar (remover campos que não devem ir para a API)
+    const cleanedData = {
+      ...dataToSubmit,
+      itens: dataToSubmit.itens?.map((item) => {
+        const {
+          contaBancaria,
+          movimentos,
+          naturezaOperacao,
+          ...itemWithoutUnwantedFields
+        } = item as any;
+
+        // Preservar contratoItemId se existir (para itens existentes)
+        if (item.contratoItemId) {
+          itemWithoutUnwantedFields.contratoItemId = item.contratoItemId;
+          console.log("📤 Preservando contratoItemId:", item.contratoItemId);
+        } else {
+          console.log("📤 Novo item (sem contratoItemId) - será criado");
+        }
+
+        // Garantir que campos obrigatórios tenham valores padrão
+        const cleanedItem = { ...itemWithoutUnwantedFields };
+
+        // Limpar campos opcionais vazios
+        if (!cleanedItem.dataFim || cleanedItem.dataFim.trim() === "") {
+          delete cleanedItem.dataFim;
+          console.log("📤 Removendo dataFim vazia");
+        }
+        if (
+          !cleanedItem.instrucoesBanco ||
+          cleanedItem.instrucoesBanco.trim() === ""
+        ) {
+          delete cleanedItem.instrucoesBanco;
+          console.log("📤 Removendo instrucoesBanco vazia");
+        }
+
+        // Corrigir problema de timezone das datas
+        if (cleanedItem.dataIni) {
+          // Garantir que a data seja enviada como string no formato YYYY-MM-DD
+          const dataIni = new Date(cleanedItem.dataIni);
+          const year = dataIni.getFullYear();
+          const month = String(dataIni.getMonth() + 1).padStart(2, "0");
+          const day = String(dataIni.getDate()).padStart(2, "0");
+          cleanedItem.dataIni = `${year}-${month}-${day}`;
+        }
+        if (cleanedItem.dataFim) {
+          // Garantir que a data seja enviada como string no formato YYYY-MM-DD
+          const dataFim = new Date(cleanedItem.dataFim);
+          const year = dataFim.getFullYear();
+          const month = String(dataFim.getMonth() + 1).padStart(2, "0");
+          const day = String(dataFim.getDate()).padStart(2, "0");
+          cleanedItem.dataFim = `${year}-${month}-${day}`;
+        }
+
+        // Incluir mesVencimento e anoVencimento baseado no tipo de contrato
+        if (selectedContratoTipo?.recorrente) {
+          // Para contratos recorrentes, incluir com valores padrão
+          cleanedItem.mesVencimento =
+            itemWithoutUnwantedFields.mesVencimento ?? 0;
+          cleanedItem.anoVencimento =
+            itemWithoutUnwantedFields.anoVencimento ?? 0;
+        } else {
+          // Para contratos não recorrentes, incluir os valores preenchidos (obrigatórios)
+          cleanedItem.mesVencimento =
+            itemWithoutUnwantedFields.mesVencimento ?? 0;
+          cleanedItem.anoVencimento =
+            itemWithoutUnwantedFields.anoVencimento ?? 0;
+        }
+
+        return cleanedItem;
+      }),
+    };
+
+    onSubmit(cleanedData as ContratoFormData);
   };
 
-  // Função para fechar dialog com verificação de alterações
-  const handleCloseDialog = useCallback(() => {
-    if (hasUnsavedChanges) {
-      setShowCloseConfirmation(true);
-    } else {
-      onCancel?.();
+  // Função para detectar mudanças nos dados
+  const getChangedData = useCallback(() => {
+    if (!contrato) return formData; // Para novos contratos, enviar todos os dados
+
+    const changes: Partial<ContratoFormData> = {};
+
+    // Verificar mudanças nos campos principais
+    if (formData.numeroContrato !== contrato.numeroContrato) {
+      changes.numeroContrato = formData.numeroContrato;
     }
-  }, [hasUnsavedChanges, onCancel]);
+    if (formData.clienteInfoId !== contrato.cliente?.clienteInfoId) {
+      changes.clienteInfoId = formData.clienteInfoId;
+    }
+    if (formData.parceiroInfoId !== contrato.parceiro?.parceiroInfoId) {
+      changes.parceiroInfoId = formData.parceiroInfoId;
+    }
+    if (formData.socioInfoId !== contrato.socio?.socioInfoId) {
+      changes.socioInfoId = formData.socioInfoId;
+    }
+    if (formData.contratoTipoId !== contrato.tipo?.contratoTipoId) {
+      changes.contratoTipoId = formData.contratoTipoId;
+    }
+    if (formData.descricao !== contrato.descricao) {
+      changes.descricao = formData.descricao;
+    }
+    if (formData.valor !== contrato.valor) {
+      changes.valor = formData.valor;
+    }
+    if (formData.ativo !== contrato.ativo) {
+      changes.ativo = formData.ativo;
+    }
+    if (formData.urlContrato !== contrato.urlContrato) {
+      changes.urlContrato = formData.urlContrato;
+    }
 
-  // Função para fechar dialog forçadamente (sem verificação)
-  const handleForceClose = useCallback(() => {
-    setHasUnsavedChanges(false);
-    setShowCloseConfirmation(false);
-    onCancel?.();
-  }, [onCancel]);
+    // Verificar mudanças nos itens
+    const originalItens = contrato.itens || [];
+    const currentItens = formData.itens || [];
 
-  // Função para descartar alterações
-  const handleDiscardChanges = useCallback(() => {
-    setShowCloseConfirmation(false);
-    setHasUnsavedChanges(false);
-    onCancel?.();
-  }, [onCancel]);
+    console.log("🔍 Debug detecção de mudanças:");
+    console.log("🔍 Itens originais:", originalItens.length, originalItens);
+    console.log("🔍 Itens atuais:", currentItens.length, currentItens);
+    console.log(
+      "🔍 IDs dos itens originais:",
+      originalItens.map((item) => item.contratoItemId)
+    );
+    console.log(
+      "🔍 IDs dos itens atuais:",
+      currentItens.map((item) => item.contratoItemId)
+    );
+
+    // Se o número de itens mudou
+    if (originalItens.length !== currentItens.length) {
+      console.log("🔍 Número de itens mudou, incluindo itens nas mudanças");
+      changes.itens = currentItens;
+    } else if (currentItens.length > 0) {
+      // Verificar se algum item foi modificado
+      const hasItemChanges = currentItens.some((currentItem, index) => {
+        const originalItem = originalItens[index];
+        if (!originalItem) return true;
+
+        return (
+          currentItem.descricao !== originalItem.descricao ||
+          currentItem.valor !== originalItem.valor ||
+          currentItem.dataIni !== originalItem.dataIni ||
+          currentItem.dataFim !== originalItem.dataFim ||
+          currentItem.diaVencimento !== originalItem.diaVencimento ||
+          currentItem.ativo !== originalItem.ativo ||
+          currentItem.gerarBoleto !== originalItem.gerarBoleto ||
+          currentItem.juros !== originalItem.juros ||
+          currentItem.mora !== originalItem.mora ||
+          currentItem.instrucoesBanco !== originalItem.instrucoesBanco ||
+          currentItem.entidadeContaBancariaId !==
+            originalItem.entidadeContaBancariaId ||
+          currentItem.mesVencimento !== originalItem.mesVencimento ||
+          currentItem.anoVencimento !== originalItem.anoVencimento
+        );
+      });
+
+      if (hasItemChanges) {
+        console.log("🔍 Itens foram modificados, incluindo nas mudanças");
+        changes.itens = currentItens;
+      } else {
+        console.log("🔍 Nenhuma mudança nos itens detectada");
+      }
+    } else {
+      console.log("🔍 Nenhum item atual para comparar");
+    }
+
+    console.log("🔍 Mudanças detectadas:", changes);
+    return changes;
+  }, [formData, contrato]);
 
   return (
     <>
@@ -755,12 +897,50 @@ export function ContratoForm({
                           <div className="space-y-2">
                             <Label>Valor *</Label>
                             <Input
-                              value={formatCurrency(item.valor || 0)}
+                              value={
+                                valorInputs[index] ??
+                                formatCurrency(item.valor || 0)
+                              }
                               onChange={(e) => {
-                                const parsedValue = parseCurrency(
-                                  e.target.value
+                                const inputValue = e.target.value;
+                                setValorInputs((prev) => ({
+                                  ...prev,
+                                  [index]: inputValue,
+                                }));
+
+                                // Parse apenas números para o valor real
+                                const numbers = inputValue.replace(/\D/g, "");
+                                if (numbers) {
+                                  // Converter para valor real (ex: 1000 -> 10.00)
+                                  const valor = parseInt(numbers) / 100;
+                                  // Limitar a 9.999.999,99
+                                  const limitedValor = Math.min(
+                                    valor,
+                                    9999999.99
+                                  );
+                                  handleItemChange(
+                                    index,
+                                    "valor",
+                                    limitedValor
+                                  );
+                                } else {
+                                  handleItemChange(index, "valor", 0);
+                                }
+                              }}
+                              onBlur={(e) => {
+                                // Formatar no blur para manter a formatação
+                                const numbers = e.target.value.replace(
+                                  /\D/g,
+                                  ""
                                 );
-                                handleItemChange(index, "valor", parsedValue);
+                                if (numbers) {
+                                  const valor = parseInt(numbers) / 100;
+                                  const formatted = formatCurrency(valor);
+                                  setValorInputs((prev) => ({
+                                    ...prev,
+                                    [index]: formatted,
+                                  }));
+                                }
                               }}
                               placeholder="0,00"
                             />
@@ -806,13 +986,29 @@ export function ContratoForm({
                               min="1"
                               max="28"
                               value={item.diaVencimento || 1}
-                              onChange={(e) =>
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // Permitir digitação livre, validar apenas no blur
+                                if (value === "" || /^\d*$/.test(value)) {
+                                  handleItemChange(
+                                    index,
+                                    "diaVencimento",
+                                    value === "" ? 1 : parseInt(value) || 1
+                                  );
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const value = parseInt(e.target.value) || 1;
+                                const limitedValue = Math.min(
+                                  Math.max(value, 1),
+                                  28
+                                );
                                 handleItemChange(
                                   index,
                                   "diaVencimento",
-                                  parseInt(e.target.value) || 1
-                                )
-                              }
+                                  limitedValue
+                                );
+                              }}
                             />
                           </div>
                         </div>
@@ -822,7 +1018,11 @@ export function ContratoForm({
                             <div className="space-y-2">
                               <Label>Mês de Vencimento</Label>
                               <Select
-                                value={item.mesVencimento?.toString() || "0"}
+                                value={
+                                  item.mesVencimento && item.mesVencimento > 0
+                                    ? item.mesVencimento.toString()
+                                    : "0"
+                                }
                                 onValueChange={(value) =>
                                   handleItemChange(
                                     index,
@@ -835,6 +1035,9 @@ export function ContratoForm({
                                   <SelectValue placeholder="Selecione o mês" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                  <SelectItem value="0">
+                                    Selecione o mês
+                                  </SelectItem>
                                   {Array.from({ length: 12 }, (_, i) => (
                                     <SelectItem
                                       key={i + 1}
@@ -856,16 +1059,41 @@ export function ContratoForm({
                               <Label>Ano de Vencimento</Label>
                               <Input
                                 type="number"
-                                min={new Date().getFullYear()}
-                                value={item.anoVencimento || 0}
-                                onChange={(e) =>
-                                  handleItemChange(
-                                    index,
-                                    "anoVencimento",
-                                    parseInt(e.target.value) || 0
-                                  )
+                                min="2024"
+                                max="2150"
+                                value={
+                                  item.anoVencimento && item.anoVencimento > 0
+                                    ? item.anoVencimento.toString()
+                                    : ""
                                 }
-                                placeholder="Deixe vazio para recorrente"
+                                onChange={(e) => {
+                                  const value = e.target.value;
+                                  // Permitir digitação livre, validar apenas no blur
+                                  if (value === "" || /^\d*$/.test(value)) {
+                                    handleItemChange(
+                                      index,
+                                      "anoVencimento",
+                                      value === "" ? 0 : parseInt(value) || 0
+                                    );
+                                  }
+                                }}
+                                onBlur={(e) => {
+                                  const value = parseInt(e.target.value);
+                                  if (value && value > 0) {
+                                    const limitedValue = Math.min(
+                                      Math.max(value, 2024),
+                                      2150
+                                    );
+                                    handleItemChange(
+                                      index,
+                                      "anoVencimento",
+                                      limitedValue
+                                    );
+                                  } else {
+                                    handleItemChange(index, "anoVencimento", 0);
+                                  }
+                                }}
+                                //placeholder="Ex: 2025"
                               />
                             </div>
                           )}
@@ -879,13 +1107,25 @@ export function ContratoForm({
                               min="0"
                               max="100"
                               value={item.juros || 0}
-                              onChange={(e) =>
-                                handleItemChange(
-                                  index,
-                                  "juros",
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // Permitir digitação livre, validar apenas no blur
+                                if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                                  handleItemChange(
+                                    index,
+                                    "juros",
+                                    value === "" ? 0 : parseFloat(value) || 0
+                                  );
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const value = parseFloat(e.target.value) || 0;
+                                const limitedValue = Math.min(
+                                  Math.max(value, 0),
+                                  100
+                                );
+                                handleItemChange(index, "juros", limitedValue);
+                              }}
                               placeholder="0.00"
                             />
                           </div>
@@ -899,13 +1139,25 @@ export function ContratoForm({
                               min="0"
                               max="100"
                               value={item.mora || 0}
-                              onChange={(e) =>
-                                handleItemChange(
-                                  index,
-                                  "mora",
-                                  parseFloat(e.target.value) || 0
-                                )
-                              }
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                // Permitir digitação livre, validar apenas no blur
+                                if (value === "" || /^\d*\.?\d*$/.test(value)) {
+                                  handleItemChange(
+                                    index,
+                                    "mora",
+                                    value === "" ? 0 : parseFloat(value) || 0
+                                  );
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const value = parseFloat(e.target.value) || 0;
+                                const limitedValue = Math.min(
+                                  Math.max(value, 0),
+                                  100
+                                );
+                                handleItemChange(index, "mora", limitedValue);
+                              }}
                               placeholder="0.00"
                             />
                           </div>
@@ -951,64 +1203,32 @@ export function ContratoForm({
                               <Input
                                 value={
                                   item.contaBancaria &&
-                                  item.contaBancaria.bancoNome
-                                    ? `${item.contaBancaria.bancoNome} - ${item.contaBancaria.agencia}/${item.contaBancaria.conta}`
+                                  (item.contaBancaria.banco?.nome ||
+                                    item.contaBancaria.bancoNome)
+                                    ? `${
+                                        item.contaBancaria.banco?.nome ||
+                                        item.contaBancaria.bancoNome
+                                      } - ${item.contaBancaria.agencia}/${
+                                        item.contaBancaria.conta
+                                      }`
                                     : ""
                                 }
                                 placeholder="Selecione uma conta bancária"
                                 readOnly
                                 className="flex-1"
                               />
-                              {(() => {
-                                // Se a entidade tem apenas uma conta, não mostrar botão
-                                if (entidadeTemApenasUmaConta) {
-                                  return null;
-                                }
-
-                                // Se a entidade tem múltiplas contas, mostrar botão
-                                return item.contaBancaria ? (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => {
-                                      handleOpenBancoSearch(index);
-                                    }}
-                                  >
-                                    Alterar
-                                  </Button>
-                                ) : (
-                                  <Button
-                                    type="button"
-                                    variant="outline"
-                                    onClick={() => {
-                                      handleOpenBancoSearch(index);
-                                    }}
-                                  >
-                                    Selecionar
-                                  </Button>
-                                );
-                              })()}
+                              <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => {
+                                  handleOpenBancoSearch(index);
+                                }}
+                              >
+                                {item.contaBancaria ? "Alterar" : "Selecionar"}
+                              </Button>
                             </div>
                           </div>
                         </div>
-                        {/* Conta Bancária (se operação for débito) */}
-                        {selectedContratoTipo?.tipo === "D" && (
-                          <div className="grid grid-cols-1 md:grid-cols-1 gap-4 border border-gray-300 rounded-md p-2">
-                            <Label>Conta Bancária *</Label>
-                            <Button
-                              type="button"
-                              className="w-full justify-start"
-                              onClick={() => {
-                                // TODO: Abrir modal de seleção de conta bancária
-                                toast.info(
-                                  "Modal de seleção de conta bancária será implementado"
-                                );
-                              }}
-                            >
-                              Selecionar conta bancária
-                            </Button>
-                          </div>
-                        )}
                       </CardContent>
                     </Card>
                   ))
@@ -1061,6 +1281,7 @@ export function ContratoForm({
           setCurrentItemIndex(null);
         }}
         onSelectBanco={handleSelectBanco}
+        entidadeId={AuthService.getEntidadeId() || undefined}
       />
     </>
   );
