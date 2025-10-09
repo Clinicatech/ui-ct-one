@@ -125,8 +125,17 @@ export class AuthService {
   // Obter entidadeId do usuário atual
   static getEntidadeId(): number | null {
     const token = TOKEN_STORAGE.getToken();
-    if (!token) return null;
+    if (!token) {
+      console.log("🔍 getEntidadeId - Token não encontrado");
+      return null;
+    }
 
-    return getEntidadeIdFromToken(token);
+    console.log(
+      "🔍 getEntidadeId - Token encontrado:",
+      token.substring(0, 50) + "..."
+    );
+    const entidadeId = getEntidadeIdFromToken(token);
+    console.log("🔍 getEntidadeId - entidadeId extraído:", entidadeId);
+    return entidadeId;
   }
 }

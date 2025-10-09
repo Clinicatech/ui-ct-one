@@ -28,6 +28,7 @@ import { SocioManagement } from "./socios";
 import { ClienteManagement } from "./clientes";
 import { ParceiroManagement } from "./parceiros";
 import { ContratoManagement } from "./contratos";
+import { UsuarioManagement } from "./usuarios";
 
 interface MainPageProps {
   activeTab?: string;
@@ -38,6 +39,13 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(propActiveTab || "overview");
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    // Verificar se usuário é ADM (simulação - em produção viria da API)
+    // Por enquanto, vamos simular que todos os usuários são ADM para teste
+    setIsAdmin(true);
+  }, []);
 
   useEffect(() => {
     if (propActiveTab) {
@@ -145,13 +153,15 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
             navigate(`/main/${value}`);
           }}
         >
-          <TabsList className="grid w-full h-18 grid-cols-6">
-            {" "}
-            {/* grid-cols-6 - aqui determina o numero de colunas que vai ter no header */}
+          <TabsList
+            className={`grid w-full h-18 ${
+              isAdmin ? "grid-cols-6" : "grid-cols-5"
+            }`}
+          >
             <TabsTrigger value="overview">Visão Geral</TabsTrigger>
             <TabsTrigger value="customers">Clientes</TabsTrigger>
             <TabsTrigger value="business-partners">Parceiros</TabsTrigger>
-            <TabsTrigger value="users">Usuários</TabsTrigger>
+            {isAdmin && <TabsTrigger value="users">Usuários</TabsTrigger>}
             <TabsTrigger value="partners">Sócios</TabsTrigger>
             <TabsTrigger value="entity">Entidades</TabsTrigger>
             <TabsTrigger value="management">Gestão Financeira</TabsTrigger>
@@ -267,7 +277,33 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           </TabsContent>
 
           <TabsContent value="users" className="space-y-6">
-            <NotExists title="Cadastro de Usuários" />
+            {isAdmin ? (
+              <UsuarioManagement title="Cadastro de Usuários" />
+            ) : (
+              <div className="text-center py-8">
+                <div className="text-red-600 mb-4">
+                  <svg
+                    className="mx-auto h-12 w-12"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 18.5c-.77.833.192 2.5 1.732 2.5z"
+                    />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                  Acesso Negado
+                </h3>
+                <p className="text-gray-600">
+                  Apenas administradores podem acessar esta funcionalidade.
+                </p>
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </main>
