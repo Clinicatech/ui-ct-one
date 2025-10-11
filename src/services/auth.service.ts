@@ -21,6 +21,9 @@ export interface LoginResponse {
     codigo: number;
     nome: string;
     email: string;
+    trocaSenha: boolean;
+    entidadeId: number;
+    entidade: string;
   };
   duration: string;
 }
@@ -28,6 +31,12 @@ export interface LoginResponse {
 export interface LoginRequest {
   email: string;
   password: string;
+  entidadeId?: number;
+}
+
+export interface ChangePasswordRequest {
+  newPassword: string;
+  confirmPassword: string;
 }
 
 // Serviço de autenticação
@@ -117,7 +126,12 @@ export class AuthService {
   }
 
   // Obter dados completos do usuário
-  static getUser(): { codigo: number; nome: string; email: string } | null {
+  static getUser(): {
+    codigo: number;
+    nome: string;
+    email: string;
+    entidade: string;
+  } | null {
     const user = USER_STORAGE.getUser();
     return user;
   }
@@ -137,5 +151,69 @@ export class AuthService {
     const entidadeId = getEntidadeIdFromToken(token);
     console.log("🔍 getEntidadeId - entidadeId extraído:", entidadeId);
     return entidadeId;
+  }
+
+  // Trocar senha
+  static async changePassword(
+    userId: number,
+    passwordData: ChangePasswordRequest
+  ): Promise<{ message: string }> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+    try {
+      const response = await apiRequest<{ message: string }>(
+        `/auth/change-password/${userId}`,
+        {
+          method: "POST",
+          body: JSON.stringify(passwordData),
+        }
+      );
+
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          throw new Error(
+            "Tempo de conexão esgotado. Verifique sua internet e tente novamente."
+          );
+        }
+        throw error;
+      }
+
+      throw new Error("Ocorreu um erro desconhecido ao trocar senha");
+    }
+  }
+
+  // Buscar entidades disponíveis
+  static async getEntidades(): Promise<{ entidadeId: number; nome: string }[]> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+
+    try {
+      const response = await apiRequest<{
+        data: { entidadeId: number; nome: string }[];
+      }>(`/entidade`, {
+        method: "GET",
+      });
+
+      // Ordenar por nome em ordem alfabética
+      return response.data.sort((a, b) => a.nome.localeCompare(b.nome));
+    } catch (error) {
+      clearTimeout(timeoutId);
+
+      if (error instanceof Error) {
+        if (error.name === "AbortError") {
+          throw new Error(
+            "Tempo de conexão esgotado. Verifique sua internet e tente novamente."
+          );
+        }
+        throw error;
+      }
+
+      throw new Error("Ocorreu um erro desconhecido ao buscar entidades");
+    }
   }
 }

@@ -270,15 +270,31 @@ export function ContratoForm({
 
   const handleSelectPessoa = (pessoa: Pessoa) => {
     setSelectedPessoa(pessoa);
-    // Aqui você precisaria buscar o ID específico (clienteInfoId, parceiroInfoId, socioInfoId)
-    // baseado no tipo de pessoa selecionado
-    // Por enquanto, vamos simular
+
+    // Limpar todos os campos de Info primeiro
+    setFormData((prev) => ({
+      ...prev,
+      clienteInfoId: undefined,
+      parceiroInfoId: undefined,
+      socioInfoId: undefined,
+    }));
+
+    // Definir apenas o campo correspondente ao tipo selecionado
     if (selectedTipoPessoa === "cliente") {
-      setFormData((prev) => ({ ...prev, clienteInfoId: 1 })); // Simulado
+      setFormData((prev) => ({
+        ...prev,
+        clienteInfoId: (pessoa as any).clienteInfoId,
+      }));
     } else if (selectedTipoPessoa === "parceiro") {
-      setFormData((prev) => ({ ...prev, parceiroInfoId: 1 })); // Simulado
+      setFormData((prev) => ({
+        ...prev,
+        parceiroInfoId: (pessoa as any).parceiroInfoId,
+      }));
     } else if (selectedTipoPessoa === "socio") {
-      setFormData((prev) => ({ ...prev, socioInfoId: 1 })); // Simulado
+      setFormData((prev) => ({
+        ...prev,
+        socioInfoId: (pessoa as any).socioInfoId,
+      }));
     }
   };
 
@@ -1021,13 +1037,15 @@ export function ContratoForm({
                                 value={
                                   item.mesVencimento && item.mesVencimento > 0
                                     ? item.mesVencimento.toString()
-                                    : "0"
+                                    : "select-month"
                                 }
                                 onValueChange={(value) =>
                                   handleItemChange(
                                     index,
                                     "mesVencimento",
-                                    parseInt(value)
+                                    value === "select-month"
+                                      ? 0
+                                      : parseInt(value)
                                   )
                                 }
                               >
@@ -1035,7 +1053,7 @@ export function ContratoForm({
                                   <SelectValue placeholder="Selecione o mês" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                  <SelectItem value="0">
+                                  <SelectItem value="select-month">
                                     Selecione o mês
                                   </SelectItem>
                                   {Array.from({ length: 12 }, (_, i) => (

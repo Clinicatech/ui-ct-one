@@ -29,13 +29,14 @@ import { ClienteManagement } from "./clientes";
 import { ParceiroManagement } from "./parceiros";
 import { ContratoManagement } from "./contratos";
 import { UsuarioManagement } from "./usuarios";
+import { GestaoFinanceira } from "./gestao-financeira";
 
 interface MainPageProps {
   activeTab?: string;
 }
 
 export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
-  const { userEmail, logout } = useAuth();
+  const { userName, userEntidade, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(propActiveTab || "overview");
@@ -134,7 +135,9 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
               </h1>
             </div>
             <div className="flex items-center space-x-4">
-              <span className="text-sm text-muted-foreground">{userEmail}</span>
+              <span className="text-sm text-muted-foreground">
+                {userName} - {userEntidade}
+              </span>
               <Button variant="default" size="sm" onClick={logout}>
                 <LogOut className="h-4 w-4 mr-2" />
                 Sair
@@ -269,7 +272,7 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           </TabsContent>
 
           <TabsContent value="management" className="space-y-6">
-            <NotExists title="Gestão Financeira" />
+            <GestaoFinanceira title="Gestão Financeira" />
           </TabsContent>
 
           <TabsContent value="contratos" className="space-y-6">

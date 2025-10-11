@@ -38,12 +38,12 @@ export const USER_STORAGE = {
   KEY: "ct_one_user",
 
   // Salvar dados do usuário
-  setUser: (user: { codigo: number; nome: string; email: string }): void => {
+  setUser: (user: { codigo: number; nome: string; email: string; entidade: string }): void => {
     localStorage.setItem(USER_STORAGE.KEY, JSON.stringify(user));
   },
 
   // Obter dados do usuário
-  getUser: (): { codigo: number; nome: string; email: string } | null => {
+  getUser: (): { codigo: number; nome: string; email: string; entidade: string } | null => {
     const user = localStorage.getItem(USER_STORAGE.KEY);
     const parsed = user ? JSON.parse(user) : null;
     return parsed;

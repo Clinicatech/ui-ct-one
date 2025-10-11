@@ -1,94 +1,742 @@
-# Cursor Rules - ui-ct-one
+# Cursor Rules - UI CT-One
 
-## Visão Geral do Projeto
+## 📋 Índice Rápido
 
+- [Contexto do Projeto](#contexto-do-projeto)
+- [Regras Gerais](#regras-gerais)
+- [Stack Tecnológica](#stack-tecnológica)
+- [Estrutura de Componentes](#estrutura-de-componentes)
+- [Padrões de Código](#padrões-de-código)
+- [Sistema de Design](#sistema-de-design)
+- [Roteamento e Navegação](#roteamento-e-navegação)
+- [Estado e Dados](#estado-e-dados)
+- [Testes](#testes)
+- [Performance](#performance)
+- [Deploy e Build](#deploy-e-build)
 
-## Documentação de Referência
+## 🎯 Contexto do Projeto
 
+**UI CT-One** - Interface de usuário para o sistema de gestão ClinicaTech com foco em:
 
-## Padrões de Desenvolvimento
+- Gestão de sócios, parceiros e clientes
+- Contratos e movimentações financeiras
+- Interface moderna e responsiva
+- Experiência de usuário otimizada
+- Integração com API backend
 
-### 🏗️ Arquitetura
-- **Modular**: Organização por módulos funcionais
-- **SOLID**: Princípios de design orientado a objetos
-- **Dependency Injection**: Via NestJS container
-- **Repository Pattern**: Acesso a dados via Sequelize
+**Versão Atual:** 0.0.0  
+**Ambiente:** Desenvolvimento/Produção  
+**Porta:** 3000 (dev) / 3001 (prod)  
+**API Backend:** http://localhost:3391  
+**Autor:** A.Koplin  
+**Licença:** @Clinicatech
 
+## 🚀 Regras Gerais
 
-### 🎨 Padrões de Estilo
-- **Arquivos**: kebab-case (`report-service.ts`)
-- **Classes**: PascalCase (`ReportService`)
-- **Interfaces**: PascalCase com prefixo I (`IReportData`)
-- **Constantes**: UPPER_SNAKE_CASE (`MAX_FILE_SIZE`)
-- **Variáveis/Funções**: camelCase (`generateReport`)
+### Comunicação e Linguagem
 
+- **Sempre responda em português brasileiro**
+- Use linguagem técnica clara e objetiva
+- Explique conceitos complexos com exemplos práticos
 
-## Regras de Desenvolvimento
+### Tecnologias e Ferramentas
 
-### ✅ Obrigatório
-1. **Sempre consulte** `docs/REUSABLE_COMPONENTS.md` antes de criar novos utilitários
-2. **Use CommonListing** para listagens paginadas
-4. **Valide inputs** com Class Validator + Zod
-6. **Mantenha arquivos < 300 linhas** - refatore quando necessário
-7. **Use TypeScript** com type safety adequado
+- **Use TypeScript** para todos os novos arquivos
+- **Use pnpm** ao invés de npm para gerenciamento de pacotes
+- Siga as convenções de nomenclatura do projeto
+- Mantenha o código limpo e bem documentado
+- Teste sempre que possível com build e lint, apenas
 
-### ❌ Proibido
-1. **Não duplique código** - verifique utils existentes primeiro
-2. **Não use `any`** sem justificativa
-3. **Não ignore erros** - sempre trate adequadamente
-4. **Não hardcode** valores - use configurações
-5. **Não sobrescreva** `.env` sem confirmação
-6. **Sempre escreva comentários** no código (regra do projeto)
+### Qualidade de Código
 
+- Evite duplicação de código sempre que possível
+- Verifique outros componentes que já possam ter funcionalidade semelhante
+- Escreva código que leve em consideração os diferentes ambientes: dev, test e prod
+- Seja cauteloso ao fazer apenas as mudanças que são solicitadas
+- Mantenha o código bem estruturado e organizado
+- Evite arquivos com mais de 200-300 linhas de código (refatore nesse ponto)
+- **SEMPRE teste build após implementar mudanças**: `pnpm run build`
+- **Teste lint se configurado**: `pnpm run lint` (quando disponível)
 
-### 🔧 Scripts Importantes
-```bash
-pnpm run start:dev      # Desenvolvimento
-pnpm run build:prod     # Build produção
-pnpm run lint           # ESLint
-pnpm run test           # Testes
-pnpm run start:pm2      # PM2
+### Comentários e Documentação
+
+- **SEMPRE escreva comentários no código** (a menos que explicitamente solicitado)
+- Use JSDoc para documentação de funções complexas
+- Mantenha documentação de componentes sempre atualizada
+
+## 🛠 Stack Tecnológica
+
+### Frontend Principal
+
+- **Framework:** React v19.1.1
+- **Linguagem:** TypeScript v5.9.2
+- **Bundler:** Vite v7.1.2
+- **Styling:** Tailwind CSS v3.4.17
+- **Roteamento:** React Router v7.8.0
+- **Ícones:** Lucide React v0.539.0
+
+### Componentes e UI
+
+- **Componentes:** Radix UI (acessibilidade)
+- **Styling:** Tailwind CSS + CSS Variables
+- **Animações:** CSS Transitions + Framer Motion (se necessário)
+- **Formulários:** React Hook Form + Zod
+- **Notificações:** Sonner v2.0.7
+
+### Utilitários e Bibliotecas
+
+- **Styling:** clsx, tailwind-merge, class-variance-authority
+- **Data:** Recharts v3.1.2 (gráficos)
+- **Carousel:** Embla Carousel v8.6.0
+- **Panels:** React Resizable Panels v3.0.4
+- **Themes:** Next Themes v0.4.6
+- **Command:** CMDK v1.1.1
+
+### Desenvolvimento
+
+- **Package Manager:** pnpm
+- **Linting:** ESLint v9.33.0 + TypeScript ESLint
+- **Build:** Vite + TypeScript
+- **Testing:** Jest + React Testing Library (quando implementado)
+
+## 🏗 Estrutura de Componentes
+
+### Arquitetura de Pastas
+
+```
+src/
+├── components/           # Componentes reutilizáveis
+│   ├── ui/              # Componentes base (Radix UI)
+│   ├── forms/           # Formulários específicos
+│   └── layout/          # Componentes de layout
+├── pages/               # Páginas da aplicação
+├── hooks/               # Custom hooks
+├── services/            # Serviços de API
+├── contexts/            # Context providers
+├── types/               # Definições de tipos
+├── utils/               # Funções utilitárias
+├── constants/           # Constantes da aplicação
+├── assets/              # Recursos estáticos
+└── styles/              # Estilos globais
 ```
 
-## Performance
+### Componentes Existentes
 
-### ⚡ Otimizações
-- **Lazy Loading** para módulos pesados
-- **Caching** em múltiplas camadas
-- **Connection Pooling** para banco
-- **Streams** para arquivos grandes
+- **Forms:** ClienteForm, SocioForm, ParceiroForm, ContratoForm, EntityForm, UsuarioForm
+- **Dialogs:** BancoSearchDialog, PersonSearchDialog, PessoaSearchDialog
+- **Pages:** clientes, socios, parceiros, contratos, entities, usuarios
+- **UI:** Componentes base do Radix UI
 
-### 📊 Monitoramento
-- **Logs estruturados** em JSON
-- **Métricas** de performance
-- **Health checks** automáticos
+### Padrões Implementados
 
-## Segurança
+- **Component Composition:** Composição de componentes
+- **Custom Hooks:** Lógica reutilizável
+- **Context Pattern:** Gerenciamento de estado global
+- **Service Layer:** Abstração de chamadas de API
 
-### 🔒 Validações
-- **Input validation** em múltiplas camadas
-- **SQL injection** prevenção via ORM
-- **Rate limiting** via interceptors
-- **CORS** configurado adequadamente
+## 📝 Padrões de Código
 
+### Convenções de Nomenclatura
 
-### 📋 Checklist
-- [ ] Testes passando
-- [ ] Lint sem erros
-- [ ] Build sem warnings
-- [ ] Variáveis de ambiente configuradas
-- [ ] Logs configurados
-- [ ] Health checks funcionando
+#### Arquivos e Diretórios
 
-## Referências Rápidas
+- **kebab-case:** `cliente-form.tsx`, `banco-search-dialog/`
+- **PascalCase:** Componentes, Interfaces, Types
+- **camelCase:** Variáveis, funções, hooks
+- **UPPER_SNAKE_CASE:** Constantes, enums
 
+#### Componentes React
 
+- **Componentes:** PascalCase (`ClienteForm`, `BancoSearchDialog`)
+- **Hooks:** camelCase com prefixo `use` (`useClienteData`, `useFormValidation`)
+- **Props:** camelCase (`onSubmit`, `isLoading`, `clienteData`)
+- **Event Handlers:** camelCase com prefixo `handle` (`handleSubmit`, `handleChange`)
 
-### 📝 Convenções
-- **Métodos**: `get*`, `create*`, `update*`, `delete*`, `generate*`
-- **Arquivos**: `*.controller.ts`, `*.service.ts`, `*.module.ts`, `*.dto.ts`
-- **Classes**: `*Controller`, `*Service`, `*Module`, `*Dto`
+### Imports (Ordem Obrigatória)
+
+1. React e React hooks (`react`, `react-dom`)
+2. Third-party libraries (`@radix-ui/react-*`, `lucide-react`)
+3. Internal components (`../components/ui/button`)
+4. Internal hooks (`../hooks/useClienteData`)
+5. Internal services (`../services/api`)
+6. Internal types (`../types/cliente`)
+7. Internal utils (`../utils/format`)
+8. Relative imports (`./styles.module.css`)
+
+### Componentes React
+
+```typescript
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { useClienteData } from "@/hooks/useClienteData";
+import type { Cliente } from "@/types/cliente";
+
+interface ClienteFormProps {
+  cliente?: Cliente;
+  onSubmit: (data: Cliente) => void;
+  isLoading?: boolean;
+}
+
+export const ClienteForm: React.FC<ClienteFormProps> = ({
+  cliente,
+  onSubmit,
+  isLoading = false,
+}) => {
+  const { data, loading } = useClienteData(cliente?.id);
+
+  const handleSubmit = (formData: Cliente) => {
+    onSubmit(formData);
+  };
+
+  if (loading) {
+    return <div>Carregando...</div>;
+  }
+
+  return <form onSubmit={handleSubmit}>{/* Form content */}</form>;
+};
+```
+
+### Custom Hooks
+
+```typescript
+import { useState, useEffect } from "react";
+import { apiService } from "@/services/api";
+import type { Cliente } from "@/types/cliente";
+
+export const useClienteData = (clienteId?: number) => {
+  const [data, setData] = useState<Cliente | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!clienteId) return;
+
+    const fetchData = async () => {
+      setLoading(true);
+      try {
+        const response = await apiService.getCliente(clienteId);
+        setData(response.data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Erro desconhecido");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [clienteId]);
+
+  return { data, loading, error };
+};
+```
+
+## 🎨 Sistema de Design
+
+### Design System
+
+- **Base:** Radix UI para acessibilidade
+- **Styling:** Tailwind CSS com CSS Variables
+- **Themes:** Suporte a tema claro/escuro
+- **Responsividade:** Mobile-first approach
+
+### Cores e Temas
+
+```css
+/* CSS Variables para temas */
+:root {
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --primary: 222.2 47.4% 11.2%;
+  --primary-foreground: 210 40% 98%;
+  --secondary: 210 40% 96%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  /* ... outras variáveis */
+}
+```
+
+### Tipografia
+
+- **Fonte Principal:** Montserrat (Regular, Light, Medium, Bold, SemiBold, ExtraBold)
+- **Fonte Secundária:** Nexa (Light, Bold)
+- **Classes Tailwind:** `font-montserrat`, `font-nexa-bold`, etc.
+
+### Componentes Base
+
+- **Button:** Variações de tamanho e estilo
+- **Input:** Campos de entrada padronizados
+- **Card:** Containers de conteúdo
+- **Dialog:** Modais e popups
+- **Form:** Formulários com validação
+
+## 🧭 Roteamento e Navegação
+
+### React Router v7
+
+```typescript
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+
+const router = createBrowserRouter([
+  {
+    path: "/",
+    element: <Main />,
+    children: [
+      {
+        path: "clientes",
+        element: <ClientesPage />,
+      },
+      {
+        path: "socios",
+        element: <SociosPage />,
+      },
+      // ... outras rotas
+    ],
+  },
+]);
+```
+
+### Navegação
+
+- **Sidebar:** Navegação principal
+- **Breadcrumbs:** Navegação contextual
+- **Tabs:** Navegação por abas
+- **Back Navigation:** Voltar para página anterior
+
+## 📊 Estado e Dados
+
+### Gerenciamento de Estado
+
+- **Local State:** useState, useReducer
+- **Global State:** Context API
+- **Server State:** Custom hooks com fetch
+- **Form State:** React Hook Form
+
+### Context Providers
+
+```typescript
+interface AppContextType {
+  user: User | null;
+  theme: "light" | "dark";
+  setTheme: (theme: "light" | "dark") => void;
+}
+
+export const AppContext = createContext<AppContextType | undefined>(undefined);
+
+export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
+  const [user, setUser] = useState<User | null>(null);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
+
+  return (
+    <AppContext.Provider value={{ user, theme, setTheme }}>
+      {children}
+    </AppContext.Provider>
+  );
+};
+```
+
+### Serviços de API
+
+```typescript
+class ApiService {
+  private baseURL = "/api";
+
+  async getClientes(): Promise<Cliente[]> {
+    const response = await fetch(`${this.baseURL}/clientes`);
+    return response.json();
+  }
+
+  async createCliente(data: CreateClienteDto): Promise<Cliente> {
+    const response = await fetch(`${this.baseURL}/clientes`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    return response.json();
+  }
+}
+
+export const apiService = new ApiService();
+```
+
+## 🧪 Testes
+
+### Estrutura de Testes
+
+```typescript
+import { render, screen, fireEvent } from "@testing-library/react";
+import { ClienteForm } from "./ClienteForm";
+
+describe("ClienteForm", () => {
+  it("should render form fields", () => {
+    render(<ClienteForm onSubmit={jest.fn()} />);
+
+    expect(screen.getByLabelText(/nome/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+  });
+
+  it("should call onSubmit when form is submitted", () => {
+    const mockSubmit = jest.fn();
+    render(<ClienteForm onSubmit={mockSubmit} />);
+
+    fireEvent.click(screen.getByRole("button", { name: /salvar/i }));
+
+    expect(mockSubmit).toHaveBeenCalled();
+  });
+});
+```
+
+### Testes de Integração
+
+- Teste de fluxos completos
+- Teste de navegação entre páginas
+- Teste de formulários com validação
+
+## ⚡ Performance
+
+### Otimizações
+
+- **Code Splitting:** Lazy loading de rotas
+- **Memoization:** React.memo, useMemo, useCallback
+- **Bundle Analysis:** Análise de tamanho do bundle
+- **Image Optimization:** Lazy loading de imagens
+
+### Lazy Loading
+
+```typescript
+import { lazy, Suspense } from "react";
+
+const ClientesPage = lazy(() => import("./pages/clientes"));
+const SociosPage = lazy(() => import("./pages/socios"));
+
+const App = () => (
+  <Suspense fallback={<div>Carregando...</div>}>
+    <Router>
+      <Routes>
+        <Route path="/clientes" element={<ClientesPage />} />
+        <Route path="/socios" element={<SociosPage />} />
+      </Routes>
+    </Router>
+  </Suspense>
+);
+```
+
+### Memoization
+
+```typescript
+import { memo, useMemo, useCallback } from "react";
+
+export const ClienteList = memo(({ clientes, onEdit, onDelete }) => {
+  const sortedClientes = useMemo(() => {
+    return clientes.sort((a, b) => a.nome.localeCompare(b.nome));
+  }, [clientes]);
+
+  const handleEdit = useCallback(
+    (id: number) => {
+      onEdit(id);
+    },
+    [onEdit]
+  );
+
+  return (
+    <div>
+      {sortedClientes.map((cliente) => (
+        <ClienteCard
+          key={cliente.id}
+          cliente={cliente}
+          onEdit={handleEdit}
+          onDelete={onDelete}
+        />
+      ))}
+    </div>
+  );
+});
+```
+
+## 🚀 Deploy e Build
+
+### Scripts Disponíveis
+
+```bash
+# Desenvolvimento
+pnpm run start:dev      # Servidor de desenvolvimento (porta 3000)
+pnpm run preview        # Preview da build de produção
+
+# Build
+pnpm run build          # Build de produção
+pnpm run lint           # ESLint
+
+# Análise
+pnpm run analyze        # Análise do bundle (quando implementado)
+```
+
+### Configuração Vite
+
+```typescript
+// vite.config.ts
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: 3000,
+    open: true,
+    proxy: {
+      "/api": {
+        target: "http://localhost:3391",
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api/, ""),
+      },
+    },
+  },
+  build: {
+    outDir: "dist",
+    sourcemap: true,
+  },
+});
+```
+
+### Variáveis de Ambiente
+
+```bash
+# .env.development
+VITE_API_URL=http://localhost:3391
+VITE_APP_NAME=CT-One Dev
+
+# .env.production
+VITE_API_URL=https://api.ctone.com
+VITE_APP_NAME=CT-One
+```
+
+## 🔒 Segurança
+
+### Validação de Dados
+
+- **Client-side:** Validação com Zod
+- **Sanitização:** Limpeza de inputs
+- **XSS Prevention:** Escape de conteúdo
+
+### Autenticação
+
+- **JWT Tokens:** Armazenamento seguro
+- **Route Protection:** Guards para rotas protegidas
+- **Session Management:** Controle de sessão
+
+## 📱 Responsividade
+
+### Breakpoints Tailwind
+
+```css
+/* Breakpoints padrão */
+sm: 640px   /* Mobile landscape */
+md: 768px   /* Tablet */
+lg: 1024px  /* Desktop */
+xl: 1280px  /* Large desktop */
+2xl: 1536px /* Extra large */
+```
+
+### Mobile-First
+
+- Design mobile-first
+- Touch-friendly interfaces
+- Gestos de navegação
+- Performance otimizada para mobile
+
+## 🎯 Acessibilidade
+
+### Radix UI
+
+- Componentes acessíveis por padrão
+- Suporte a screen readers
+- Navegação por teclado
+- ARIA attributes
+
+### Boas Práticas
+
+- Labels descritivos
+- Contraste adequado
+- Foco visível
+- Texto alternativo para imagens
+
+## 📋 Checklist de Qualidade
+
+### Antes de Commitar
+
+- [ ] Código segue convenções de nomenclatura
+- [ ] Imports organizados corretamente
+- [ ] Componentes são acessíveis
+- [ ] Responsividade testada
+- [ ] Performance considerada
+- [ ] **Build passando**: `pnpm run build`
+- [ ] **Lint sem erros**: `pnpm run lint` (se configurado)
+- [ ] TypeScript sem erros
+
+### Revisão de Código
+
+- [ ] Componentes são reutilizáveis
+- [ ] Lógica está bem separada
+- [ ] Hooks são customizados quando necessário
+- [ ] Estado é gerenciado adequadamente
+- [ ] Performance é otimizada
+- [ ] Acessibilidade implementada
+- [ ] Testes adequados
+
+## 🔄 Considerações Específicas
+
+### Formulários
+
+- **Validação:** Zod + React Hook Form
+- **Feedback:** Mensagens de erro claras
+- **UX:** Loading states e feedback visual
+- **Acessibilidade:** Labels e ARIA attributes
+
+### Listagens
+
+- **Paginação:** Implementar quando necessário
+- **Filtros:** Filtros dinâmicos
+- **Ordenação:** Ordenação por colunas
+- **Busca:** Busca em tempo real
+
+### Modais e Dialogs
+
+- **Radix UI:** Usar componentes base
+- **Foco:** Gerenciamento de foco
+- **Escape:** Fechar com ESC
+- **Backdrop:** Clique fora para fechar
+
+## 🚀 Próximos Passos
+
+### Melhorias Sugeridas
+
+1. **Testing:** Implementar Jest + React Testing Library
+2. **Storybook:** Documentação de componentes
+3. **PWA:** Transformar em Progressive Web App
+4. **Analytics:** Implementar tracking de eventos
+5. **Error Boundary:** Tratamento de erros global
+6. **Loading States:** Skeletons e loading components
+7. **Offline Support:** Funcionalidade offline
+
+### Arquitetura Evolutiva
+
+- **State Management:** Redux Toolkit (se necessário)
+- **Micro Frontends:** Preparação para arquitetura modular
+- **SSR:** Server-Side Rendering com Next.js (futuro)
+- **Component Library:** Biblioteca de componentes própria
+
+## 📖 Recursos Adicionais
+
+### Documentação
+
+- [React Documentation](https://react.dev/)
+- [Vite Documentation](https://vitejs.dev/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/)
+- [Radix UI Documentation](https://www.radix-ui.com/)
+
+### Ferramentas
+
+- **React DevTools:** Debug de componentes
+- **Vite DevTools:** Análise de build
+- **Tailwind CSS IntelliSense:** Autocomplete
+- **ESLint:** Linting e formatação
 
 ---
 
-**Lembre-se**: Sempre consulte a documentação em `docs/` antes de implementar novas funcionalidades ou modificar componentes existentes. 
+## 🎯 Modo Planejador
+
+Quando solicitado a entrar no "Modo Planejador", siga esta sequência:
+
+1. **Análise Profunda:** Reflita sobre as mudanças solicitadas
+2. **Mapeamento:** Analise os componentes existentes para mapear todo o escopo
+3. **Perguntas Esclarecedoras:** Faça 4-6 perguntas baseadas nas descobertas
+4. **Plano de Ação:** Elabore um plano abrangente após respostas
+5. **Aprovação:** Peça aprovação antes de implementar
+6. **Implementação:** Execute todas as etapas do plano
+7. **Acompanhamento:** Mencione progresso e próximos passos
+
+## 🐛 Modo Depurador
+
+Quando solicitado a entrar no "Modo Depurador", siga exatamente esta sequência:
+
+1. **Reflexão:** Reflita sobre 5-7 possíveis causas do problema
+2. **Redução:** Reduza para 1-2 causas mais prováveis
+3. **Logs:** Adicione logs para validar suposições
+4. **Análise:** Reflita profundamente sobre o problema
+5. **Correção:** Implemente a correção
+6. **Limpeza:** Remova logs adicionais após correção
+
+## 📝 Explicações Detalhadas
+
+Quando criar qualquer componente, hook, página ou arquivo novo, sempre explique:
+
+### 1. **Estrutura e Organização**
+
+- Por que o arquivo está nessa pasta?
+- Como se conecta com outros componentes?
+- Qual o padrão arquitetural seguido?
+
+### 2. **Código Linha por Linha**
+
+- Explicar imports e suas funções
+- Detalhar cada hook usado e seu propósito
+- Explicar props, interfaces e tipos
+- Mostrar como o componente se integra com o sistema
+
+### 3. **Conceitos React/TypeScript**
+
+- Explicar hooks específicos (useState, useEffect, useForm, etc.)
+- Detalhar padrões de design (composição, custom hooks, etc.)
+- Mostrar boas práticas aplicadas
+- Explicar TypeScript features usadas
+
+### 4. **Integração com o Sistema**
+
+- Como se conecta com APIs?
+- Como gerencia estado?
+- Como lida com validação?
+- Como se integra com o design system?
+
+### 5. **Exemplos Práticos**
+
+- Mostrar como usar o componente
+- Explicar casos de uso
+- Demonstrar variações possíveis
+
+### 6. **Analogias e Comparações**
+
+- Comparar com conceitos conhecidos
+- Usar analogias para facilitar entendimento
+- Explicar "por que" além do "como"
+
+### 7. **Boas Práticas**
+
+- Explicar decisões arquiteturais
+- Mostrar alternativas consideradas
+- Detalhar trade-offs e escolhas
+
+## 📊 Formato de Explicação
+
+Sempre incluir:
+
+1. **Resumo Executivo** - O que o código faz
+2. **Análise Detalhada** - Como funciona
+3. **Conceitos Aplicados** - React/TS patterns
+4. **Integração** - Como se conecta
+5. **Exemplos** - Como usar
+6. **Reflexão** - Por que foi feito assim
+
+## 🎓 Nível de Explicação
+
+- Assumir conhecimento intermediário de React/JS
+- Explicar conceitos avançados quando aplicados
+- Focar em padrões e boas práticas
+- Mostrar o "pensamento por trás" do código
+
+## 🔄 Migração e Evolução
+
+- Fazer paralelos quando relevante
+- Explicar diferenças conceituais
+- Mostrar vantagens dos padrões React
+- Usar analogias do mundo enterprise quando útil
+
+---
+
+**Última atualização:** $(date)  
+**Versão das regras:** 2.0.0
