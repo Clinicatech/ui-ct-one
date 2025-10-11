@@ -20,6 +20,7 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "../components/ui/dialog";
 import {
   Edit,
@@ -34,6 +35,15 @@ import {
   ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
+import { Input } from "../components/ui/input";
+import { Label } from "../components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../components/ui/select";
 import { MovimentoFiltersComponent } from "../components/MovimentoFilters";
 import { MovimentoForm } from "../components/MovimentoForm";
 import { MovimentoDetailsModal } from "../components/MovimentoDetailsModal";
@@ -47,6 +57,7 @@ import {
   MovimentoFormData,
   DEFAULT_MOVIMENTO_FORM_DATA,
 } from "../types/movimento";
+import { AuthService } from "../services/auth.service";
 
 interface GestaoFinanceiraProps {
   title?: string;
@@ -81,10 +92,66 @@ export function GestaoFinanceira({
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
+  // Estados para gerar movimento
+  const [isGerarMovimentoDialogOpen, setIsGerarMovimentoDialogOpen] =
+    useState(false);
+  const [isGerandoMovimento, setIsGerandoMovimento] = useState(false);
+  const [mesSelecionado, setMesSelecionado] = useState<string>("");
+  const [anoSelecionado, setAnoSelecionado] = useState<string>("");
+  const [entidadeId, setEntidadeId] = useState<number | null>(null);
+
   useEffect(() => {
     loadData();
     loadStatusOptions();
+
+    // Obter entidadeId do usuário logado usando AuthService
+    const entidadeId = AuthService.getEntidadeId();
+    console.log("=== ENTIDADE ID ===");
+    console.log("entidadeId obtido:", entidadeId);
+    console.log("Token disponível:", !!AuthService.getToken());
+    setEntidadeId(entidadeId);
   }, [activeTab, filters]);
+
+  // useEffect separado para garantir que entidadeId seja obtido na montagem do componente
+  useEffect(() => {
+    const loadEntidadeId = () => {
+      const entidadeId = AuthService.getEntidadeId();
+      console.log("=== CARREGANDO ENTIDADE ID ===");
+      console.log("entidadeId obtido:", entidadeId);
+      console.log("Token disponível:", !!AuthService.getToken());
+      setEntidadeId(entidadeId);
+    };
+
+    // Carregar imediatamente
+    loadEntidadeId();
+
+    // Se não conseguiu obter, tentar novamente após um pequeno delay
+    if (!entidadeId) {
+      const timeoutId = setTimeout(loadEntidadeId, 100);
+      return () => clearTimeout(timeoutId);
+    }
+  }, []);
+
+  // Definir valores padrão quando o modal abrir
+  useEffect(() => {
+    if (isGerarMovimentoDialogOpen) {
+      console.log("=== USEEFFECT MODAL ABERTO ===");
+      console.log("entidadeId atual no useEffect:", entidadeId);
+
+      const now = new Date();
+      const mesAtual = (now.getMonth() + 1).toString();
+      const anoAtual = now.getFullYear().toString();
+
+      console.log(
+        "Definindo valores no useEffect - mes:",
+        mesAtual,
+        "ano:",
+        anoAtual
+      );
+      setMesSelecionado(mesAtual);
+      setAnoSelecionado(anoAtual);
+    }
+  }, [isGerarMovimentoDialogOpen, entidadeId]);
 
   const getOrderBy = (filters: MovimentoFilters) => {
     // Se não há filtros ou apenas status, ordenar por data de vencimento
@@ -177,6 +244,91 @@ export function GestaoFinanceira({
 
   const handlePageChange = (page: number) => {
     setFilters({ ...filters, page });
+  };
+
+  const handleGerarMovimento = () => {
+    console.log("=== INÍCIO handleGerarMovimento ===");
+
+    // Abrir modal primeiro
+    setIsGerarMovimentoDialogOpen(true);
+
+    console.log("Modal aberto - isGerarMovimentoDialogOpen: true");
+    console.log("=== FIM handleGerarMovimento ===");
+  };
+
+  const handleConfirmarGerarMovimento = async () => {
+    console.log("=== INÍCIO handleConfirmarGerarMovimento ===");
+    console.log("mesSelecionado:", mesSelecionado);
+    console.log("anoSelecionado:", anoSelecionado);
+    console.log("entidadeId do estado:", entidadeId);
+
+    // Obter entidadeId diretamente do AuthService
+    const currentEntidadeId = AuthService.getEntidadeId();
+    console.log("entidadeId obtido do AuthService:", currentEntidadeId);
+
+    if (!mesSelecionado || !anoSelecionado || !currentEntidadeId) {
+      console.log(
+        "ERRO: Valores faltando - mesSelecionado:",
+        mesSelecionado,
+        "anoSelecionado:",
+        anoSelecionado,
+        "entidadeId:",
+        currentEntidadeId
+      );
+      toast.error("Por favor, selecione mês e ano e verifique se está logado");
+      return;
+    }
+
+    const mes = parseInt(mesSelecionado);
+    const ano = parseInt(anoSelecionado);
+    const dataAtual = new Date();
+    const mesAtual = dataAtual.getMonth() + 1;
+    const anoAtual = dataAtual.getFullYear();
+
+    // Verificar se não é data futura
+    if (ano > anoAtual || (ano === anoAtual && mes > mesAtual)) {
+      toast.error("Não é possível gerar movimentos para datas futuras");
+      return;
+    }
+
+    try {
+      setIsGerandoMovimento(true);
+
+      // Verificar se já existe movimento
+      const { existe } = await movimentoService.verificarExistenciaMovimento(
+        currentEntidadeId,
+        mes,
+        ano
+      );
+
+      if (existe) {
+        const confirmar = window.confirm(
+          `Já existem movimentos para ${mes}/${ano}. Deseja refazer os movimentos?`
+        );
+        if (!confirmar) {
+          setIsGerandoMovimento(false);
+          return;
+        }
+      }
+
+      // Gerar movimento
+      await movimentoService.gerarMovimento({
+        entidadeId: currentEntidadeId,
+        mes,
+        ano,
+      });
+
+      toast.success(`Movimentos gerados com sucesso para ${mes}/${ano}`);
+      setIsGerarMovimentoDialogOpen(false);
+
+      // Recarregar dados
+      loadData();
+    } catch (error) {
+      console.error("Erro ao gerar movimento:", error);
+      toast.error("Erro ao gerar movimento");
+    } finally {
+      setIsGerandoMovimento(false);
+    }
   };
 
   const handleEdit = (movimento: any) => {
@@ -408,7 +560,7 @@ export function GestaoFinanceira({
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">{title}</h1>
+        <h1 className="text-3xl font-bold text-white">{title}</h1>
       </div>
 
       <MovimentoFiltersComponent
@@ -417,6 +569,7 @@ export function GestaoFinanceira({
         statusOptions={statusOptions}
         onSearch={handleSearch}
         onClear={handleClearFilters}
+        onGerarMovimento={handleGerarMovimento}
         isLoading={isLoading}
       />
 
@@ -766,6 +919,87 @@ export function GestaoFinanceira({
             }}
             movimento={editingMovimento}
           />
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal para Gerar Movimento */}
+      <Dialog
+        open={isGerarMovimentoDialogOpen}
+        onOpenChange={setIsGerarMovimentoDialogOpen}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Gerar Movimento</DialogTitle>
+            <DialogDescription>
+              Selecione o mês e ano para gerar os movimentos financeiros.
+            </DialogDescription>
+          </DialogHeader>
+
+          {(() => {
+            console.log("=== RENDERIZANDO MODAL ===");
+            console.log("mesSelecionado no modal:", mesSelecionado);
+            console.log("anoSelecionado no modal:", anoSelecionado);
+            console.log(
+              "isGerarMovimentoDialogOpen:",
+              isGerarMovimentoDialogOpen
+            );
+            return null;
+          })()}
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="mes">Mês</Label>
+              <Select value={mesSelecionado} onValueChange={setMesSelecionado}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o mês" />
+                </SelectTrigger>
+                <SelectContent>
+                  {Array.from({ length: 12 }, (_, i) => i + 1).map((mes) => (
+                    <SelectItem key={mes} value={mes.toString()}>
+                      {mes.toString().padStart(2, "0")}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="ano">Ano</Label>
+              <Input
+                type="number"
+                value={anoSelecionado}
+                onChange={(e) => setAnoSelecionado(e.target.value)}
+                placeholder="Ex: 2024"
+                min="2020"
+                max={new Date().getFullYear()}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsGerarMovimentoDialogOpen(false)}
+              disabled={isGerandoMovimento}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmarGerarMovimento}
+              disabled={
+                isGerandoMovimento || !mesSelecionado || !anoSelecionado
+              }
+            >
+              {isGerandoMovimento ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Gerando...
+                </>
+              ) : (
+                "Gerar Movimento"
+              )}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

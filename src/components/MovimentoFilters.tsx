@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Search, Filter, X } from "lucide-react";
+import { Search, Filter, X, Plus } from "lucide-react";
 import { MovimentoFilters } from "../types/movimento";
 
 interface MovimentoFiltersProps {
@@ -19,6 +19,7 @@ interface MovimentoFiltersProps {
   statusOptions: string[];
   onSearch: () => void;
   onClear: () => void;
+  onGerarMovimento: () => void;
   isLoading?: boolean;
 }
 
@@ -28,6 +29,7 @@ export function MovimentoFiltersComponent({
   statusOptions,
   onSearch,
   onClear,
+  onGerarMovimento,
   isLoading = false,
 }: MovimentoFiltersProps) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -208,8 +210,11 @@ export function MovimentoFiltersComponent({
             </>
           )}
 
-          <div className="space-y-2"></div>
-          <div className="flex justify-end mt-4">
+          <div className="flex justify-end gap-2 mt-4">
+            <Button onClick={onGerarMovimento} disabled={isLoading}>
+              <Plus className="h-4 w-4 mr-2" />
+              {isLoading ? "Gerando..." : "Gerar Movimento"}
+            </Button>
             <Button onClick={onSearch} disabled={isLoading}>
               <Search className="h-4 w-4 mr-2" />
               {isLoading ? "Buscando..." : "Buscar"}

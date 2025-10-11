@@ -200,6 +200,15 @@ class MovimentoService {
 
   formatDate(dateString: string): string {
     if (!dateString) return "";
+
+    // Se a data já está no formato YYYY-MM-DD, usar diretamente
+    if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = dateString.split("-");
+      const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+      return date.toLocaleDateString("pt-BR");
+    }
+
+    // Para outros formatos, usar a conversão normal
     const date = new Date(dateString);
     return date.toLocaleDateString("pt-BR");
   }
@@ -216,6 +225,29 @@ class MovimentoService {
       default:
         return "bg-gray-100 text-gray-800";
     }
+  }
+
+  async verificarExistenciaMovimento(
+    entidadeId: number,
+    mes: number,
+    ano: number
+  ): Promise<{ existe: boolean }> {
+    const response = await apiRequest<{ existe: boolean }>(
+      `/movimento/verificar-existencia/${entidadeId}/${mes}/${ano}`
+    );
+    return response;
+  }
+
+  async gerarMovimento(dto: {
+    entidadeId: number;
+    mes: number;
+    ano: number;
+  }): Promise<any> {
+    const response = await apiRequest<any>("/movimento/gerar", {
+      method: "POST",
+      body: JSON.stringify(dto),
+    });
+    return response;
   }
 }
 

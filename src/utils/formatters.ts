@@ -51,6 +51,20 @@ export const cleanSpaces = (text: string): string => {
  * @returns String formatada como DD/MM/AAAA
  */
 export const formatDateBR = (date: string | Date): string => {
+  if (!date) return "";
+
+  // Se for string no formato YYYY-MM-DD, tratar sem problemas de fuso horário
+  if (typeof date === "string" && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = date.split("-");
+    const dateObj = new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day)
+    );
+    return dateObj.toLocaleDateString("pt-BR");
+  }
+
+  // Para outros formatos, usar a conversão normal
   const dateObj = typeof date === "string" ? new Date(date) : date;
   return dateObj.toLocaleDateString("pt-BR");
 };
@@ -61,6 +75,20 @@ export const formatDateBR = (date: string | Date): string => {
  * @returns String formatada como DD/MM/AAAA HH:mm
  */
 export const formatDateTimeBR = (date: string | Date): string => {
+  if (!date) return "";
+
+  // Se for string no formato YYYY-MM-DD, tratar sem problemas de fuso horário
+  if (typeof date === "string" && date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+    const [year, month, day] = date.split("-");
+    const dateObj = new Date(
+      parseInt(year),
+      parseInt(month) - 1,
+      parseInt(day)
+    );
+    return dateObj.toLocaleDateString("pt-BR");
+  }
+
+  // Para outros formatos, usar a conversão normal
   const dateObj = typeof date === "string" ? new Date(date) : date;
   return (
     dateObj.toLocaleDateString("pt-BR") +

@@ -505,20 +505,30 @@ export function ContratoForm({
 
         // Corrigir problema de timezone das datas
         if (cleanedItem.dataIni) {
-          // Garantir que a data seja enviada como string no formato YYYY-MM-DD
-          const dataIni = new Date(cleanedItem.dataIni);
-          const year = dataIni.getFullYear();
-          const month = String(dataIni.getMonth() + 1).padStart(2, "0");
-          const day = String(dataIni.getDate()).padStart(2, "0");
-          cleanedItem.dataIni = `${year}-${month}-${day}`;
+          // Se já está no formato YYYY-MM-DD, usar diretamente
+          if (cleanedItem.dataIni.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            // Já está no formato correto, não fazer nada
+          } else {
+            // Garantir que a data seja enviada como string no formato YYYY-MM-DD
+            const dataIni = new Date(cleanedItem.dataIni);
+            const year = dataIni.getFullYear();
+            const month = String(dataIni.getMonth() + 1).padStart(2, "0");
+            const day = String(dataIni.getDate()).padStart(2, "0");
+            cleanedItem.dataIni = `${year}-${month}-${day}`;
+          }
         }
         if (cleanedItem.dataFim) {
-          // Garantir que a data seja enviada como string no formato YYYY-MM-DD
-          const dataFim = new Date(cleanedItem.dataFim);
-          const year = dataFim.getFullYear();
-          const month = String(dataFim.getMonth() + 1).padStart(2, "0");
-          const day = String(dataFim.getDate()).padStart(2, "0");
-          cleanedItem.dataFim = `${year}-${month}-${day}`;
+          // Se já está no formato YYYY-MM-DD, usar diretamente
+          if (cleanedItem.dataFim.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            // Já está no formato correto, não fazer nada
+          } else {
+            // Garantir que a data seja enviada como string no formato YYYY-MM-DD
+            const dataFim = new Date(cleanedItem.dataFim);
+            const year = dataFim.getFullYear();
+            const month = String(dataFim.getMonth() + 1).padStart(2, "0");
+            const day = String(dataFim.getDate()).padStart(2, "0");
+            cleanedItem.dataFim = `${year}-${month}-${day}`;
+          }
         }
 
         // Incluir mesVencimento e anoVencimento baseado no tipo de contrato
