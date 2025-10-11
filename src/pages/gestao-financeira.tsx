@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "../components/ui/button";
 import {
   Tabs,
@@ -30,6 +30,8 @@ import {
   TrendingUp,
   TrendingDown,
   AlertCircle,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { toast } from "sonner";
 import { MovimentoFiltersComponent } from "../components/MovimentoFilters";
@@ -63,7 +65,7 @@ export function GestaoFinanceira({
   const [isLoading, setIsLoading] = useState(false);
   const [filters, setFilters] = useState<MovimentoFilters>({
     page: 1,
-    limit: 20,
+    limit: 15,
   });
   const [statusOptions, setStatusOptions] = useState<string[]>([]);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -74,6 +76,10 @@ export function GestaoFinanceira({
     DEFAULT_MOVIMENTO_FORM_DATA
   );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Estados para paginação
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
 
   useEffect(() => {
     loadData();
@@ -88,24 +94,24 @@ export function GestaoFinanceira({
       (Object.keys(filters).length === 1 && filters.status === "all");
 
     if (hasNoFilters || hasOnlyStatus) {
-      return { orderBy: "data_vencimento", orderDirection: "ASC" };
+      return { orderBy: "data_vencimento", orderDirection: "DESC" as const };
     }
 
     // Se há filtros de data, ordenar pelo primeiro preenchido
     if (filters.dataVencimentoInicio || filters.dataVencimentoFim) {
-      return { orderBy: "data_vencimento", orderDirection: "ASC" };
+      return { orderBy: "data_vencimento", orderDirection: "DESC" as const };
     }
 
     if (filters.dataPagamentoInicio || filters.dataPagamentoFim) {
-      return { orderBy: "data_pagamento", orderDirection: "ASC" };
+      return { orderBy: "data_pagamento", orderDirection: "DESC" as const };
     }
 
     if (filters.dataLancamentoInicio || filters.dataLancamentoFim) {
-      return { orderBy: "data_lancamento", orderDirection: "ASC" };
+      return { orderBy: "data_lancamento", orderDirection: "DESC" as const };
     }
 
     // Default: ordenar por data de vencimento
-    return { orderBy: "data_vencimento", orderDirection: "ASC" };
+    return { orderBy: "data_vencimento", orderDirection: "DESC" as const };
   };
 
   const loadData = async () => {
@@ -118,10 +124,26 @@ export function GestaoFinanceira({
         const response = await movimentoService.findReceitas(filtersWithOrder);
         setReceitas(response.data);
         setReceitasTotalizadores(response.totalizadores);
+
+        // Atualizar estados de paginação
+        setTotalPages(
+          Math.ceil(
+            response.totalizadores.totalRegistros / (filters.limit || 15)
+          )
+        );
+        setCurrentPage(filters.page || 1);
       } else {
         const response = await movimentoService.findDespesas(filtersWithOrder);
         setDespesas(response.data);
         setDespesasTotalizadores(response.totalizadores);
+
+        // Atualizar estados de paginação
+        setTotalPages(
+          Math.ceil(
+            response.totalizadores.totalRegistros / (filters.limit || 15)
+          )
+        );
+        setCurrentPage(filters.page || 1);
       }
     } catch (error) {
       console.error("Erro ao carregar dados:", error);
@@ -150,7 +172,11 @@ export function GestaoFinanceira({
   };
 
   const handleClearFilters = () => {
-    setFilters({ page: 1, limit: 20 });
+    setFilters({ page: 1, limit: 15 });
+  };
+
+  const handlePageChange = (page: number) => {
+    setFilters({ ...filters, page });
   };
 
   const handleEdit = (movimento: any) => {
@@ -243,19 +269,6 @@ export function GestaoFinanceira({
   const getStatusBadge = (status: string) => {
     const colorClass = movimentoService.getStatusColor(status);
     return <Badge className={colorClass}>{status}</Badge>;
-  };
-
-  const getTipoContratoTitle = (tipoContrato: string) => {
-    switch (tipoContrato) {
-      case "S":
-        return "Sócio";
-      case "P":
-        return "Parceiro";
-      case "C":
-        return "Cliente";
-      default:
-        return "Cliente";
-    }
   };
 
   const receitasColumns: Column<MovimentoReceita>[] = [
@@ -525,6 +538,59 @@ export function GestaoFinanceira({
               )}
             </CardContent>
           </Card>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1 || isLoading}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </Button>
+
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(pageNum)}
+                      disabled={isLoading}
+                      className="w-8 h-8 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || isLoading}
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="despesas" className="space-y-4">
@@ -624,6 +690,59 @@ export function GestaoFinanceira({
               )}
             </CardContent>
           </Card>
+
+          {/* Paginação */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center space-x-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage - 1)}
+                disabled={currentPage === 1 || isLoading}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Anterior
+              </Button>
+
+              <div className="flex items-center space-x-1">
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (currentPage <= 3) {
+                    pageNum = i + 1;
+                  } else if (currentPage >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = currentPage - 2 + i;
+                  }
+
+                  return (
+                    <Button
+                      key={pageNum}
+                      variant={currentPage === pageNum ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handlePageChange(pageNum)}
+                      disabled={isLoading}
+                      className="w-8 h-8 p-0"
+                    >
+                      {pageNum}
+                    </Button>
+                  );
+                })}
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handlePageChange(currentPage + 1)}
+                disabled={currentPage === totalPages || isLoading}
+              >
+                Próxima
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </div>
+          )}
         </TabsContent>
       </Tabs>
 
@@ -657,7 +776,7 @@ export function GestaoFinanceira({
           setSelectedMovimento(null);
         }}
         movimento={selectedMovimento}
-        tipo={activeTab}
+        tipo={activeTab === "receitas" ? "receita" : "despesa"}
       />
     </div>
   );
