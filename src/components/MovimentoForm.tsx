@@ -29,10 +29,10 @@ export function MovimentoForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (field: keyof MovimentoFormData, value: any) => {
-    setFormData({
-      ...formData,
+    setFormData((prevData) => ({
+      ...prevData,
       [field]: value,
-    });
+    }));
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,7 +111,21 @@ export function MovimentoForm({
             <Checkbox
               id="pago"
               checked={formData.pago}
-              onCheckedChange={(checked) => handleInputChange("pago", checked)}
+              onCheckedChange={(checked) => {
+                const isChecked = checked === true;
+
+                setFormData((prevData) => {
+                  const newData = {
+                    ...prevData,
+                    pago: isChecked,
+                    // Resetar campos quando desmarcar pago
+                    ...(isChecked
+                      ? {}
+                      : { valorEfetivo: 0, dataPagamento: "" }),
+                  };
+                  return newData;
+                });
+              }}
             />
             <Label htmlFor="pago">Marcar como pago/recebido</Label>
           </div>
@@ -141,12 +155,12 @@ export function MovimentoForm({
                   step="0.01"
                   min="0"
                   value={formData.valorEfetivo}
-                  onChange={(e) =>
-                    handleInputChange(
-                      "valorEfetivo",
-                      parseFloat(e.target.value) || 0
-                    )
-                  }
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    const numericValue =
+                      value === "" ? 0 : parseFloat(value) || 0;
+                    handleInputChange("valorEfetivo", numericValue);
+                  }}
                   placeholder="0,00"
                 />
               </div>

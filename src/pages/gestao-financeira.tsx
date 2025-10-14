@@ -336,7 +336,9 @@ export function GestaoFinanceira({
     setFormData({
       pago: movimento.pago,
       dataPagamento: movimento.dataPagamento || "",
-      valorEfetivo: movimento.valorEfetivo || movimento.valor,
+      valorEfetivo: movimento.pago
+        ? movimento.valorEfetivo || movimento.valor || 0
+        : 0,
       comprovante: undefined,
     });
     setIsEditDialogOpen(true);
@@ -378,8 +380,8 @@ export function GestaoFinanceira({
     try {
       await movimentoService.updatePagamento(editingMovimento.movimentoId, {
         pago: data.pago,
-        dataPagamento: data.dataPagamento || undefined,
-        valorEfetivo: data.valorEfetivo || undefined,
+        dataPagamento: data.pago ? data.dataPagamento || undefined : undefined,
+        valorEfetivo: data.pago ? data.valorEfetivo || 0 : 0,
       });
 
       if (data.comprovante) {
