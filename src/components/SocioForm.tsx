@@ -19,7 +19,7 @@ import {
   TIPO_PESSOA_OPTIONS,
   CONTA_TIPO_OPTIONS,
 } from "../constants/socio-constants";
-import { bancoService, EntidadeContaBancaria } from "../services/banco.service";
+import { bancoService, Banco } from "../services/banco.service";
 import { isValidBancoId, formatBancoDisplay } from "../utils/bancoUtils";
 import {
   Tooltip,
@@ -47,9 +47,8 @@ export function SocioForm({
   activeTab,
   setActiveTab,
 }: SocioFormProps) {
-  const [bancos, setBancos] = useState<EntidadeContaBancaria[]>([]);
-  const [bancoSelecionado, setBancoSelecionado] =
-    useState<EntidadeContaBancaria | null>(null);
+  const [bancos, setBancos] = useState<Banco[]>([]);
+  const [bancoSelecionado, setBancoSelecionado] = useState<Banco | null>(null);
   const [bancoIdInput, setBancoIdInput] = useState<string>("");
   const [carregandoBancos, setCarregandoBancos] = useState(false);
   const [isPersonSearchOpen, setIsPersonSearchOpen] = useState(false);
@@ -79,7 +78,7 @@ export function SocioForm({
     setCarregandoBancos(true);
     try {
       const bancosData = await bancoService.findAll();
-      setBancos(Array.isArray(bancosData) ? bancosData : []);
+      setBancos(Array.isArray(bancosData.data) ? bancosData.data : []);
     } catch (error) {
       console.error("Erro ao carregar bancos:", error);
       setBancos([]);
@@ -251,9 +250,13 @@ export function SocioForm({
 
   // Função para seleção de pessoa
   const handleSelectPerson = (person: Pessoa) => {
+    // Preservar dados bancários que o usuário já preencheu
+    const dadosBancariosPreservados = formData.dadosBancarios;
+
     setFormData({
       ...formData,
       pessoa: {
+        pessoaId: person.pessoaId, // Incluir ID da pessoa existente
         nome: person.nome,
         razao: person.razao || null,
         documento: person.documento,
@@ -278,6 +281,7 @@ export function SocioForm({
       dadosBancarios:
         person.dadosBancarios && person.dadosBancarios.length > 0
           ? {
+              dadosBancariosId: person.dadosBancarios[0].dadosBancariosId, // Incluir ID para UPDATE
               banco_id: person.dadosBancarios[0].bancoId,
               agencia: person.dadosBancarios[0].agencia,
               conta: person.dadosBancarios[0].conta,
@@ -286,7 +290,7 @@ export function SocioForm({
               conta_digito: person.dadosBancarios[0].contaDigito || null,
               agencia_digito: person.dadosBancarios[0].agenciaDigito || null,
             }
-          : undefined,
+          : dadosBancariosPreservados, // Preservar dados bancários preenchidos pelo usuário
     });
 
     // Sincronizar banco selecionado se houver dados bancários
@@ -345,7 +349,7 @@ export function SocioForm({
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border border-gray-300 rounded-md p-2">
               <div className="space-y-2">
                 <Label htmlFor="tipo">Tipo *</Label>
                 <Select
@@ -359,7 +363,10 @@ export function SocioForm({
                   </SelectTrigger>
                   <SelectContent>
                     {TIPO_PESSOA_OPTIONS?.map((option) => (
-                      <SelectItem key={option.value} value={option.value || "default"}>
+                      <SelectItem
+                        key={option.value}
+                        value={option.value || "default"}
+                      >
                         {option.label}
                       </SelectItem>
                     ))}
@@ -405,8 +412,8 @@ export function SocioForm({
               </div>
             )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
-              {formData.pessoa.tipo === "PJ" && (
+            {formData.pessoa.tipo === "PJ" && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border border-gray-300 rounded-md p-2">
                 <div className="space-y-2">
                   <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
                   <Input
@@ -418,20 +425,20 @@ export function SocioForm({
                     }
                   />
                 </div>
-              )}
-            </div>
 
-            {formData.pessoa.tipo === "PJ" && (
-              <div className="space-y-2">
-                <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
-                <Input
-                  id="inscricao_municipal"
-                  placeholder="Inscrição municipal"
-                  value={formData.pessoa.inscricao_municipal || ""}
-                  onChange={(e) =>
-                    handlePessoaChange("inscricao_municipal", e.target.value)
-                  }
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="inscricao_municipal">
+                    Inscrição Municipal
+                  </Label>
+                  <Input
+                    id="inscricao_municipal"
+                    placeholder="Inscrição municipal"
+                    value={formData.pessoa.inscricao_municipal || ""}
+                    onChange={(e) =>
+                      handlePessoaChange("inscricao_municipal", e.target.value)
+                    }
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -443,8 +450,8 @@ export function SocioForm({
             <h3 className="text-lg font-medium">Endereço</h3>
 
             {/* CEP e busca manual */}
-            <div className="space-y-2 border border-gray-300 rounded-md p-2">
-              <div className="flex gap-2 max-w-[20%]">
+            <div className="space-y-2 border border-gray-300 rounded-md p-2 max-w-[20%]">
+              <div className="flex gap-2">
                 <ValidatedInput
                   id="cep"
                   name="cep"
@@ -640,7 +647,7 @@ export function SocioForm({
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 border border-gray-300 rounded-md p-2">
               <div className="space-y-2">
                 <Label htmlFor="agencia">Agência</Label>
                 <Input
@@ -663,9 +670,7 @@ export function SocioForm({
                   maxLength={1}
                 />
               </div>
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
               <div className="space-y-2">
                 <Label htmlFor="conta">Conta</Label>
                 <Input
@@ -688,30 +693,30 @@ export function SocioForm({
                   maxLength={1}
                 />
               </div>
-            </div>
 
-            <div className="space-y-2 border border-gray-300 rounded-md p-2">
-              <Label htmlFor="conta_tipo">Tipo de Conta</Label>
-              <Select
-                value={formData.dadosBancarios?.conta_tipo?.toString() || ""}
-                onValueChange={(value) =>
-                  handleDadosBancariosChange("conta_tipo", parseInt(value))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Selecione o tipo de conta" />
-                </SelectTrigger>
-                <SelectContent>
-                  {CONTA_TIPO_OPTIONS?.map((option) => (
-                    <SelectItem
-                      key={option.value}
-                      value={option.value.toString()}
-                    >
-                      {option.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label htmlFor="conta_tipo">Tipo de Conta</Label>
+                <Select
+                  value={formData.dadosBancarios?.conta_tipo?.toString() || ""}
+                  onValueChange={(value) =>
+                    handleDadosBancariosChange("conta_tipo", parseInt(value))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o tipo de conta" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {CONTA_TIPO_OPTIONS?.map((option) => (
+                      <SelectItem
+                        key={option.value}
+                        value={option.value.toString()}
+                      >
+                        {option.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -733,7 +738,7 @@ export function SocioForm({
           <div className="space-y-4">
             <h3 className="text-lg font-medium">Participação</h3>
 
-            <div className="space-y-2 border border-gray-300 rounded-md p-2">
+            <div className="space-y-2 border border-gray-300 rounded-md p-2 max-w-[30%]">
               <Label htmlFor="perc_rateio">Percentual de Rateio (%)</Label>
               <Input
                 id="perc_rateio"

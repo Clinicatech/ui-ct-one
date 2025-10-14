@@ -18,8 +18,11 @@ import { Badge } from "./ui/badge";
 import { toast } from "sonner";
 import { PessoaSearchDialog } from "./PessoaSearchDialog";
 import { Pessoa } from "../services/pessoa.service";
-import { BancoSearchDialog } from "./BancoSearchDialog";
-import { EntidadeContaBancaria, bancoService } from "../services/banco.service";
+import { ContasBancariasEntidadeSearch } from "./ContasBancariasEntidadeSearch";
+import {
+  EntidadeContaBancaria,
+  contasBancariasEntidadesService,
+} from "../services/contas-bancarias-entidades.service";
 import { AuthService } from "../services/auth.service";
 
 // Funções para máscara de valor
@@ -36,7 +39,9 @@ const buscarContasBancariasEntidade = async (
   entidadeId: number
 ): Promise<EntidadeContaBancaria[]> => {
   try {
-    const response = await bancoService.findByEntidade(entidadeId);
+    const response = await contasBancariasEntidadesService.findByEntidade(
+      entidadeId
+    );
     return response.data || [];
   } catch (error) {
     console.error(
@@ -281,19 +286,22 @@ export function ContratoForm({
 
     // Definir apenas o campo correspondente ao tipo selecionado
     if (selectedTipoPessoa === "cliente") {
+      const clienteInfoId = (pessoa as any).clienteInfoId;
       setFormData((prev) => ({
         ...prev,
-        clienteInfoId: (pessoa as any).clienteInfoId,
+        clienteInfoId: clienteInfoId,
       }));
     } else if (selectedTipoPessoa === "parceiro") {
+      const parceiroInfoId = (pessoa as any).parceiroInfoId;
       setFormData((prev) => ({
         ...prev,
-        parceiroInfoId: (pessoa as any).parceiroInfoId,
+        parceiroInfoId: parceiroInfoId,
       }));
     } else if (selectedTipoPessoa === "socio") {
+      const socioInfoId = (pessoa as any).socioInfoId;
       setFormData((prev) => ({
         ...prev,
-        socioInfoId: (pessoa as any).socioInfoId,
+        socioInfoId: socioInfoId,
       }));
     }
   };
@@ -465,7 +473,6 @@ export function ContratoForm({
     // Se há itens no formulário, sempre incluir na submissão
     if (formData.itens && formData.itens.length > 0) {
       dataToSubmit.itens = formData.itens;
-      console.log("📤 Itens incluídos na submissão:", formData.itens.length);
     }
 
     // Limpar dados antes de enviar (remover campos que não devem ir para a API)
@@ -482,9 +489,6 @@ export function ContratoForm({
         // Preservar contratoItemId se existir (para itens existentes)
         if (item.contratoItemId) {
           itemWithoutUnwantedFields.contratoItemId = item.contratoItemId;
-          console.log("📤 Preservando contratoItemId:", item.contratoItemId);
-        } else {
-          console.log("📤 Novo item (sem contratoItemId) - será criado");
         }
 
         // Garantir que campos obrigatórios tenham valores padrão
@@ -493,14 +497,12 @@ export function ContratoForm({
         // Limpar campos opcionais vazios
         if (!cleanedItem.dataFim || cleanedItem.dataFim.trim() === "") {
           delete cleanedItem.dataFim;
-          console.log("📤 Removendo dataFim vazia");
         }
         if (
           !cleanedItem.instrucoesBanco ||
           cleanedItem.instrucoesBanco.trim() === ""
         ) {
           delete cleanedItem.instrucoesBanco;
-          console.log("📤 Removendo instrucoesBanco vazia");
         }
 
         // Corrigir problema de timezone das datas
@@ -746,7 +748,15 @@ export function ContratoForm({
                     <Button
                       type="button"
                       className="w-full justify-start"
-                      onClick={() => setIsPessoaSearchOpen(true)}
+                      onClick={() => {
+                        if (!selectedTipoPessoa) {
+                          toast.error(
+                            "Selecione primeiro o tipo de pessoa (Cliente, Parceiro ou Sócio)"
+                          );
+                          return;
+                        }
+                        setIsPessoaSearchOpen(true);
+                      }}
                     >
                       {selectedPessoa
                         ? selectedPessoa.nome
@@ -1302,7 +1312,7 @@ export function ContratoForm({
         tipoPessoa={selectedTipoPessoa || undefined}
       />
 
-      <BancoSearchDialog
+      <ContasBancariasEntidadeSearch
         isOpen={isBancoSearchOpen}
         onClose={() => {
           setIsBancoSearchOpen(false);

@@ -1,27 +1,17 @@
 import { apiRequest } from "../config/api";
 
-// Tipos
-export interface EntidadeContaBancaria {
-  entidadeContaBancariaId: number;
-  banco?: {
-    bancoId: number;
-    nome: string;
-    codigo: string;
-  };
-  bancoNome?: string;
-  agencia: string;
-  conta: string;
-  tipoConta?: string;
-  ativo?: boolean;
+// Tipos para Banco (entidade real)
+export interface Banco {
+  bancoId: number;
+  nome: string;
 }
 
 export interface BancoListResponseDto {
-  data: EntidadeContaBancaria[];
+  data: Banco[];
 }
 
 export interface BancoSearchParams {
   search?: string;
-  tipoConta?: string;
   ativo?: boolean;
 }
 
@@ -33,52 +23,31 @@ class BancoService {
       if (params?.search) {
         queryParams.append("search", params.search);
       }
-      if (params?.tipoConta) {
-        queryParams.append("tipoConta", params.tipoConta);
-      }
       if (params?.ativo !== undefined) {
         queryParams.append("ativo", params.ativo.toString());
       }
 
       const response = await apiRequest<BancoListResponseDto>(
-        `/entidade-conta-bancaria?${queryParams.toString()}`,
+        `/banco?${queryParams.toString()}`,
         {
           method: "GET",
         }
       );
       return response;
     } catch (error) {
-      console.error("Erro ao buscar contas bancárias:", error);
+      console.error("Erro ao buscar bancos:", error);
       throw error;
     }
   }
 
-  async findById(id: number): Promise<EntidadeContaBancaria> {
+  async findById(id: number): Promise<Banco> {
     try {
-      const response = await apiRequest<EntidadeContaBancaria>(
-        `/entidade-conta-bancaria/${id}`,
-        {
-          method: "GET",
-        }
-      );
+      const response = await apiRequest<Banco>(`/banco/${id}`, {
+        method: "GET",
+      });
       return response;
     } catch (error) {
-      console.error("Erro ao buscar conta bancária:", error);
-      throw error;
-    }
-  }
-
-  async findByEntidade(entidadeId: number): Promise<BancoListResponseDto> {
-    try {
-      const response = await apiRequest<BancoListResponseDto>(
-        `/entidade-conta-bancaria/entidade/${entidadeId}`,
-        {
-          method: "GET",
-        }
-      );
-      return response;
-    } catch (error) {
-      console.error("Erro ao buscar contas bancárias da entidade:", error);
+      console.error("Erro ao buscar banco:", error);
       throw error;
     }
   }

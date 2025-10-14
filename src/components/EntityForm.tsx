@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from "./ui/select";
 import { ValidatedInput } from "./ui/validated-input";
-import { bancoService, EntidadeContaBancaria } from "../services/banco.service";
+import { bancoService, Banco } from "../services/banco.service";
 import { maskCNPJ, maskCEP, maskTelefone } from "../utils/masks";
 import {
   findBancoById,
@@ -49,9 +49,8 @@ export function EntityForm({
   // Hook para validação de formulário (não usado no momento, mas disponível para futuras implementações)
   // const { showValidation } = useFormValidation();
   // Estados para gerenciar bancos
-  const [bancos, setBancos] = useState<EntidadeContaBancaria[]>([]);
-  const [bancoSelecionado, setBancoSelecionado] =
-    useState<EntidadeContaBancaria | null>(null);
+  const [bancos, setBancos] = useState<Banco[]>([]);
+  const [bancoSelecionado, setBancoSelecionado] = useState<Banco | null>(null);
   const [bancoIdInput, setBancoIdInput] = useState<string>("");
   const [carregandoBancos, setCarregandoBancos] = useState(false);
 
@@ -62,7 +61,7 @@ export function EntityForm({
       try {
         const bancosData = await bancoService.findAll();
         // Garantir que sempre temos um array válido
-        setBancos(Array.isArray(bancosData) ? bancosData : []);
+        setBancos(Array.isArray(bancosData.data) ? bancosData.data : []);
       } catch (error) {
         console.error("Erro ao carregar bancos:", error);
         // Em caso de erro, definir array vazio
@@ -100,7 +99,7 @@ export function EntityForm({
 
     if (banco) {
       setBancoSelecionado(banco);
-      setFormData((prev) => ({ ...prev, bancoId: banco.banco.bancoId }));
+      setFormData((prev) => ({ ...prev, bancoId: banco.bancoId }));
     } else {
       setBancoSelecionado(null);
       setFormData((prev) => ({ ...prev, bancoId: undefined }));
@@ -109,11 +108,11 @@ export function EntityForm({
 
   // Função para selecionar banco do select
   const selecionarBanco = (bancoId: string) => {
-    const banco = bancos.find((b) => b.banco.bancoId === Number(bancoId));
+    const banco = bancos.find((b) => b.bancoId === Number(bancoId));
     if (banco) {
       setBancoSelecionado(banco);
-      setBancoIdInput(banco.banco.bancoId.toString());
-      setFormData((prev) => ({ ...prev, bancoId: banco.banco.bancoId }));
+      setBancoIdInput(banco.bancoId.toString());
+      setFormData((prev) => ({ ...prev, bancoId: banco.bancoId }));
     }
   };
 
@@ -252,8 +251,8 @@ export function EntityForm({
           <h3 className="text-lg font-medium">Endereço e Contatos</h3>
 
           {/* CEP e busca manual */}
-          <div className="space-y-2 border border-gray-300 rounded-md p-2">
-            <div className="flex gap-2 max-w-[20%]">
+          <div className="space-y-2 gap-4 border border-gray-300 rounded-md p-2 max-w-[15%]">
+            <div className="flex gap-2">
               <ValidatedInput
                 id="cep"
                 name="cep"
@@ -288,7 +287,7 @@ export function EntityForm({
                         !formData.cep ||
                         formData.cep.replace(/\D/g, "").length !== 8
                       }
-                      className="px-3"
+                      className="px-3 mt-4"
                     >
                       🔍
                     </Button>
@@ -682,12 +681,12 @@ export function EntityForm({
         <div className="space-y-4">
           <h3 className="text-lg font-medium">Dados Bancários</h3>
           <div className="grid grid-cols-1 gap-4">
-            <div className="grid grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
+            <div className="gap-4 border border-gray-300 rounded-md p-2">
               <div className="space-y-2">
                 <Label htmlFor="bancoId">Banco</Label>
                 <div className="flex gap-2">
                   {/* Input para buscar por ID */}
-                  <div className="flex gap-2 flex-1 max-w-[20%]">
+                  <div className="flex gap-2 flex-1 max-w-[15%]">
                     <Input
                       id="bancoId"
                       name="bancoId"
@@ -735,7 +734,7 @@ export function EntityForm({
                           }
                         />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[200px] overflow-y-auto">
+                      <SelectContent className="overflow-y-auto">
                         {Array.isArray(bancos) &&
                           bancos.map((banco) => (
                             <SelectItem
@@ -750,7 +749,10 @@ export function EntityForm({
                   </div>
                 </div>
               </div>
-              <div className="space-y-2">
+              
+            </div>
+            <div className="grid grid-cols-5 gap-4 border border-gray-300 rounded-md p-2">
+            <div className="space-y-2">
                 <Label htmlFor="carteira">Carteira</Label>
                 <Input
                   id="carteira"
@@ -765,9 +767,7 @@ export function EntityForm({
                   placeholder="COBRANCA"
                   disabled={isCreating || isUpdating}
                 />
-              </div>
-            </div>
-            <div className="grid grid-cols-4 gap-4 border border-gray-300 rounded-md p-2">
+              </div>              
               <div className="space-y-2">
                 <Label htmlFor="agencia">Agência</Label>
                 <Input

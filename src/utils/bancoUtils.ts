@@ -5,23 +5,22 @@
  * incluindo validação, busca e manipulação de dados bancários.
  */
 
-import { bancoService, EntidadeContaBancaria } from "../services/banco.service";
+import { bancoService, Banco } from "../services/banco.service";
+import { EntidadeContaBancaria } from "../services/contas-bancarias-entidades.service";
 
 /**
- * Busca uma conta bancária por ID, primeiro na lista fornecida, depois na API
- * @param id - ID da conta bancária a ser buscada
- * @param bancosList - Lista de contas bancárias já carregadas
- * @returns Conta bancária encontrada ou null
+ * Busca um banco por ID, primeiro na lista fornecida, depois na API
+ * @param id - ID do banco a ser buscado
+ * @param bancosList - Lista de bancos já carregados
+ * @returns Banco encontrado ou null
  */
 export const findBancoById = async (
   id: number,
-  bancosList: EntidadeContaBancaria[] = []
-): Promise<EntidadeContaBancaria | null> => {
+  bancosList: Banco[] = []
+): Promise<Banco | null> => {
   try {
-    // Primeiro, tentar encontrar na lista de contas bancárias já carregadas
-    const bancoExistente = bancosList.find(
-      (b) => b.entidadeContaBancariaId === id
-    );
+    // Primeiro, tentar encontrar na lista de bancos já carregados
+    const bancoExistente = bancosList.find((b) => b.bancoId === id);
     if (bancoExistente) {
       return bancoExistente;
     }
@@ -30,7 +29,7 @@ export const findBancoById = async (
     const banco = await bancoService.findById(id);
     return banco;
   } catch (error) {
-    console.error("Conta bancária não encontrada:", error);
+    console.error("Banco não encontrado:", error);
     return null;
   }
 };
@@ -46,45 +45,37 @@ export const isValidBancoId = (id: string | number): boolean => {
 };
 
 /**
- * Formata o nome da conta bancária para exibição no select
- * @param banco - Objeto conta bancária
+ * Formata o nome do banco para exibição no select
+ * @param banco - Objeto banco
  * @returns String formatada para exibição
  */
-export const formatBancoDisplay = (banco: EntidadeContaBancaria): string => {
-  return `${banco.banco.nome} - ${banco.agencia}/${banco.conta}`;
+export const formatBancoDisplay = (banco: Banco): string => {
+  return `${banco.nome}`;
 };
 
 /**
- * Filtra contas bancárias por nome (busca parcial, case-insensitive)
- * @param bancos - Lista de contas bancárias
+ * Filtra bancos por nome (busca parcial, case-insensitive)
+ * @param bancos - Lista de bancos
  * @param searchTerm - Termo de busca
- * @returns Lista filtrada de contas bancárias
+ * @returns Lista filtrada de bancos
  */
 export const filterBancosByName = (
-  bancos: EntidadeContaBancaria[],
+  bancos: Banco[],
   searchTerm: string
-): EntidadeContaBancaria[] => {
+): Banco[] => {
   if (!searchTerm.trim()) return bancos;
 
   const term = searchTerm.toLowerCase().trim();
-  return bancos.filter(
-    (banco) =>
-      banco.banco.nome.toLowerCase().includes(term) ||
-      banco.banco.codigo.toLowerCase().includes(term) ||
-      banco.agencia.toLowerCase().includes(term) ||
-      banco.conta.toLowerCase().includes(term)
-  );
+  return bancos.filter((banco) => banco.nome.toLowerCase().includes(term));
 };
 
 /**
- * Ordena contas bancárias por nome do banco alfabeticamente
- * @param bancos - Lista de contas bancárias
- * @returns Lista ordenada de contas bancárias
+ * Ordena bancos por nome alfabeticamente
+ * @param bancos - Lista de bancos
+ * @returns Lista ordenada de bancos
  */
-export const sortBancosByName = (
-  bancos: EntidadeContaBancaria[]
-): EntidadeContaBancaria[] => {
-  return [...bancos].sort((a, b) => a.banco.nome.localeCompare(b.banco.nome));
+export const sortBancosByName = (bancos: Banco[]): Banco[] => {
+  return [...bancos].sort((a, b) => a.nome.localeCompare(b.nome));
 };
 
 /**

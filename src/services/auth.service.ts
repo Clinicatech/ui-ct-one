@@ -140,16 +140,10 @@ export class AuthService {
   static getEntidadeId(): number | null {
     const token = TOKEN_STORAGE.getToken();
     if (!token) {
-      console.log("🔍 getEntidadeId - Token não encontrado");
       return null;
     }
 
-    console.log(
-      "🔍 getEntidadeId - Token encontrado:",
-      token.substring(0, 50) + "..."
-    );
     const entidadeId = getEntidadeIdFromToken(token);
-    console.log("🔍 getEntidadeId - entidadeId extraído:", entidadeId);
     return entidadeId;
   }
 

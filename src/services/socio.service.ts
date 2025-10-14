@@ -42,6 +42,7 @@ export class SocioService {
   convertToApiFormat(formData: SocioFormData): any {
     return {
       pessoa: {
+        pessoaId: formData.pessoa.pessoaId || undefined, // Incluir pessoaId se existir
         nome: formData.pessoa.nome,
         razao: formData.pessoa.razao || undefined,
         documento: formData.pessoa.documento,
@@ -83,6 +84,7 @@ export class SocioService {
           formData.dadosBancarios.conta_digito ||
           formData.dadosBancarios.agencia_digito)
           ? {
+              dadosBancariosId: formData.dadosBancarios.dadosBancariosId || undefined,
               banco_id: formData.dadosBancarios.banco_id
                 ? Number(formData.dadosBancarios.banco_id)
                 : undefined,

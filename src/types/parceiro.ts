@@ -68,6 +68,7 @@ export interface Parceiro {
 
 export interface ParceiroFormData {
   pessoa: {
+    pessoaId?: number; // ID da pessoa quando já existe
     nome: string;
     razao?: string | null;
     documento: string;
@@ -76,6 +77,7 @@ export interface ParceiroFormData {
     inscricaoMunicipal?: string | null;
   };
   endereco?: {
+    enderecoId?: number; // ID do endereço quando já existe
     cep?: string;
     endereco?: string | null;
     numero?: string | null;
@@ -87,6 +89,7 @@ export interface ParceiroFormData {
     ufCodigo?: string | null;
   };
   dadosBancarios?: {
+    dadosBancariosId?: number; // ID dos dados bancários quando já existem
     bancoId?: number;
     agencia?: string;
     conta?: string;

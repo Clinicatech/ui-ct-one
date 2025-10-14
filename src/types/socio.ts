@@ -43,6 +43,7 @@ export interface Socio {
 
 export interface SocioFormData {
   pessoa: {
+    pessoaId?: number; // ID da pessoa quando já existe
     nome: string;
     razao?: string | null;
     documento: string;
@@ -62,6 +63,7 @@ export interface SocioFormData {
     uf_codigo?: string | null;
   };
   dadosBancarios?: {
+    dadosBancariosId?: number; // ID dos dados bancários quando já existem
     banco_id?: number;
     agencia?: string;
     conta?: string;

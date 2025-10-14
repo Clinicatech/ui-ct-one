@@ -51,6 +51,7 @@ export class ParceiroService {
   convertToApiFormat(formData: ParceiroFormData): any {
     return {
       pessoa: {
+        pessoaId: formData.pessoa.pessoaId || undefined,
         nome: formData.pessoa.nome,
         razao: formData.pessoa.razao || undefined,
         documento: formData.pessoa.documento,
@@ -92,6 +93,8 @@ export class ParceiroService {
           formData.dadosBancarios.contaDigito ||
           formData.dadosBancarios.agenciaDigito)
           ? {
+              dadosBancariosId:
+                formData.dadosBancarios.dadosBancariosId || undefined,
               bancoId: formData.dadosBancarios.bancoId
                 ? Number(formData.dadosBancarios.bancoId)
                 : undefined,
@@ -103,18 +106,25 @@ export class ParceiroService {
               agenciaDigito: formData.dadosBancarios.agenciaDigito || undefined,
             }
           : undefined,
-      responsavel: formData.responsavel
-        ? {
-            nome: formData.responsavel.nome,
-            razao: formData.responsavel.razao || undefined,
-            documento: formData.responsavel.documento,
-            tipo: formData.responsavel.tipo,
-            inscricaoEstadual:
-              formData.responsavel.inscricaoEstadual || undefined,
-            inscricaoMunicipal:
-              formData.responsavel.inscricaoMunicipal || undefined,
-          }
-        : undefined,
+      responsavel:
+        formData.responsavel &&
+        (formData.responsavel.pessoaId ||
+          (formData.responsavel.nome &&
+            formData.responsavel.nome.trim().length > 0) ||
+          (formData.responsavel.documento &&
+            formData.responsavel.documento.trim().length > 0))
+          ? {
+              pessoaId: formData.responsavel.pessoaId || undefined,
+              nome: formData.responsavel.nome || undefined,
+              razao: formData.responsavel.razao || undefined,
+              documento: formData.responsavel.documento || undefined,
+              tipo: formData.responsavel.tipo || undefined,
+              inscricaoEstadual:
+                formData.responsavel.inscricaoEstadual || undefined,
+              inscricaoMunicipal:
+                formData.responsavel.inscricaoMunicipal || undefined,
+            }
+          : undefined,
       enderecoResponsavel:
         formData.enderecoResponsavel &&
         (formData.enderecoResponsavel.cep ||
@@ -152,7 +162,7 @@ export class ParceiroService {
         ? {
             pessoaResponsavelId: formData.parceiroInfo.pessoaResponsavelId
               ? Number(formData.parceiroInfo.pessoaResponsavelId)
-              : null,
+              : undefined,
             atividadeParceiroId: formData.parceiroInfo.atividadeParceiroId
               ? Number(formData.parceiroInfo.atividadeParceiroId)
               : undefined,

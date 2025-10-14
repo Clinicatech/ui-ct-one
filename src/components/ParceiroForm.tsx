@@ -15,12 +15,12 @@ import { maskCPF, maskCNPJ, maskCEP } from "../utils/masks";
 import { ValidatedInput } from "./ui/validated-input";
 import { toast } from "sonner";
 import { ParceiroFormData } from "../types/parceiro";
-import { Banco, AtividadeParceiro } from "../types/parceiro";
+import { AtividadeParceiro } from "../types/parceiro";
 import {
   TIPO_PESSOA_OPTIONS,
   CONTA_TIPO_OPTIONS,
 } from "../constants/parceiro-constants";
-import { bancoService, EntidadeContaBancaria } from "../services/banco.service";
+import { bancoService, Banco } from "../services/banco.service";
 import { isValidBancoId, formatBancoDisplay } from "../utils/bancoUtils";
 import {
   Tooltip,
@@ -49,12 +49,11 @@ export function ParceiroForm({
   activeTab,
   setActiveTab,
 }: ParceiroFormProps) {
-  const [bancos, setBancos] = useState<EntidadeContaBancaria[]>([]);
+  const [bancos, setBancos] = useState<Banco[]>([]);
   const [atividadesParceiro, setAtividadesParceiro] = useState<
     AtividadeParceiro[]
   >([]);
-  const [bancoSelecionado, setBancoSelecionado] =
-    useState<EntidadeContaBancaria | null>(null);
+  const [bancoSelecionado, setBancoSelecionado] = useState<Banco | null>(null);
   const [bancoIdInput, setBancoIdInput] = useState<string>("");
   const [carregandoBancos, setCarregandoBancos] = useState(false);
   const [carregandoAtividades, setCarregandoAtividades] = useState(false);
@@ -89,7 +88,7 @@ export function ParceiroForm({
     setCarregandoBancos(true);
     try {
       const bancosData = await bancoService.findAll();
-      setBancos(Array.isArray(bancosData) ? bancosData : []);
+      setBancos(Array.isArray(bancosData.data) ? bancosData.data : []);
     } catch (error) {
       console.error("Erro ao carregar bancos:", error);
       setBancos([]);
@@ -299,9 +298,13 @@ export function ParceiroForm({
 
   // Funções para seleção de pessoas
   const handleSelectPerson = (person: Pessoa) => {
+    // Preservar dados bancários que o usuário já preencheu
+    const dadosBancariosPreservados = formData.dadosBancarios;
+
     setFormData({
       ...formData,
       pessoa: {
+        pessoaId: person.pessoaId, // Incluir ID da pessoa existente
         nome: person.nome,
         razao: person.razao || null,
         documento: person.documento,
@@ -326,6 +329,7 @@ export function ParceiroForm({
       dadosBancarios:
         person.dadosBancarios && person.dadosBancarios.length > 0
           ? {
+              dadosBancariosId: person.dadosBancarios[0].dadosBancariosId, // Incluir ID para UPDATE
               bancoId: person.dadosBancarios[0].bancoId,
               agencia: person.dadosBancarios[0].agencia,
               conta: person.dadosBancarios[0].conta,
@@ -334,7 +338,7 @@ export function ParceiroForm({
               contaDigito: person.dadosBancarios[0].contaDigito || null,
               agenciaDigito: person.dadosBancarios[0].agenciaDigito || null,
             }
-          : undefined,
+          : dadosBancariosPreservados, // Preservar dados bancários preenchidos pelo usuário
     });
 
     // Sincronizar banco selecionado se houver dados bancários
@@ -517,7 +521,10 @@ export function ParceiroForm({
                   </SelectTrigger>
                   <SelectContent>
                     {TIPO_PESSOA_OPTIONS?.map((option) => (
-                      <SelectItem key={option.value} value={option.value || "default"}>
+                      <SelectItem
+                        key={option.value}
+                        value={option.value || "default"}
+                      >
                         {option.label}
                       </SelectItem>
                     ))}

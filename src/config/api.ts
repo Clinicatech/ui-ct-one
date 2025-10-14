@@ -1,4 +1,5 @@
 import { ENV_CONFIG, getApiUrl, debugLog } from "./environment";
+import { httpInterceptor } from "../services/httpInterceptor.service";
 
 // Configuração da API
 export const API_CONFIG = {
@@ -38,12 +39,22 @@ export const USER_STORAGE = {
   KEY: "ct_one_user",
 
   // Salvar dados do usuário
-  setUser: (user: { codigo: number; nome: string; email: string; entidade: string }): void => {
+  setUser: (user: {
+    codigo: number;
+    nome: string;
+    email: string;
+    entidade: string;
+  }): void => {
     localStorage.setItem(USER_STORAGE.KEY, JSON.stringify(user));
   },
 
   // Obter dados do usuário
-  getUser: (): { codigo: number; nome: string; email: string; entidade: string } | null => {
+  getUser: (): {
+    codigo: number;
+    nome: string;
+    email: string;
+    entidade: string;
+  } | null => {
     const user = localStorage.getItem(USER_STORAGE.KEY);
     const parsed = user ? JSON.parse(user) : null;
     return parsed;
@@ -84,6 +95,13 @@ export const apiRequest = async <T>(
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
     debugLog(`API Error: ${response.status}`, errorData);
+
+    // Tratar erro 401 (Unauthorized) - token expirado
+    if (httpInterceptor.isUnauthorizedError(response.status)) {
+      httpInterceptor.handleUnauthorized();
+      throw new Error("Sessão expirada. Redirecionando para login...");
+    }
+
     throw new Error(
       errorData.message || `HTTP error! status: ${response.status}`
     );

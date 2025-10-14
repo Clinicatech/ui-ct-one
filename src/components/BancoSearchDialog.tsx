@@ -9,114 +9,56 @@ import {
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import { Card, CardContent } from "./ui/card";
 import { Badge } from "./ui/badge";
-import { Search, Building2, CreditCard } from "lucide-react";
+import { Search, Building2 } from "lucide-react";
 import { toast } from "sonner";
-import { bancoService, EntidadeContaBancaria } from "../services/banco.service";
+import { bancoService, Banco } from "../services/banco.service";
 
 interface BancoSearchDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectBanco: (banco: EntidadeContaBancaria) => void;
+  onSelectBanco: (banco: Banco) => void;
   title?: string;
-  entidadeId?: number;
 }
 
 export function BancoSearchDialog({
   isOpen,
   onClose,
   onSelectBanco,
-  title = "Buscar Conta Bancária",
-  entidadeId,
+  title = "Buscar Banco",
 }: BancoSearchDialogProps) {
-  const [bancos, setBancos] = useState<EntidadeContaBancaria[]>([]);
+  const [bancos, setBancos] = useState<Banco[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchParams, setSearchParams] = useState({
     search: "",
-    tipoConta: "all",
   });
 
-  // Buscar contas bancárias reais
+  // Buscar bancos reais
   const performSearch = useCallback(async () => {
     setLoading(true);
     try {
-      let response;
+      const response = await bancoService.findAll({
+        search: searchParams.search || undefined,
+      });
 
-      let bancosData: EntidadeContaBancaria[] = [];
-
-      if (entidadeId) {
-        // Se temos entidadeId, buscar apenas contas dessa entidade
-        response = await bancoService.findByEntidade(entidadeId);
-
-        // Aplicar filtros no frontend
-        bancosData = response.data || [];
-
-        // Filtro por texto de busca
-        if (searchParams.search) {
-          const searchTerm = searchParams.search.toLowerCase();
-          bancosData = bancosData.filter((banco) => {
-            const bancoNome =
-              banco.banco?.nome?.toLowerCase() ||
-              banco.bancoNome?.toLowerCase() ||
-              "";
-            const agencia = banco.agencia?.toLowerCase() || "";
-            const conta = banco.conta?.toLowerCase() || "";
-            return (
-              bancoNome.includes(searchTerm) ||
-              agencia.includes(searchTerm) ||
-              conta.includes(searchTerm)
-            );
-          });
-        }
-
-        // Filtro por tipo de conta
-        if (searchParams.tipoConta && searchParams.tipoConta !== "all") {
-          bancosData = bancosData.filter(
-            (banco) => banco.tipoConta === searchParams.tipoConta
-          );
-        }
-      } else {
-        // Fallback: buscar todas as contas (comportamento antigo)
-        response = await bancoService.findAll({
-          search: searchParams.search || undefined,
-          tipoConta:
-            searchParams.tipoConta && searchParams.tipoConta !== "all"
-              ? searchParams.tipoConta
-              : undefined,
-        });
-
-        // A API já faz o filtro, então usar os dados diretamente
-        bancosData = response.data || [];
-      }
-
+      const bancosData = response.data || [];
       setBancos(bancosData);
 
-      // Se há apenas uma conta bancária e não há filtros aplicados, selecionar automaticamente
-      if (
-        bancosData.length === 1 &&
-        !searchParams.search &&
-        searchParams.tipoConta === "all"
-      ) {
-        toast.success("Conta bancária selecionada automaticamente");
+      // Se há apenas um banco e não há filtros aplicados, selecionar automaticamente
+      if (bancosData.length === 1 && !searchParams.search) {
+        toast.success("Banco selecionado automaticamente");
         onSelectBanco(bancosData[0]);
         onClose();
         return;
       }
     } catch (error) {
-      console.error("Erro ao buscar contas bancárias:", error);
-      toast.error("Erro ao buscar contas bancárias");
+      console.error("Erro ao buscar bancos:", error);
+      toast.error("Erro ao buscar bancos");
     } finally {
       setLoading(false);
     }
-  }, [searchParams, onSelectBanco, onClose, entidadeId]);
+  }, [searchParams, onSelectBanco, onClose]);
 
   useEffect(() => {
     if (isOpen) {
@@ -128,141 +70,95 @@ export function BancoSearchDialog({
     setSearchParams((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSelectBanco = (banco: EntidadeContaBancaria) => {
+  const handleSelectBanco = (banco: Banco) => {
     onSelectBanco(banco);
     onClose();
   };
 
-  const getTipoContaLabel = (tipo: string) => {
-    switch (tipo) {
-      case "CORRENTE":
-        return "Conta Corrente";
-      case "POUPANCA":
-        return "Poupança";
-      case "SALARIO":
-        return "Conta Salário";
-      default:
-        return tipo;
-    }
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5" />
             {title}
           </DialogTitle>
           <DialogDescription>
-            Selecione uma conta bancária para o contrato
+            Selecione um banco da lista abaixo
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Filtros */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="space-y-2">
-              <Label>Buscar</Label>
+        <div className="flex-1 overflow-hidden flex flex-col gap-4">
+          {/* Filtros de busca */}
+          <div className="flex gap-4 items-end">
+            <div className="flex-1">
+              <Label htmlFor="search">Buscar por nome</Label>
               <div className="relative">
-                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
-                  placeholder="Banco, agência, conta..."
+                  id="search"
+                  placeholder="Digite o nome do banco..."
                   value={searchParams.search}
                   onChange={(e) => handleInputChange("search", e.target.value)}
-                  className="pl-8"
+                  className="pl-10"
                 />
               </div>
             </div>
-
-            <div className="space-y-2">
-              <Label>Tipo de Conta</Label>
-              <Select
-                value={searchParams.tipoConta}
-                onValueChange={(value) => handleInputChange("tipoConta", value)}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Todos os tipos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos os tipos</SelectItem>
-                  <SelectItem value="CORRENTE">Conta Corrente</SelectItem>
-                  <SelectItem value="POUPANCA">Poupança</SelectItem>
-                  <SelectItem value="SALARIO">Conta Salário</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Button onClick={performSearch} disabled={loading}>
+              {loading ? "Buscando..." : "Buscar"}
+            </Button>
           </div>
 
-          {/* Lista de resultados */}
-          <div className="space-y-2">
+          {/* Lista de bancos */}
+          <div className="flex-1 overflow-y-auto">
             {loading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-                <p className="mt-2 text-muted-foreground">
-                  Buscando contas bancárias...
-                </p>
+              <div className="flex items-center justify-center py-8">
+                <div className="text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+                  <p className="text-gray-500">Buscando bancos...</p>
+                </div>
               </div>
             ) : bancos.length === 0 ? (
               <div className="text-center py-8">
-                <CreditCard className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <p className="text-muted-foreground">
-                  Nenhuma conta bancária encontrada
+                <Building2 className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">
+                  {searchParams.search
+                    ? "Nenhum banco encontrado com os filtros aplicados"
+                    : "Nenhum banco encontrado"}
                 </p>
               </div>
             ) : (
-              bancos.map((banco) => (
-                <Card
-                  key={banco.entidadeContaBancariaId}
-                  className="border rounded-lg p-4 hover:bg-gray-50 cursor-pointer"
-                  onClick={() => handleSelectBanco(banco)}
-                >
-                  <CardContent className="p-0">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                          <Building2 className="h-5 w-5 text-muted-foreground" />
+              <div className="grid gap-3">
+                {bancos.map((banco) => (
+                  <Card
+                    key={banco.bancoId}
+                    className="cursor-pointer hover:shadow-md transition-shadow"
+                    onClick={() => handleSelectBanco(banco)}
+                  >
+                    <CardContent className="p-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                            <Building2 className="h-5 w-5 text-blue-600" />
+                          </div>
                           <div>
-                            <p className="font-medium">{banco.banco.nome}</p>
-                            <p className="text-sm text-muted-foreground">
-                              Código:{" "}
-                              {banco.banco?.bancoId
-                                ?.toString()
-                                .padStart(3, "0") || "N/A"}
+                            <p className="font-medium">{banco.nome}</p>
+                            <p className="text-sm text-gray-500">
+                              ID: {banco.bancoId}
                             </p>
                           </div>
                         </div>
-                        <div className="text-sm">
-                          <p>
-                            <span className="font-medium">Agência:</span>{" "}
-                            {banco.agencia}
-                          </p>
-                          <p>
-                            <span className="font-medium">Conta:</span>{" "}
-                            {banco.conta}
-                          </p>
-                        </div>
+                        <Badge variant="secondary">Banco</Badge>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <Badge
-                          variant={
-                            banco.tipoConta === "CORRENTE"
-                              ? "default"
-                              : "secondary"
-                          }
-                        >
-                          {getTipoContaLabel(banco.tipoConta)}
-                        </Badge>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
             )}
           </div>
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-2 pt-4 border-t">
           <Button variant="outline" onClick={onClose}>
             Cancelar
           </Button>

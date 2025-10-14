@@ -101,6 +101,7 @@ export function PessoaSearchDialog({
               inscricaoMunicipal: cliente.pessoa.inscricaoMunicipal,
               enderecos: cliente.pessoa.enderecos,
               dadosBancarios: cliente.pessoa.dadosBancarios,
+              clienteInfoId: cliente.clienteInfoId, // ✅ Incluir ID do cliente
             }))
           );
           setTotalResults(clientesFiltrados.length);
@@ -136,6 +137,7 @@ export function PessoaSearchDialog({
               inscricaoMunicipal: parceiro.pessoa.inscricaoMunicipal,
               enderecos: parceiro.pessoa.enderecos,
               dadosBancarios: parceiro.pessoa.dadosBancarios,
+              parceiroInfoId: parceiro.parceiroInfoId, // ✅ Incluir ID do parceiro
             }))
           );
           setTotalResults(parceirosFiltrados.length);
@@ -171,6 +173,7 @@ export function PessoaSearchDialog({
               inscricaoMunicipal: socio.pessoa.inscricaoMunicipal,
               enderecos: socio.pessoa.enderecos,
               dadosBancarios: socio.pessoa.dadosBancarios,
+              socioInfoId: socio.socioInfoId, // ✅ Incluir ID do sócio
             }))
           );
           setTotalResults(sociosFiltrados.length);

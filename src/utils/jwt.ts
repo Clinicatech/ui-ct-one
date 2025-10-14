@@ -45,10 +45,5 @@ export function getEmailFromToken(token: string): string | null {
 // Extrair entidadeId do token
 export function getEntidadeIdFromToken(token: string): number | null {
   const payload = decodeJWT(token);
-  console.log("🔍 getEntidadeIdFromToken - payload completo:", payload);
-  console.log(
-    "🔍 getEntidadeIdFromToken - entidadeId do payload:",
-    payload?.entidadeId
-  );
   return payload?.entidadeId || null;
 }
