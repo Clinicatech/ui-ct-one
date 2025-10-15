@@ -34,6 +34,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Calendar,
+  Minus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "../components/ui/input";
@@ -63,6 +64,12 @@ import {
   FluxoCaixaService,
   FluxoCaixaItem,
 } from "../services/fluxo-caixa.service";
+import {
+  FinanceiroService,
+  CaixaEntidadeItem,
+  DividendosItem,
+  CreateDividendoRequest,
+} from "../services/financeiro.service";
 
 interface GestaoFinanceiraProps {
   title?: string;
@@ -72,7 +79,7 @@ export function GestaoFinanceira({
   title = "Gestão Financeira",
 }: GestaoFinanceiraProps) {
   const [activeTab, setActiveTab] = useState<
-    "receitas" | "despesas" | "fluxo-caixa"
+    "receitas" | "despesas" | "fluxo-caixa" | "caixa-dividendos"
   >("receitas");
   const [receitas, setReceitas] = useState<MovimentoReceita[]>([]);
   const [despesas, setDespesas] = useState<MovimentoDespesa[]>([]);
@@ -119,6 +126,28 @@ export function GestaoFinanceira({
   const [isGerandoDividendos, setIsGerandoDividendos] = useState(false);
   const [isDeletandoDividendos, setIsDeletandoDividendos] = useState(false);
 
+  // Estados para caixa/dividendos
+  const [caixaEntidadeData, setCaixaEntidadeData] = useState<
+    CaixaEntidadeItem[]
+  >([]);
+  const [dividendosData, setDividendosData] = useState<DividendosItem[]>([]);
+  const [isLoadingCaixaDividendos, setIsLoadingCaixaDividendos] =
+    useState(false);
+
+  // Estados para modal de retirada
+  const [isRetiradaModalOpen, setIsRetiradaModalOpen] = useState(false);
+  const [retiradaData, setRetiradaData] = useState({
+    mes: "",
+    ano: "",
+    justificativa: "",
+    valor: "",
+  });
+  const [isSubmittingRetirada, setIsSubmittingRetirada] = useState(false);
+  const [retiradaType, setRetiradaType] = useState<"caixa" | "dividendo">(
+    "caixa"
+  );
+  const [retiradaId, setRetiradaId] = useState<number | null>(null);
+
   useEffect(() => {
     loadData();
     loadStatusOptions();
@@ -155,6 +184,13 @@ export function GestaoFinanceira({
       setAnoSelecionado(anoAtual);
     }
   }, [isGerarMovimentoDialogOpen, entidadeId]);
+
+  // Carregar dados quando a aba caixa-dividendos for selecionada
+  useEffect(() => {
+    if (activeTab === "caixa-dividendos") {
+      loadCaixaDividendos();
+    }
+  }, [activeTab]);
 
   const getOrderBy = (filters: MovimentoFilters) => {
     // Se não há filtros ou apenas status, ordenar por data de vencimento
@@ -296,8 +332,36 @@ export function GestaoFinanceira({
       return;
     }
 
+    const currentEntidadeId = AuthService.getEntidadeId();
+    if (!currentEntidadeId) {
+      toast.error("Entidade não encontrada");
+      return;
+    }
+
+    // Confirmar com o usuário antes de prosseguir
+    const confirmar = window.confirm(
+      "Gerar dividendos para este período impedirá a geração de movimento. Deseja prosseguir?"
+    );
+
+    if (!confirmar) {
+      return;
+    }
+
     setIsGerandoDividendos(true);
     try {
+      // Verificar se existe dividendo pago para o período
+      const dividendoPagoResponse =
+        await FinanceiroService.verificarDividendoPago(
+          currentEntidadeId,
+          parseInt(mesFluxoCaixa),
+          parseInt(anoFluxoCaixa)
+        );
+
+      if (dividendoPagoResponse.existeDividendoPago) {
+        toast.error("Existe dividendo pago para este período ou futuro");
+        return;
+      }
+
       const response = await FluxoCaixaService.gerarDividendos(
         parseInt(mesFluxoCaixa),
         parseInt(anoFluxoCaixa)
@@ -324,8 +388,27 @@ export function GestaoFinanceira({
       return;
     }
 
+    const currentEntidadeId = AuthService.getEntidadeId();
+    if (!currentEntidadeId) {
+      toast.error("Entidade não encontrada");
+      return;
+    }
+
     setIsDeletandoDividendos(true);
     try {
+      // Verificar se existe dividendo pago para o período
+      const dividendoPagoResponse =
+        await FinanceiroService.verificarDividendoPago(
+          currentEntidadeId,
+          parseInt(mesFluxoCaixa),
+          parseInt(anoFluxoCaixa)
+        );
+
+      if (dividendoPagoResponse.existeDividendoPago) {
+        toast.error("Existe dividendo pago para este período ou futuro");
+        return;
+      }
+
       const response = await FluxoCaixaService.deletarDividendos(
         parseInt(mesFluxoCaixa),
         parseInt(anoFluxoCaixa)
@@ -343,6 +426,122 @@ export function GestaoFinanceira({
       toast.error("Erro ao deletar dividendos");
     } finally {
       setIsDeletandoDividendos(false);
+    }
+  };
+
+  const loadCaixaDividendos = async () => {
+    const currentEntidadeId = AuthService.getEntidadeId();
+    if (!currentEntidadeId) {
+      toast.error("Entidade não encontrada");
+      return;
+    }
+
+    setIsLoadingCaixaDividendos(true);
+    try {
+      const [caixaResponse, dividendosResponse] = await Promise.all([
+        FinanceiroService.getCaixaEntidade(currentEntidadeId),
+        FinanceiroService.getDividendos(currentEntidadeId),
+      ]);
+
+      setCaixaEntidadeData(caixaResponse.data);
+      setDividendosData(dividendosResponse.data);
+    } catch (error) {
+      console.error("Erro ao carregar dados de caixa/dividendos:", error);
+      toast.error("Erro ao carregar dados de caixa/dividendos");
+    } finally {
+      setIsLoadingCaixaDividendos(false);
+    }
+  };
+
+  const handleAbrirRetirada = (type: "caixa" | "dividendo", id: number) => {
+    setRetiradaType(type);
+    setRetiradaId(id);
+    setRetiradaData({
+      mes: "",
+      ano: "",
+      justificativa: "",
+      valor: "",
+    });
+    setIsRetiradaModalOpen(true);
+  };
+
+  const handleConfirmarRetirada = async () => {
+    if (
+      !retiradaData.mes ||
+      !retiradaData.ano ||
+      !retiradaData.justificativa ||
+      !retiradaData.valor
+    ) {
+      toast.error("Todos os campos são obrigatórios");
+      return;
+    }
+
+    const currentEntidadeId = AuthService.getEntidadeId();
+    if (!currentEntidadeId || !retiradaId) {
+      toast.error("Erro ao obter dados da entidade");
+      return;
+    }
+
+    setIsSubmittingRetirada(true);
+    try {
+      const valor = parseFloat(retiradaData.valor);
+      const mes = parseInt(retiradaData.mes);
+      const ano = parseInt(retiradaData.ano);
+
+      // Verificar se o valor não excede o disponível
+      const idParaConsulta =
+        retiradaType === "caixa" ? currentEntidadeId : retiradaId;
+      const destinoParaConsulta = retiradaType === "caixa" ? "E" : "S";
+
+      const totalResponse = await FinanceiroService.getTotal(
+        idParaConsulta,
+        destinoParaConsulta
+      );
+
+      if (valor > totalResponse.total) {
+        toast.error("Valor acima do disponível");
+        return;
+      }
+
+      // Verificar se existe dividendo pago para o período
+      const dividendoPagoResponse =
+        await FinanceiroService.verificarDividendoPago(
+          currentEntidadeId,
+          mes,
+          ano
+        );
+
+      if (dividendoPagoResponse.existeDividendoPago) {
+        toast.error("Existe dividendo pago para este período ou futuro");
+        return;
+      }
+
+      // Criar o registro de retirada
+      const dividendoData: CreateDividendoRequest = {
+        destino: retiradaType === "caixa" ? "E" : "S",
+        id: retiradaType === "caixa" ? currentEntidadeId : retiradaId,
+        mes,
+        ano,
+        valor: -valor, // Valor negativo
+        entidadeId: currentEntidadeId,
+        descricao:
+          retiradaType === "caixa"
+            ? `Retirada de caixa: ${retiradaData.justificativa}`
+            : `Pagamento de dividendo: ${retiradaData.justificativa}`,
+      };
+
+      await FinanceiroService.createDividendo(dividendoData);
+
+      toast.success("Retirada realizada com sucesso");
+      setIsRetiradaModalOpen(false);
+
+      // Recarregar os dados
+      loadCaixaDividendos();
+    } catch (error) {
+      console.error("Erro ao realizar retirada:", error);
+      toast.error("Erro ao realizar retirada");
+    } finally {
+      setIsSubmittingRetirada(false);
     }
   };
 
@@ -660,7 +859,7 @@ export function GestaoFinanceira({
         <h1 className="text-3xl font-bold text-white">{title}</h1>
       </div>
 
-      {activeTab !== "fluxo-caixa" && (
+      {activeTab !== "fluxo-caixa" && activeTab !== "caixa-dividendos" && (
         <MovimentoFiltersComponent
           filters={filters}
           setFilters={setFilters}
@@ -676,7 +875,7 @@ export function GestaoFinanceira({
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as any)}
       >
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="receitas" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Receitas
@@ -688,6 +887,13 @@ export function GestaoFinanceira({
           <TabsTrigger value="fluxo-caixa" className="flex items-center gap-2">
             <Calendar className="h-4 w-4" />
             Fluxo de Caixa
+          </TabsTrigger>
+          <TabsTrigger
+            value="caixa-dividendos"
+            className="flex items-center gap-2"
+          >
+            <DollarSign className="h-4 w-4" />
+            Caixa/Dividendos
           </TabsTrigger>
         </TabsList>
 
@@ -1260,6 +1466,175 @@ export function GestaoFinanceira({
             </Card>
           )}
         </TabsContent>
+
+        <TabsContent value="caixa-dividendos" className="space-y-4">
+          <Card className="bg-gray-50 border-gray-200 dark:bg-gray-500 dark:border-gray-700">
+            <CardContent className="bg-graye">
+              {isLoadingCaixaDividendos ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-8 w-8 animate-spin mr-2" />
+                  <span>Carregando dados...</span>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {/* Caixa da Entidade */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2 text-white">
+                      Caixa da Entidade
+                    </h3>
+                    {caixaEntidadeData.length > 0 ? (
+                      <div className="bg-white border rounded-lg overflow-hidden">
+                        <table className="w-full min-h-[80px]">
+                          <thead className="bg-gray-400">
+                            <tr>
+                              <th className="px-4 py-3 text-left font-medium text-gray-900">
+                                Data
+                              </th>
+                              <th className="px-4 py-3 text-left font-medium text-gray-900">
+                                Descrição
+                              </th>
+                              <th className="px-4 py-3 text-right font-medium text-gray-900">
+                                Valor
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {caixaEntidadeData.map((item, index) => {
+                              const isLastItem =
+                                index === caixaEntidadeData.length - 1;
+                              const isTotal = item.dataMov === "Total";
+                              const showRetiradaButton =
+                                isLastItem && isTotal && item.valor > 0;
+
+                              return (
+                                <tr key={index} className="hover:bg-gray-50">
+                                  <td className="px-4 py-3 text-sm text-gray-900">
+                                    {item.dataMov}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-900 whitespace-pre-wrap max-w-xs">
+                                    {item.descricao || "-"}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-right font-medium text-green-900">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <span>
+                                        R${" "}
+                                        {item.valor.toLocaleString("pt-BR", {
+                                          minimumFractionDigits: 2,
+                                        })}
+                                      </span>
+                                      {showRetiradaButton && (
+                                        <Button
+                                          size="sm"
+                                          className="h-6 w-6 p-0 bg-red-500"
+                                          onClick={() =>
+                                            handleAbrirRetirada(
+                                              "caixa",
+                                              item.entidadeId
+                                            )
+                                          }
+                                          title="Retirada de caixa"
+                                        >
+                                          <Minus className="h-3 w-3" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 bg-white border rounded-lg">
+                        Nenhum dado de caixa encontrado
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Dividendos por Sócios */}
+                  <div>
+                    <h3 className="text-lg font-semibold mb-4 text-white">
+                      Dividendos por Sócios
+                    </h3>
+                    {dividendosData.length > 0 ? (
+                      <div className="bg-white border rounded-lg overflow-hidden">
+                        <table className="w-full min-h-[80px]">
+                          <thead className="bg-gray-400">
+                            <tr>
+                              <th className="px-4 py-3 text-left font-medium text-gray-900">
+                                Nome
+                              </th>
+                              <th className="px-4 py-3 text-left font-medium text-gray-900">
+                                Data
+                              </th>
+                              <th className="px-4 py-3 text-left font-medium text-gray-900">
+                                Descrição
+                              </th>
+                              <th className="px-4 py-3 text-right font-medium text-gray-900">
+                                Valor
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody className="bg-white divide-y divide-gray-200">
+                            {dividendosData.map((item, index) => {
+                              const isTotal = item.dataMov === "Total";
+                              const showRetiradaButton =
+                                isTotal && item.valor > 0;
+
+                              return (
+                                <tr key={index} className="hover:bg-gray-50">
+                                  <td className="px-4 py-3 text-sm text-gray-900">
+                                    {item.nome}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-900">
+                                    {item.dataMov}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-gray-900 whitespace-pre-wrap max-w-xs">
+                                    {item.descricao || "-"}
+                                  </td>
+                                  <td className="px-4 py-3 text-sm text-right font-medium text-green-900">
+                                    <div className="flex items-center justify-end gap-2">
+                                      <span>
+                                        R${" "}
+                                        {item.valor.toLocaleString("pt-BR", {
+                                          minimumFractionDigits: 2,
+                                        })}
+                                      </span>
+                                      {showRetiradaButton && (
+                                        <Button
+                                          size="sm"
+                                          className="h-6 w-6 p-0 bg-red-500"
+                                          onClick={() =>
+                                            handleAbrirRetirada(
+                                              "dividendo",
+                                              item.id
+                                            )
+                                          }
+                                          title="Retirada de dividendo"
+                                        >
+                                          <Minus className="h-3 w-3" />
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    ) : (
+                      <div className="text-center py-8 text-gray-500 bg-white border rounded-lg">
+                        Nenhum dado de dividendos encontrado
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
       </Tabs>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -1349,6 +1724,120 @@ export function GestaoFinanceira({
                 </>
               ) : (
                 "Gerar Movimento"
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isRetiradaModalOpen} onOpenChange={setIsRetiradaModalOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>
+              {retiradaType === "caixa"
+                ? "Retirada de Caixa"
+                : "Retirada de Dividendo"}
+            </DialogTitle>
+            <DialogDescription>
+              Preencha os dados para realizar a retirada
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="mes-retirada">Mês</Label>
+                <Select
+                  value={retiradaData.mes}
+                  onValueChange={(value) =>
+                    setRetiradaData((prev) => ({ ...prev, mes: value }))
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o mês" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }, (_, i) => i + 1).map((mes) => (
+                      <SelectItem key={mes} value={mes.toString()}>
+                        {mes.toString().padStart(2, "0")}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="ano-retirada">Ano</Label>
+                <Input
+                  id="ano-retirada"
+                  type="number"
+                  value={retiradaData.ano}
+                  onChange={(e) =>
+                    setRetiradaData((prev) => ({
+                      ...prev,
+                      ano: e.target.value,
+                    }))
+                  }
+                  placeholder="Ex: 2024"
+                  min="2020"
+                  max="2030"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="valor-retirada">Valor</Label>
+              <Input
+                id="valor-retirada"
+                type="number"
+                step="0.01"
+                value={retiradaData.valor}
+                onChange={(e) =>
+                  setRetiradaData((prev) => ({
+                    ...prev,
+                    valor: e.target.value,
+                  }))
+                }
+                placeholder="0,00"
+                min="0.01"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="justificativa-retirada">Justificativa</Label>
+              <Input
+                id="justificativa-retirada"
+                value={retiradaData.justificativa}
+                onChange={(e) =>
+                  setRetiradaData((prev) => ({
+                    ...prev,
+                    justificativa: e.target.value,
+                  }))
+                }
+                placeholder="Descreva o motivo da retirada"
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsRetiradaModalOpen(false)}
+              disabled={isSubmittingRetirada}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirmarRetirada}
+              disabled={isSubmittingRetirada}
+            >
+              {isSubmittingRetirada ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Processando...
+                </>
+              ) : (
+                "Confirmar Retirada"
               )}
             </Button>
           </DialogFooter>

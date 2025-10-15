@@ -5,9 +5,13 @@
   "type": "module",
   "scripts": {
     "start:dev": "vite",
-    "build": "tsc && vite build",
+    "build:prod": "tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "start:gitdev": "git add . && git commit -m \"Update version dev\" && git push origin develop && git status",
+    "start:gitmain": "./scripts/start-pm.sh",
+    "start:gitmainforce": "git checkout main && git reset --hard develop && git push origin main --force && git status",
+    "start:gitdeploy": "./scripts/deploy.sh"    
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",
