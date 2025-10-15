@@ -5,6 +5,20 @@ import {
   ContratosAtivosItem,
 } from "../services/contratos-ativos.service";
 import { DashboardService, DashboardItem } from "../services/dashboard.service";
+import {
+  ReceitasDespesasAnualService,
+  ReceitasDespesasAnualItem,
+} from "../services/receitas-despesas-anual.service";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+} from "recharts";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -52,6 +66,11 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
   const [isLoadingContratos, setIsLoadingContratos] = useState(false);
   const [dashboardData, setDashboardData] = useState<DashboardItem[]>([]);
   const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
+  const [receitasDespesasData, setReceitasDespesasData] = useState<
+    ReceitasDespesasAnualItem[]
+  >([]);
+  const [isLoadingReceitasDespesas, setIsLoadingReceitasDespesas] =
+    useState(false);
 
   useEffect(() => {
     // Verificar se usuário é ADM (simulação - em produção viria da API)
@@ -83,10 +102,24 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
     }
   };
 
+  const loadReceitasDespesasData = async () => {
+    setIsLoadingReceitasDespesas(true);
+    try {
+      const response =
+        await ReceitasDespesasAnualService.getReceitasDespesasAnual();
+      setReceitasDespesasData(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar dados de receitas e despesas:", error);
+    } finally {
+      setIsLoadingReceitasDespesas(false);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === "overview") {
       loadContratosAtivos();
       loadDashboardData();
+      loadReceitasDespesasData();
     }
   }, [activeTab]);
 
@@ -186,6 +219,49 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
     return `${sign}${value.toFixed(1)}%`;
   };
 
+  // Processar dados para o gráfico
+  const processChartData = () => {
+    const monthlyData: {
+      [key: string]: { mes: string; receitas: number; despesas: number };
+    } = {};
+
+    receitasDespesasData.forEach((item) => {
+      if (!monthlyData[item.mesAno]) {
+        monthlyData[item.mesAno] = {
+          mes: item.nomeMes,
+          receitas: 0,
+          despesas: 0,
+        };
+      }
+
+      if (item.tipo === "R") {
+        monthlyData[item.mesAno].receitas += item.valor;
+      } else if (item.tipo === "D") {
+        monthlyData[item.mesAno].despesas += item.valor;
+      }
+    });
+
+    return Object.values(monthlyData).sort((a, b) => {
+      const monthOrder = [
+        "Janeiro",
+        "Fevereiro",
+        "Março",
+        "Abril",
+        "Maio",
+        "Junho",
+        "Julho",
+        "Agosto",
+        "Setembro",
+        "Outubro",
+        "Novembro",
+        "Dezembro",
+      ];
+      return monthOrder.indexOf(a.mes) - monthOrder.indexOf(b.mes);
+    });
+  };
+
+  const chartData = processChartData();
+
   const recebimentosAbertos = getRecebimentosAbertos();
   const recebimentosEfetivados = getRecebimentosEfetivados();
   const pagamentosAbertos = getPagamentosAbertos();
@@ -201,6 +277,9 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
             .join(", "),
       icon: FileText,
       trend: "up",
+      color:
+        "bg-blue-100 border-blue-200 dark:bg-blue-400 dark:border-blue-800",
+      iconColor: "text-blue-600 dark:text-blue-400",
     },
     {
       title: "Recebimentos em aberto",
@@ -214,6 +293,9 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           )} em relação ao mês anterior`,
       icon: DollarSign,
       trend: recebimentosAbertos.diferenca >= 0 ? "up" : "down",
+      color:
+        "bg-orange-100 border-orange-200 dark:bg-orange-400 dark:border-orange-800",
+      iconColor: "text-orange-600 dark:text-orange-400",
     },
     {
       title: "Recebimentos efetivados",
@@ -227,6 +309,9 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           )} em relação ao mês anterior`,
       icon: DollarSign,
       trend: recebimentosEfetivados.diferenca >= 0 ? "up" : "down",
+      color:
+        "bg-green-100 border-green-200 dark:bg-green-300 dark:border-green-800",
+      iconColor: "text-green-600 dark:text-green-400",
     },
     {
       title: "Pagamentos em aberto",
@@ -242,6 +327,8 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
           )} em relação ao mês anterior`,
       icon: Building2,
       trend: pagamentosAbertos.diferenca >= 0 ? "up" : "down",
+      color: "bg-red-100 border-red-200 dark:bg-red-300 dark:border-red-800",
+      iconColor: "text-red-600 dark:text-red-400",
     },
   ];
 
@@ -304,12 +391,12 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
               {/* Stats Grid */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                 {stats.map((stat) => (
-                  <Card key={stat.title}>
+                  <Card key={stat.title} className={stat.color}>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                       <CardTitle className="text-sm font-medium">
                         {stat.title}
                       </CardTitle>
-                      <stat.icon className="h-4 w-4 text-muted-foreground" />
+                      <stat.icon className={`h-4 w-4 ${stat.iconColor}`} />
                     </CardHeader>
                     <CardContent>
                       <div className="text-2xl font-bold">{stat.value}</div>
@@ -324,51 +411,93 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
                 ))}
               </div>
 
-              {/* Recent Activity */}
+              {/* Gráfico Receitas vs Despesas */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Atividades Recentes</CardTitle>
+                  <CardTitle>Receitas vs Despesas</CardTitle>
                   <CardDescription>
-                    Últimas movimentações no sistema
+                    Evolução mensal dos valores financeiros
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-4">
-                    <div className="flex items-center space-x-4">
-                      <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm">
-                          Novo Cliente cadastrado: EVOLARIS PRODUTOS
-                          FARMACÊUTICOS LTDA
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Há 2 horas
+                  {isLoadingReceitasDespesas ? (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center">
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+                        <p className="text-sm text-muted-foreground">
+                          Carregando dados...
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm">
-                          Contrato atualizado: ABBVIE FARMACÊUTICA LTDA
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Há 4 horas
+                  ) : chartData.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart
+                        data={chartData}
+                        style={{
+                          backgroundColor: "#2f404f",
+                          borderRadius: "8px",
+                          border: "2px solid #030b1a",
+                        }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                        <XAxis
+                          dataKey="mes"
+                          tick={{ fontSize: 12, fill: "#d1d5db" }}
+                          angle={-45}
+                          textAnchor="end"
+                          height={60}
+                          axisLine={{ stroke: "#6b7280" }}
+                        />
+                        <YAxis
+                          tick={{ fontSize: 12, fill: "#d1d5db" }}
+                          tickFormatter={(value) =>
+                            `R$ ${(value / 1000).toFixed(0)}k`
+                          }
+                          axisLine={{ stroke: "#6b7280" }}
+                        />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "#374151",
+                            border: "1px solid #6b7280",
+                            borderRadius: "6px",
+                            color: "#f9fafb",
+                          }}
+                          formatter={(value: number) => [
+                            `R$ ${value.toLocaleString("pt-BR", {
+                              minimumFractionDigits: 2,
+                            })}`,
+                            "",
+                          ]}
+                          labelFormatter={(label) => `Mês: ${label}`}
+                        />
+                        <Legend wrapperStyle={{ color: "#d1d5db" }} />
+                        <Line
+                          type="monotone"
+                          dataKey="receitas"
+                          stroke="#22c55e"
+                          strokeWidth={2}
+                          name="Receitas"
+                          dot={{ fill: "#22c55e", strokeWidth: 2, r: 4 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="despesas"
+                          stroke="#ef4444"
+                          strokeWidth={2}
+                          name="Despesas"
+                          dot={{ fill: "#ef4444", strokeWidth: 2, r: 4 }}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="flex items-center justify-center h-64">
+                      <div className="text-center">
+                        <p className="text-sm text-muted-foreground">
+                          Nenhum dado disponível
                         </p>
                       </div>
                     </div>
-                    <div className="flex items-center space-x-4">
-                      <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-                      <div className="flex-1">
-                        <p className="text-sm">
-                          Produto descontinuado removido do catálogo
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          Há 6 horas
-                        </p>
-                      </div>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </div>
