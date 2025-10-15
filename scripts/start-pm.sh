@@ -39,9 +39,9 @@ rm -rf "$DEPLOY_DIR"
 mkdir -p "$DEPLOY_DIR"
 cp -r dist "$DEPLOY_DIR/"
 #cp -r resources "$DEPLOY_DIR/"
-cp ecosystem.config.js "$DEPLOY_DIR/"
-cp package.json "$DEPLOY_DIR/"
-cp pnpm-lock.yaml "$DEPLOY_DIR/"
+#cp ecosystem.config.js "$DEPLOY_DIR/"
+#cp package.json "$DEPLOY_DIR/"
+#cp pnpm-lock.yaml "$DEPLOY_DIR/"
 
 echo -e "${CYAN}▶ Commitando alterações...${NC}"
 git add .
