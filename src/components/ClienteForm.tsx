@@ -221,7 +221,7 @@ export function ClienteForm({
       enderecoResponsavel: undefined,
       clienteInfo: {
         ...formData.clienteInfo,
-        pessoaResponsavelId: null,
+        pessoaResponsavelId: undefined,
       },
     });
     toast.success("Responsável removido com sucesso!");
@@ -315,10 +315,9 @@ export function ClienteForm({
               {isCreating ? "Novo Cliente" : "Editar Cliente"}
             </DialogTitle>
             <DialogDescription>
-              {isCreating 
-                ? "Preencha os dados para cadastrar um novo cliente" 
-                : "Edite os dados do cliente selecionado"
-              }
+              {isCreating
+                ? "Preencha os dados para cadastrar um novo cliente"
+                : "Edite os dados do cliente selecionado"}
             </DialogDescription>
           </DialogHeader>
 

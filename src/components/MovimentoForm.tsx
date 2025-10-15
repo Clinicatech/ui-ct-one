@@ -29,10 +29,10 @@ export function MovimentoForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (field: keyof MovimentoFormData, value: any) => {
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData({
+      ...formData,
       [field]: value,
-    }));
+    });
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -114,17 +114,13 @@ export function MovimentoForm({
               onCheckedChange={(checked) => {
                 const isChecked = checked === true;
 
-                setFormData((prevData) => {
-                  const newData = {
-                    ...prevData,
-                    pago: isChecked,
-                    // Resetar campos quando desmarcar pago
-                    ...(isChecked
-                      ? {}
-                      : { valorEfetivo: 0, dataPagamento: "" }),
-                  };
-                  return newData;
-                });
+                const newData = {
+                  ...formData,
+                  pago: isChecked,
+                  // Resetar campos quando desmarcar pago
+                  ...(isChecked ? {} : { valorEfetivo: 0, dataPagamento: "" }),
+                };
+                setFormData(newData);
               }}
             />
             <Label htmlFor="pago">Marcar como pago/recebido</Label>

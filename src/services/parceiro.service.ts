@@ -108,13 +108,13 @@ export class ParceiroService {
           : undefined,
       responsavel:
         formData.responsavel &&
-        (formData.responsavel.pessoaId ||
+        (false ||
           (formData.responsavel.nome &&
             formData.responsavel.nome.trim().length > 0) ||
           (formData.responsavel.documento &&
             formData.responsavel.documento.trim().length > 0))
           ? {
-              pessoaId: formData.responsavel.pessoaId || undefined,
+              pessoaId: undefined,
               nome: formData.responsavel.nome || undefined,
               razao: formData.responsavel.razao || undefined,
               documento: formData.responsavel.documento || undefined,

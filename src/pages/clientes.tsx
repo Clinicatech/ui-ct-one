@@ -140,7 +140,7 @@ export function ClienteManagement({
       clienteInfo: {
         clienteInfoId: cliente.cliente_info_id,
         pessoaId: cliente.pessoa.pessoa_id,
-        pessoaResponsavelId: cliente.pessoa_responsavel_id || undefined,
+        pessoaResponsavelId: cliente.responsavel?.pessoa_id || undefined,
       },
     });
 

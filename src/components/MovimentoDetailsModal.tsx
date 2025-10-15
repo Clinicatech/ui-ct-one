@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +11,6 @@ import {
   CardHeader,
   CardTitle,
 } from "../components/ui/card";
-import { Separator } from "../components/ui/separator";
 import { movimentoService } from "../services/movimento.service";
 
 interface MovimentoDetailsModalProps {

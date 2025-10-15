@@ -375,9 +375,9 @@ export class EntidadeService {
       entidadeContaBancaria: frontendData.bancoId
         ? {
             bancoId: frontendData.bancoId,
-            agencia: frontendData.agencia,
+            agencia: frontendData.agencia || "",
             agenciaDigito: frontendData.agenciaDigito,
-            conta: frontendData.conta,
+            conta: frontendData.conta || "",
             contaDigito: frontendData.contaDigito,
             carteira: frontendData.carteira,
             cedenteCodigo: frontendData.cedenteCodigo,

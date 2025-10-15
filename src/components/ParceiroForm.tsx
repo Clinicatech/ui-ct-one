@@ -316,7 +316,7 @@ export function ParceiroForm({
         person.enderecos && person.enderecos.length > 0
           ? {
               cep: person.enderecos[0].cep,
-              logradouro: person.enderecos[0].logradouro || null,
+              endereco: person.enderecos[0].logradouro || null,
               numero: person.enderecos[0].numero || null,
               complemento: person.enderecos[0].complemento || null,
               bairro: person.enderecos[0].bairro || null,
@@ -365,21 +365,21 @@ export function ParceiroForm({
         tipo: person.tipo,
         inscricaoEstadual: person.inscricaoEstadual || null,
         inscricaoMunicipal: person.inscricaoMunicipal || null,
-        endereco:
-          person.enderecos && person.enderecos.length > 0
-            ? {
-                cep: person.enderecos[0].cep,
-                logradouro: person.enderecos[0].logradouro || null,
-                numero: person.enderecos[0].numero || null,
-                complemento: person.enderecos[0].complemento || null,
-                bairro: person.enderecos[0].bairro || null,
-                cidade: person.enderecos[0].cidade || null,
-                uf: person.enderecos[0].uf || null,
-                cidadeCodigo: person.enderecos[0].cidadeCodigo || null,
-                ufCodigo: person.enderecos[0].ufCodigo || null,
-              }
-            : undefined,
       },
+      enderecoResponsavel:
+        person.enderecos && person.enderecos.length > 0
+          ? {
+              cep: person.enderecos[0].cep,
+              endereco: person.enderecos[0].logradouro || null,
+              numero: person.enderecos[0].numero || null,
+              complemento: person.enderecos[0].complemento || null,
+              bairro: person.enderecos[0].bairro || null,
+              cidade: person.enderecos[0].cidade || null,
+              uf: person.enderecos[0].uf || null,
+              cidadeCodigo: person.enderecos[0].cidadeCodigo || null,
+              ufCodigo: person.enderecos[0].ufCodigo || null,
+            }
+          : undefined,
       parceiroInfo: {
         ...formData.parceiroInfo,
         pessoaResponsavelId: person.pessoaId,

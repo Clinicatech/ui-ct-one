@@ -38,9 +38,7 @@ export const DEFAULT_CLIENTE_FORM_DATA: ClienteFormData = {
     cidade: "",
     uf: "",
   },
-  clienteInfo: {
-    observacoes: "",
-  },
+  clienteInfo: {},
 };
 
 export const TIPO_PESSOA_OPTIONS = [

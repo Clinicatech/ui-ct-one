@@ -1,5 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "./ui/dialog";
+import React, { useState, useCallback } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "./ui/dialog";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Button } from "./ui/button";
@@ -137,7 +143,8 @@ export function PersonSearchDialog({
             {title}
           </DialogTitle>
           <DialogDescription>
-            Busque e selecione uma pessoa existente para preencher automaticamente os dados do formulário
+            Busque e selecione uma pessoa existente para preencher
+            automaticamente os dados do formulário
           </DialogDescription>
         </DialogHeader>
 
