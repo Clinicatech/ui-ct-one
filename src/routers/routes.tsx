@@ -1,8 +1,15 @@
 import { createBrowserRouter } from "react-router-dom";
-import { LoginForm } from "../pages/LoginForm";
-import { MainPage } from "../pages/Main";
+import { lazy, Suspense } from "react";
 import { ProtectedRoute } from "./ProtectedRoute";
 import { AppLayout } from "./AppLayout";
+
+// Lazy loading para otimizar o bundle
+const LoginForm = lazy(() =>
+  import("../pages/LoginForm").then((m) => ({ default: m.LoginForm }))
+);
+const MainPage = lazy(() =>
+  import("../pages/Main").then((m) => ({ default: m.MainPage }))
+);
 
 export const router = createBrowserRouter([
   {
@@ -11,11 +18,19 @@ export const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <LoginForm />,
+        element: (
+          <Suspense fallback={<div>Carregando...</div>}>
+            <LoginForm />
+          </Suspense>
+        ),
       },
       {
         path: "login",
-        element: <LoginForm />,
+        element: (
+          <Suspense fallback={<div>Carregando...</div>}>
+            <LoginForm />
+          </Suspense>
+        ),
       },
       {
         path: "main",
@@ -23,43 +38,83 @@ export const router = createBrowserRouter([
         children: [
           {
             index: true,
-            element: <MainPage />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage />
+              </Suspense>
+            ),
           },
           {
             path: "overview",
-            element: <MainPage activeTab="overview" />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage activeTab="overview" />
+              </Suspense>
+            ),
           },
           {
             path: "customers",
-            element: <MainPage activeTab="customers" />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage activeTab="customers" />
+              </Suspense>
+            ),
           },
           {
             path: "business-partners",
-            element: <MainPage activeTab="business-partners" />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage activeTab="business-partners" />
+              </Suspense>
+            ),
           },
           {
             path: "reports",
-            element: <MainPage activeTab="reports" />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage activeTab="reports" />
+              </Suspense>
+            ),
           },
           {
             path: "users",
-            element: <MainPage activeTab="users" />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage activeTab="users" />
+              </Suspense>
+            ),
           },
           {
             path: "partners",
-            element: <MainPage activeTab="partners" />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage activeTab="partners" />
+              </Suspense>
+            ),
           },
           {
             path: "management",
-            element: <MainPage activeTab="management" />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage activeTab="management" />
+              </Suspense>
+            ),
           },
           {
             path: "entity",
-            element: <MainPage activeTab="entity" />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage activeTab="entity" />
+              </Suspense>
+            ),
           },
           {
             path: "contratos",
-            element: <MainPage activeTab="contratos" />,
+            element: (
+              <Suspense fallback={<div>Carregando...</div>}>
+                <MainPage activeTab="contratos" />
+              </Suspense>
+            ),
           },
         ],
       },
