@@ -33,6 +33,7 @@ import {
   AlertCircle,
   ChevronLeft,
   ChevronRight,
+  Calendar,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "../components/ui/input";
@@ -58,6 +59,10 @@ import {
   DEFAULT_MOVIMENTO_FORM_DATA,
 } from "../types/movimento";
 import { AuthService } from "../services/auth.service";
+import {
+  FluxoCaixaService,
+  FluxoCaixaItem,
+} from "../services/fluxo-caixa.service";
 
 interface GestaoFinanceiraProps {
   title?: string;
@@ -66,9 +71,9 @@ interface GestaoFinanceiraProps {
 export function GestaoFinanceira({
   title = "Gestão Financeira",
 }: GestaoFinanceiraProps) {
-  const [activeTab, setActiveTab] = useState<"receitas" | "despesas">(
-    "receitas"
-  );
+  const [activeTab, setActiveTab] = useState<
+    "receitas" | "despesas" | "fluxo-caixa"
+  >("receitas");
   const [receitas, setReceitas] = useState<MovimentoReceita[]>([]);
   const [despesas, setDespesas] = useState<MovimentoDespesa[]>([]);
   const [receitasTotalizadores, setReceitasTotalizadores] = useState<any>(null);
@@ -100,15 +105,26 @@ export function GestaoFinanceira({
   const [anoSelecionado, setAnoSelecionado] = useState<string>("");
   const [entidadeId, setEntidadeId] = useState<number | null>(null);
 
+  // Estados para fluxo de caixa
+  const [fluxoCaixaData, setFluxoCaixaData] = useState<FluxoCaixaItem[]>([]);
+  const [isLoadingFluxoCaixa, setIsLoadingFluxoCaixa] = useState(false);
+  const [mesFluxoCaixa, setMesFluxoCaixa] = useState<string>(
+    (new Date().getMonth() + 1).toString()
+  );
+  const [anoFluxoCaixa, setAnoFluxoCaixa] = useState<string>(
+    new Date().getFullYear().toString()
+  );
+  const [saldoInicial, setSaldoInicial] = useState<number>(0);
+  const [saldoFinal, setSaldoFinal] = useState<number>(0);
+  const [isGerandoDividendos, setIsGerandoDividendos] = useState(false);
+  const [isDeletandoDividendos, setIsDeletandoDividendos] = useState(false);
+
   useEffect(() => {
     loadData();
     loadStatusOptions();
 
     // Obter entidadeId do usuário logado usando AuthService
     const entidadeId = AuthService.getEntidadeId();
-    console.log("=== ENTIDADE ID ===");
-    console.log("entidadeId obtido:", entidadeId);
-    console.log("Token disponível:", !!AuthService.getToken());
     setEntidadeId(entidadeId);
   }, [activeTab, filters]);
 
@@ -116,9 +132,6 @@ export function GestaoFinanceira({
   useEffect(() => {
     const loadEntidadeId = () => {
       const entidadeId = AuthService.getEntidadeId();
-      console.log("=== CARREGANDO ENTIDADE ID ===");
-      console.log("entidadeId obtido:", entidadeId);
-      console.log("Token disponível:", !!AuthService.getToken());
       setEntidadeId(entidadeId);
     };
 
@@ -135,19 +148,9 @@ export function GestaoFinanceira({
   // Definir valores padrão quando o modal abrir
   useEffect(() => {
     if (isGerarMovimentoDialogOpen) {
-      console.log("=== USEEFFECT MODAL ABERTO ===");
-      console.log("entidadeId atual no useEffect:", entidadeId);
-
       const now = new Date();
       const mesAtual = (now.getMonth() + 1).toString();
       const anoAtual = now.getFullYear().toString();
-
-      console.log(
-        "Definindo valores no useEffect - mes:",
-        mesAtual,
-        "ano:",
-        anoAtual
-      );
       setMesSelecionado(mesAtual);
       setAnoSelecionado(anoAtual);
     }
@@ -247,34 +250,106 @@ export function GestaoFinanceira({
   };
 
   const handleGerarMovimento = () => {
-    console.log("=== INÍCIO handleGerarMovimento ===");
-
-    // Abrir modal primeiro
     setIsGerarMovimentoDialogOpen(true);
+  };
 
-    console.log("Modal aberto - isGerarMovimentoDialogOpen: true");
-    console.log("=== FIM handleGerarMovimento ===");
+  const handleConsultarFluxoCaixa = async () => {
+    if (!mesFluxoCaixa || !anoFluxoCaixa) {
+      toast.error("Por favor, selecione o mês e ano");
+      return;
+    }
+
+    setIsLoadingFluxoCaixa(true);
+    try {
+      const response = await FluxoCaixaService.getFluxoCaixa(
+        parseInt(mesFluxoCaixa),
+        parseInt(anoFluxoCaixa)
+      );
+      setFluxoCaixaData(response.data);
+
+      // Calcular saldos inicial e final
+      if (response.data.length > 0) {
+        const saldoAnterior = response.data.find((item) =>
+          item.descricao.toLowerCase().includes("saldo anterior")
+        );
+        const ultimoItem = response.data[response.data.length - 1];
+
+        setSaldoInicial(saldoAnterior?.saldoAcumulado || 0);
+        setSaldoFinal(ultimoItem?.saldoAcumulado || 0);
+      } else {
+        setSaldoInicial(0);
+        setSaldoFinal(0);
+      }
+
+      toast.success("Fluxo de caixa carregado com sucesso");
+    } catch (error) {
+      console.error("Erro ao carregar fluxo de caixa:", error);
+      toast.error("Erro ao carregar fluxo de caixa");
+    } finally {
+      setIsLoadingFluxoCaixa(false);
+    }
+  };
+
+  const handleGerarDividendos = async () => {
+    if (!mesFluxoCaixa || !anoFluxoCaixa) {
+      toast.error("Por favor, selecione o mês e ano");
+      return;
+    }
+
+    setIsGerandoDividendos(true);
+    try {
+      const response = await FluxoCaixaService.gerarDividendos(
+        parseInt(mesFluxoCaixa),
+        parseInt(anoFluxoCaixa)
+      );
+
+      if (response.sucesso) {
+        toast.success(response.mensagem);
+        // Atualizar o fluxo de caixa após gerar dividendos
+        await handleConsultarFluxoCaixa();
+      } else {
+        toast.error(response.mensagem);
+      }
+    } catch (error) {
+      console.error("Erro ao gerar dividendos:", error);
+      toast.error("Erro ao gerar dividendos");
+    } finally {
+      setIsGerandoDividendos(false);
+    }
+  };
+
+  const handleDeletarDividendos = async () => {
+    if (!mesFluxoCaixa || !anoFluxoCaixa) {
+      toast.error("Por favor, selecione o mês e ano");
+      return;
+    }
+
+    setIsDeletandoDividendos(true);
+    try {
+      const response = await FluxoCaixaService.deletarDividendos(
+        parseInt(mesFluxoCaixa),
+        parseInt(anoFluxoCaixa)
+      );
+
+      if (response.sucesso) {
+        toast.success(response.mensagem);
+        // Atualizar o fluxo de caixa após deletar dividendos
+        await handleConsultarFluxoCaixa();
+      } else {
+        toast.error(response.mensagem);
+      }
+    } catch (error) {
+      console.error("Erro ao deletar dividendos:", error);
+      toast.error("Erro ao deletar dividendos");
+    } finally {
+      setIsDeletandoDividendos(false);
+    }
   };
 
   const handleConfirmarGerarMovimento = async () => {
-    console.log("=== INÍCIO handleConfirmarGerarMovimento ===");
-    console.log("mesSelecionado:", mesSelecionado);
-    console.log("anoSelecionado:", anoSelecionado);
-    console.log("entidadeId do estado:", entidadeId);
-
-    // Obter entidadeId diretamente do AuthService
     const currentEntidadeId = AuthService.getEntidadeId();
-    console.log("entidadeId obtido do AuthService:", currentEntidadeId);
 
     if (!mesSelecionado || !anoSelecionado || !currentEntidadeId) {
-      console.log(
-        "ERRO: Valores faltando - mesSelecionado:",
-        mesSelecionado,
-        "anoSelecionado:",
-        anoSelecionado,
-        "entidadeId:",
-        currentEntidadeId
-      );
       toast.error("Por favor, selecione mês e ano e verifique se está logado");
       return;
     }
@@ -293,6 +368,18 @@ export function GestaoFinanceira({
 
     try {
       setIsGerandoMovimento(true);
+
+      // Verificar se existem dividendos a partir deste mês/ano
+      const { existe: temDividendos } =
+        await FluxoCaixaService.verificarDividendos(mes, ano);
+
+      if (temDividendos) {
+        toast.error(
+          "Não é possível gerar movimentos. Existem dividendos a partir deste mês/ano."
+        );
+        setIsGerandoMovimento(false);
+        return;
+      }
 
       // Verificar se já existe movimento
       const { existe } = await movimentoService.verificarExistenciaMovimento(
@@ -335,7 +422,7 @@ export function GestaoFinanceira({
     setEditingMovimento(movimento);
     setFormData({
       pago: movimento.pago,
-      dataPagamento: movimento.dataPagamento || "",
+      dataPagamento: movimento.pago ? movimento.dataPagamento || "" : "",
       valorEfetivo: movimento.pago
         ? movimento.valorEfetivo || movimento.valor || 0
         : 0,
@@ -433,8 +520,12 @@ export function GestaoFinanceira({
     },
     {
       key: "dataVencimento",
-      header: "Vencimento",
-      render: (item) => movimentoService.formatDate(item.dataVencimento),
+      header: "Venc./Quitação",
+      render: (item) => {
+        const data =
+          item.status === "PAGO" ? item.dataPagamento : item.dataVencimento;
+        return movimentoService.formatDate(data || "");
+      },
     },
     {
       key: "valor",
@@ -497,8 +588,12 @@ export function GestaoFinanceira({
     },
     {
       key: "dataVencimento",
-      header: "Vencimento",
-      render: (item) => movimentoService.formatDate(item.dataVencimento),
+      header: "Venc./Quitação",
+      render: (item) => {
+        const data =
+          item.status === "PAGO" ? item.dataPagamento : item.dataVencimento;
+        return movimentoService.formatDate(data || "");
+      },
     },
     {
       key: "valor",
@@ -565,21 +660,23 @@ export function GestaoFinanceira({
         <h1 className="text-3xl font-bold text-white">{title}</h1>
       </div>
 
-      <MovimentoFiltersComponent
-        filters={filters}
-        setFilters={setFilters}
-        statusOptions={statusOptions}
-        onSearch={handleSearch}
-        onClear={handleClearFilters}
-        onGerarMovimento={handleGerarMovimento}
-        isLoading={isLoading}
-      />
+      {activeTab !== "fluxo-caixa" && (
+        <MovimentoFiltersComponent
+          filters={filters}
+          setFilters={setFilters}
+          statusOptions={statusOptions}
+          onSearch={handleSearch}
+          onClear={handleClearFilters}
+          onGerarMovimento={handleGerarMovimento}
+          isLoading={isLoading}
+        />
+      )}
 
       <Tabs
         value={activeTab}
         onValueChange={(value) => setActiveTab(value as any)}
       >
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="receitas" className="flex items-center gap-2">
             <TrendingUp className="h-4 w-4" />
             Receitas
@@ -587,6 +684,10 @@ export function GestaoFinanceira({
           <TabsTrigger value="despesas" className="flex items-center gap-2">
             <TrendingDown className="h-4 w-4" />
             Despesas
+          </TabsTrigger>
+          <TabsTrigger value="fluxo-caixa" className="flex items-center gap-2">
+            <Calendar className="h-4 w-4" />
+            Fluxo de Caixa
           </TabsTrigger>
         </TabsList>
 
@@ -899,6 +1000,266 @@ export function GestaoFinanceira({
             </div>
           )}
         </TabsContent>
+
+        <TabsContent value="fluxo-caixa" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Consulta de Fluxo de Caixa</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Cards de Saldos */}
+              <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="mes-fluxo">Mês</Label>
+                  <Select
+                    value={mesFluxoCaixa}
+                    onValueChange={setMesFluxoCaixa}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o mês" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">Janeiro</SelectItem>
+                      <SelectItem value="2">Fevereiro</SelectItem>
+                      <SelectItem value="3">Março</SelectItem>
+                      <SelectItem value="4">Abril</SelectItem>
+                      <SelectItem value="5">Maio</SelectItem>
+                      <SelectItem value="6">Junho</SelectItem>
+                      <SelectItem value="7">Julho</SelectItem>
+                      <SelectItem value="8">Agosto</SelectItem>
+                      <SelectItem value="9">Setembro</SelectItem>
+                      <SelectItem value="10">Outubro</SelectItem>
+                      <SelectItem value="11">Novembro</SelectItem>
+                      <SelectItem value="12">Dezembro</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="ano-fluxo">Ano</Label>
+                  <Input
+                    id="ano-fluxo"
+                    type="number"
+                    value={anoFluxoCaixa}
+                    onChange={(e) => setAnoFluxoCaixa(e.target.value)}
+                    min="2020"
+                    max="2030"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>&nbsp;</Label>
+                  <Button
+                    onClick={handleConsultarFluxoCaixa}
+                    disabled={
+                      isLoadingFluxoCaixa || !mesFluxoCaixa || !anoFluxoCaixa
+                    }
+                    className="w-full"
+                  >
+                    {isLoadingFluxoCaixa ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                        Carregando...
+                      </>
+                    ) : (
+                      <>
+                        <Calendar className="h-4 w-4 mr-2" />
+                        Consultar
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <Card className="bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700">
+                  <CardHeader className="pb-1 pt-1">
+                    <CardTitle className="text-xs font-medium text-gray-700 dark:text-gray-300">
+                      Dividendos
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 pb-1 space-y-2">
+                    <Button
+                      onClick={handleGerarDividendos}
+                      disabled={
+                        isGerandoDividendos || !mesFluxoCaixa || !anoFluxoCaixa
+                      }
+                      className="w-full bg-green-600 hover:bg-green-700 text-xs h-8"
+                    >
+                      {isGerandoDividendos ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          Gerando...
+                        </>
+                      ) : (
+                        <>
+                          <DollarSign className="h-3 w-3 mr-1" />
+                          Gerar
+                        </>
+                      )}
+                    </Button>
+                    <Button
+                      onClick={handleDeletarDividendos}
+                      disabled={
+                        isDeletandoDividendos ||
+                        !mesFluxoCaixa ||
+                        !anoFluxoCaixa
+                      }
+                      className="w-full bg-red-600 hover:bg-red-700 text-xs h-8"
+                    >
+                      {isDeletandoDividendos ? (
+                        <>
+                          <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                          Removendo...
+                        </>
+                      ) : (
+                        <>
+                          <AlertCircle className="h-3 w-3 mr-1" />
+                          Remover
+                        </>
+                      )}
+                    </Button>
+                  </CardContent>
+                </Card>
+                <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+                  <CardHeader className="pb-1 pt-1">
+                    <CardTitle className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                      Saldo Inicial
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 pb-1">
+                    <div
+                      className={`text-lg font-bold ${
+                        saldoInicial >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      R${" "}
+                      {saldoInicial.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
+                  <CardHeader className="pb-1 pt-1">
+                    <CardTitle className="text-xs font-medium text-green-700 dark:text-green-300">
+                      Saldo Final
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0 pb-1">
+                    <div
+                      className={`text-lg font-bold ${
+                        saldoFinal >= 0 ? "text-green-600" : "text-red-600"
+                      }`}
+                    >
+                      R${" "}
+                      {saldoFinal.toLocaleString("pt-BR", {
+                        minimumFractionDigits: 2,
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </CardContent>
+          </Card>
+
+          {fluxoCaixaData.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>
+                  Fluxo de Caixa - {mesFluxoCaixa}/{anoFluxoCaixa}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {fluxoCaixaData.map((item, index) => {
+                    const isSaldoAnterior = item.descricao
+                      .toLowerCase()
+                      .includes("saldo anterior");
+                    const isSaldoAtual = index === fluxoCaixaData.length - 1;
+
+                    return (
+                      <div
+                        key={index}
+                        className={`p-4 rounded-lg border ${
+                          isSaldoAnterior || isSaldoAtual
+                            ? "bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800"
+                            : "bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700"
+                        }`}
+                      >
+                        <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
+                          <div className="md:col-span-2">
+                            <div className="font-medium text-sm text-gray-900 dark:text-gray-100">
+                              {item.descricao}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {new Date(item.dtMovimento).toLocaleDateString(
+                                "pt-BR"
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-medium text-green-600">
+                              R${" "}
+                              {item.entrada.toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-500">Entrada</div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-sm font-medium text-red-600">
+                              R${" "}
+                              {item.saida.toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-500">Saída</div>
+                          </div>
+                          <div className="text-center">
+                            <div
+                              className={`text-sm font-medium ${
+                                item.saldoDia >= 0
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }`}
+                            >
+                              R${" "}
+                              {item.saldoDia.toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Saldo Dia
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div
+                              className={`text-sm font-bold ${
+                                item.saldoAcumulado >= 0
+                                  ? "text-green-600"
+                                  : "text-red-600"
+                              }`}
+                            >
+                              R${" "}
+                              {item.saldoAcumulado.toLocaleString("pt-BR", {
+                                minimumFractionDigits: 2,
+                              })}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              Saldo Acumulado
+                            </div>
+                          </div>
+                        </div>
+                        {(isSaldoAnterior || isSaldoAtual) && (
+                          <div className="mt-2 text-xs text-blue-600 dark:text-blue-400 font-medium">
+                            {isSaldoAnterior ? "Saldo Anterior" : "Saldo Atual"}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+        </TabsContent>
       </Tabs>
 
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
@@ -936,17 +1297,6 @@ export function GestaoFinanceira({
               Selecione o mês e ano para gerar os movimentos financeiros.
             </DialogDescription>
           </DialogHeader>
-
-          {(() => {
-            console.log("=== RENDERIZANDO MODAL ===");
-            console.log("mesSelecionado no modal:", mesSelecionado);
-            console.log("anoSelecionado no modal:", anoSelecionado);
-            console.log(
-              "isGerarMovimentoDialogOpen:",
-              isGerarMovimentoDialogOpen
-            );
-            return null;
-          })()}
 
           <div className="space-y-4">
             <div className="space-y-2">

@@ -1,5 +1,10 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import {
+  ContratosAtivosService,
+  ContratosAtivosItem,
+} from "../services/contratos-ativos.service";
+import { DashboardService, DashboardItem } from "../services/dashboard.service";
 import { Button } from "../components/ui/button";
 import {
   Card,
@@ -41,12 +46,49 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
   const location = useLocation();
   const [activeTab, setActiveTab] = useState(propActiveTab || "overview");
   const [isAdmin, setIsAdmin] = useState(false);
+  const [contratosAtivos, setContratosAtivos] = useState<ContratosAtivosItem[]>(
+    []
+  );
+  const [isLoadingContratos, setIsLoadingContratos] = useState(false);
+  const [dashboardData, setDashboardData] = useState<DashboardItem[]>([]);
+  const [isLoadingDashboard, setIsLoadingDashboard] = useState(false);
 
   useEffect(() => {
     // Verificar se usuário é ADM (simulação - em produção viria da API)
     // Por enquanto, vamos simular que todos os usuários são ADM para teste
     setIsAdmin(true);
   }, []);
+
+  const loadContratosAtivos = async () => {
+    setIsLoadingContratos(true);
+    try {
+      const response = await ContratosAtivosService.getContratosAtivos();
+      setContratosAtivos(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar contratos ativos:", error);
+    } finally {
+      setIsLoadingContratos(false);
+    }
+  };
+
+  const loadDashboardData = async () => {
+    setIsLoadingDashboard(true);
+    try {
+      const response = await DashboardService.getDashboard();
+      setDashboardData(response.data);
+    } catch (error) {
+      console.error("Erro ao carregar dados do dashboard:", error);
+    } finally {
+      setIsLoadingDashboard(false);
+    }
+  };
+
+  useEffect(() => {
+    if (activeTab === "overview") {
+      loadContratosAtivos();
+      loadDashboardData();
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     if (propActiveTab) {
@@ -91,34 +133,115 @@ export function MainPage({ activeTab: propActiveTab }: MainPageProps) {
     setActiveTab("overview");
   }, [propActiveTab, location.pathname]);
 
+  const totalContratos = contratosAtivos.reduce(
+    (sum, item) => sum + item.contratos,
+    0
+  );
+
+  // Funções auxiliares para processar dados do dashboard
+  const getRecebimentosAbertos = () => {
+    const item = dashboardData.find((d) => d.tipo === "R" && d.status === "A");
+    return item
+      ? {
+          valor: item.valorMesAtual,
+          diferenca: item.diferencaPercentual,
+          cont: item.cont,
+        }
+      : { valor: 0, diferenca: 0, cont: 0 };
+  };
+
+  const getRecebimentosEfetivados = () => {
+    const item = dashboardData.find((d) => d.tipo === "R" && d.status === "P");
+    return item
+      ? {
+          valor: item.valorMesAtual,
+          diferenca: item.diferencaPercentual,
+          cont: item.cont,
+        }
+      : { valor: 0, diferenca: 0, cont: 0 };
+  };
+
+  const getPagamentosAbertos = () => {
+    const item = dashboardData.find((d) => d.tipo === "D" && d.status === "A");
+    return item
+      ? {
+          valor: item.valorMesAtual,
+          diferenca: item.diferencaPercentual,
+          cont: item.cont,
+        }
+      : { valor: 0, diferenca: 0, cont: 0 };
+  };
+
+  const formatCurrency = (value: number) => {
+    if (value >= 1000000) {
+      return `R$ ${(value / 1000000).toFixed(1)}M`;
+    } else if (value >= 1000) {
+      return `R$ ${(value / 1000).toFixed(1)}k`;
+    }
+    return `R$ ${value.toFixed(2)}`;
+  };
+
+  const formatPercentual = (value: number) => {
+    const sign = value >= 0 ? "+" : "";
+    return `${sign}${value.toFixed(1)}%`;
+  };
+
+  const recebimentosAbertos = getRecebimentosAbertos();
+  const recebimentosEfetivados = getRecebimentosEfetivados();
+  const pagamentosAbertos = getPagamentosAbertos();
+
   const stats = [
     {
       title: "Contratos Ativos",
-      value: "189",
-      description: "89% dos clientes cadastrados",
+      value: isLoadingContratos ? "..." : totalContratos.toString(),
+      description: isLoadingContratos
+        ? "Carregando..."
+        : contratosAtivos
+            .map((item) => `${item.tipo} ${item.contratos}`)
+            .join(", "),
       icon: FileText,
       trend: "up",
     },
     {
       title: "Recebimentos em aberto",
-      value: "R$ 2.4M",
-      description: "+18% em relação ao mês anterior",
+      value: isLoadingDashboard
+        ? "..."
+        : formatCurrency(recebimentosAbertos.valor),
+      description: isLoadingDashboard
+        ? "Carregando..."
+        : `${formatPercentual(
+            recebimentosAbertos.diferenca
+          )} em relação ao mês anterior`,
       icon: DollarSign,
-      trend: "up",
+      trend: recebimentosAbertos.diferenca >= 0 ? "up" : "down",
     },
     {
       title: "Recebimentos efetivados",
-      value: "R$ 15.4M",
-      description: "+28% em relação ao mês anterior",
+      value: isLoadingDashboard
+        ? "..."
+        : formatCurrency(recebimentosEfetivados.valor),
+      description: isLoadingDashboard
+        ? "Carregando..."
+        : `${formatPercentual(
+            recebimentosEfetivados.diferenca
+          )} em relação ao mês anterior`,
       icon: DollarSign,
-      trend: "up",
+      trend: recebimentosEfetivados.diferenca >= 0 ? "up" : "down",
     },
     {
       title: "Pagamentos em aberto",
-      value: "R$ 300.4k (56 faturas)",
-      description: "-32% em relação ao mês anterior",
+      value: isLoadingDashboard
+        ? "..."
+        : `${formatCurrency(pagamentosAbertos.valor)} (${
+            pagamentosAbertos.cont
+          } ${pagamentosAbertos.cont === 1 ? "fatura" : "faturas"})`,
+      description: isLoadingDashboard
+        ? "Carregando..."
+        : `${formatPercentual(
+            pagamentosAbertos.diferenca
+          )} em relação ao mês anterior`,
       icon: Building2,
-      trend: "up",
+      trend: pagamentosAbertos.diferenca >= 0 ? "up" : "down",
     },
   ];
 
