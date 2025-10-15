@@ -18,6 +18,5 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: true,
-    chunkSizeWarningLimit: 1000, // Aumenta limite para 1MB
   },
 });

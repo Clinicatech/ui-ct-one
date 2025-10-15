@@ -1273,7 +1273,7 @@ export function GestaoFinanceira({
                     )}
                   </Button>
                 </div>
-                <Card className="bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700">
+                <Card className="bg-emerald-100 border-emerald-400 dark:bg-emerald-700 dark:border-green-900">
                   <CardHeader className="pb-1 pt-1">
                     <CardTitle className="text-xs font-medium text-gray-700 dark:text-gray-300">
                       Dividendos
@@ -1322,7 +1322,7 @@ export function GestaoFinanceira({
                     </Button>
                   </CardContent>
                 </Card>
-                <Card className="bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800">
+                <Card className="bg-blue-100 border-blue-400 dark:bg-blue-700 dark:border-blue-900">
                   <CardHeader className="pb-1 pt-1">
                     <CardTitle className="text-xs font-medium text-blue-700 dark:text-blue-300">
                       Saldo Inicial
@@ -1331,7 +1331,7 @@ export function GestaoFinanceira({
                   <CardContent className="pt-0 pb-1">
                     <div
                       className={`text-lg font-bold ${
-                        saldoInicial >= 0 ? "text-green-600" : "text-red-600"
+                        saldoInicial >= 0 ? "text-green-400" : "text-red-600"
                       }`}
                     >
                       R${" "}
@@ -1342,7 +1342,7 @@ export function GestaoFinanceira({
                   </CardContent>
                 </Card>
 
-                <Card className="bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800">
+                <Card className="bg-orange-200 border-red-400 dark:bg-purple-700 dark:border-purple-900">
                   <CardHeader className="pb-1 pt-1">
                     <CardTitle className="text-xs font-medium text-green-700 dark:text-green-300">
                       Saldo Final
@@ -1351,7 +1351,7 @@ export function GestaoFinanceira({
                   <CardContent className="pt-0 pb-1">
                     <div
                       className={`text-lg font-bold ${
-                        saldoFinal >= 0 ? "text-green-600" : "text-red-600"
+                        saldoFinal >= 0 ? "text-green-400" : "text-red-600"
                       }`}
                     >
                       R${" "}
@@ -1385,8 +1385,8 @@ export function GestaoFinanceira({
                         key={index}
                         className={`p-4 rounded-lg border ${
                           isSaldoAnterior || isSaldoAtual
-                            ? "bg-blue-50 border-blue-200 dark:bg-blue-950 dark:border-blue-800"
-                            : "bg-gray-50 border-gray-200 dark:bg-gray-900 dark:border-gray-700"
+                            ? "bg-blue-50 border-blue-200 dark:bg-blue-800 dark:border-blue-800"
+                            : "bg-gray-50 border-gray-200 dark:bg-stone-800 dark:border-stone-700"
                         }`}
                       >
                         <div className="grid grid-cols-1 md:grid-cols-6 gap-4 items-center">
@@ -1468,7 +1468,7 @@ export function GestaoFinanceira({
         </TabsContent>
 
         <TabsContent value="caixa-dividendos" className="space-y-4">
-          <Card className="bg-gray-50 border-gray-200 dark:bg-gray-500 dark:border-gray-700">
+          <Card className="bg-gray-600 border-gray-200 dark:bg-gray-500 dark:border-gray-700">
             <CardContent className="bg-graye">
               {isLoadingCaixaDividendos ? (
                 <div className="flex items-center justify-center py-8">
@@ -1507,16 +1507,32 @@ export function GestaoFinanceira({
                                 isLastItem && isTotal && item.valor > 0;
 
                               return (
-                                <tr key={index} className="hover:bg-gray-50">
-                                  <td className="px-4 py-3 text-sm text-gray-900">
+                                <tr key={index} className={`hover:bg-gray-50 ${isTotal ? "bg-gray-400" : ""}`}>
+                                  <td
+                                    className={`px-4 py-3 text-sm text-gray-900 ${
+                                      isTotal ? "font-bold" : ""
+                                    }`}
+                                  >
                                     {item.dataMov}
                                   </td>
-                                  <td className="px-4 py-3 text-sm text-gray-900 whitespace-pre-wrap max-w-xs">
+                                  <td
+                                    className={`px-4 py-3 text-sm text-gray-900 whitespace-pre-wrap max-w-xs ${
+                                      isTotal ? "font-bold" : ""
+                                    }`}
+                                  >
                                     {item.descricao || "-"}
                                   </td>
-                                  <td className="px-4 py-3 text-sm text-right font-medium text-green-900">
+                                  <td
+                                    className={`px-4 py-3 text-sm text-right font-medium text-green-900 ${
+                                      isTotal ? "font-bold" : ""
+                                    }`}
+                                  >
                                     <div className="flex items-center justify-end gap-2">
-                                      <span>
+                                      <span
+                                        className={`${
+                                          isTotal ? "font-bold" : ""
+                                        }`}
+                                      >
                                         R${" "}
                                         {item.valor.toLocaleString("pt-BR", {
                                           minimumFractionDigits: 2,
@@ -1583,19 +1599,39 @@ export function GestaoFinanceira({
                                 isTotal && item.valor > 0;
 
                               return (
-                                <tr key={index} className="hover:bg-gray-50">
-                                  <td className="px-4 py-3 text-sm text-gray-900">
+                                <tr key={index} className={`hover:bg-gray-50 ${isTotal ? "bg-gray-400" : ""}`}>
+                                  <td
+                                    className={`px-4 py-3 text-sm text-gray-900 ${
+                                      isTotal ? "font-bold" : ""
+                                    }`}
+                                  >
                                     {item.nome}
                                   </td>
-                                  <td className="px-4 py-3 text-sm text-gray-900">
+                                  <td
+                                    className={`px-4 py-3 text-sm text-gray-900 ${
+                                      isTotal ? "font-bold" : ""
+                                    }`}
+                                  >
                                     {item.dataMov}
                                   </td>
-                                  <td className="px-4 py-3 text-sm text-gray-900 whitespace-pre-wrap max-w-xs">
+                                  <td
+                                    className={`px-4 py-3 text-sm text-gray-900 whitespace-pre-wrap max-w-xs ${
+                                      isTotal ? "font-bold" : ""
+                                    }`}
+                                  >
                                     {item.descricao || "-"}
                                   </td>
-                                  <td className="px-4 py-3 text-sm text-right font-medium text-green-900">
+                                  <td
+                                    className={`px-4 py-3 text-sm text-right font-medium text-green-900 ${
+                                      isTotal ? "font-bold" : ""
+                                    }`}
+                                  >
                                     <div className="flex items-center justify-end gap-2">
-                                      <span>
+                                      <span
+                                        className={`${
+                                          isTotal ? "font-bold" : ""
+                                        }`}
+                                      >
                                         R${" "}
                                         {item.valor.toLocaleString("pt-BR", {
                                           minimumFractionDigits: 2,
