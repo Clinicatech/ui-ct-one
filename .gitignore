@@ -10,6 +10,9 @@ bun.lockb
 dist/*
 node_modules/*
 
+deploy.js
+deploy/*
+
 # Logs
 logs
 *.log
