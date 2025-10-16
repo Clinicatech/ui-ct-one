@@ -506,6 +506,7 @@ export function SocioManagement({
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-8"
+            id="searchTerm"
           />
         </div>
       </div>

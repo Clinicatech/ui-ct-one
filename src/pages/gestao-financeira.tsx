@@ -1221,7 +1221,7 @@ export function GestaoFinanceira({
                     value={mesFluxoCaixa}
                     onValueChange={setMesFluxoCaixa}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="mes-fluxo">
                       <SelectValue placeholder="Selecione o mês" />
                     </SelectTrigger>
                     <SelectContent>
@@ -1252,13 +1252,13 @@ export function GestaoFinanceira({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>&nbsp;</Label>
+                
                   <Button
                     onClick={handleConsultarFluxoCaixa}
                     disabled={
                       isLoadingFluxoCaixa || !mesFluxoCaixa || !anoFluxoCaixa
                     }
-                    className="w-full"
+                    className="w-full mt-4"
                   >
                     {isLoadingFluxoCaixa ? (
                       <>

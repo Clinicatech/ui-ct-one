@@ -264,6 +264,7 @@ export function ContratoManagement() {
             value={searchTerm}
             onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-8"
+            id="searchTerm"
           />
         </div>
         <Select value={statusFilter} onValueChange={setStatusFilter}>

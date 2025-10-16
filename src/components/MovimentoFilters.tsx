@@ -76,7 +76,7 @@ export function MovimentoFiltersComponent({
               value={filters.status || "all"}
               onValueChange={(value) => handleFilterChange("status", value)}
             >
-              <SelectTrigger>
+              <SelectTrigger id="status">
                 <SelectValue placeholder="Selecione o status" />
               </SelectTrigger>
               <SelectContent>

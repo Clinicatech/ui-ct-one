@@ -165,8 +165,8 @@ export function ClienteManagement({
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-6" id="clientes">
+      <div className="flex justify-between items-center" id="clientes-header">
         <h1 className="text-2xl font-bold text-white">{title}</h1>
         <Button variant="outline" onClick={() => setIsCreateDialogOpen(true)}>
           <Plus className="w-4 h-4 mr-2" />
@@ -178,6 +178,7 @@ export function ClienteManagement({
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
+            id="searchTerm"
             placeholder="Buscar por nome ou documento..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}

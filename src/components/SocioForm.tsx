@@ -351,14 +351,15 @@ export function SocioForm({
 
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border border-gray-300 rounded-md p-2">
               <div className="space-y-2">
-                <Label htmlFor="tipo">Tipo *</Label>
+                <Label htmlFor="tipoPessoa">Tipo *</Label>
                 <Select
+                  name="tipoPessoa"
                   value={formData.pessoa.tipo}
                   onValueChange={(value: "PF" | "PJ") =>
                     handlePessoaChange("tipo", value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="tipoPessoa">
                     <SelectValue placeholder="Selecione o tipo" />
                   </SelectTrigger>
                   <SelectContent>

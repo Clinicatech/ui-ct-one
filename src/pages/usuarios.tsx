@@ -206,6 +206,7 @@ export function UsuarioManagement({
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-8"
+                id="searchTerm"
               />
             </div>
           </div>

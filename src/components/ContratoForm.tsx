@@ -671,8 +671,8 @@ export function ContratoForm({
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Tipo de Pessoa */}
-                <div className="space-y-2 border border-gray-300 rounded-md p-2 min-w-[30%] max-w-[40%]">
-                  <Label>Tipo de Pessoa *</Label>
+                <div className="space-y-2 border border-gray-300 rounded-md p-2 min-w-[40%] max-w-[50%]">
+                  <Label htmlFor="tipoPessoa">Tipo de Pessoa *</Label>
                   <div className="flex gap-4">
                     <Button
                       type="button"
@@ -818,8 +818,9 @@ export function ContratoForm({
 
                 {/* Descrição */}
                 <div className="space-y-2 border border-gray-300 rounded-md p-2 ">
-                  <Label>Descrição *</Label>
+                  <Label htmlFor="descricao">Descrição *</Label>
                   <Textarea
+                    id="descricao"
                     value={formData.descricao}
                     onChange={(e) =>
                       handleInputChange("descricao", e.target.value)
@@ -830,8 +831,9 @@ export function ContratoForm({
 
                 {/* URL do Contrato */}
                 <div className="space-y-2 border border-gray-300 rounded-md p-2 ">
-                  <Label>URL do Contrato</Label>
+                  <Label htmlFor="urlContrato">URL do Contrato</Label>
                   <Input
+                    id="urlContrato"
                     value={formData.urlContrato}
                     onChange={(e) =>
                       handleInputChange("urlContrato", e.target.value)
@@ -841,11 +843,12 @@ export function ContratoForm({
 
                 {/* Valor Total */}
                 <div className="space-y-2 border border-gray-300 rounded-md p-2 max-w-[40%]">
-                  <Label>
+                  <Label htmlFor="valorContrato">
                     Valor do contrato (calculado automaticamente pela soma dos
                     itens)
                   </Label>
                   <Input
+                    id="valorContrato"
                     value={`R$ ${formatCurrency(formData.valor)}`}
                     disabled
                     className="bg-green-500 font-bold text-2xl"

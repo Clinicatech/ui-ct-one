@@ -217,6 +217,7 @@ export function UsuarioForm({
                       value={formData.email}
                       onChange={(e) => handleEmailChange(e.target.value)}
                       placeholder="usuario@exemplo.com"
+                      autoComplete="email"
                       required
                     />
                   </div>
@@ -224,12 +225,13 @@ export function UsuarioForm({
                   <div className="space-y-2">
                     <Label htmlFor="ativo">Status</Label>
                     <Select
+                    name="ativo"
                       value={formData.ativo ? "ativo" : "inativo"}
                       onValueChange={(value) =>
                         setFormData({ ...formData, ativo: value === "ativo" })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id="ativo">
                         <SelectValue />
                       </SelectTrigger>
                       <SelectContent>
@@ -241,14 +243,16 @@ export function UsuarioForm({
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="adm">Tipo de Usuário</Label>
+                  <Label htmlFor="tipoUsuario">Tipo de Usuário</Label>
                   <Select
+                   name="tipoUsuario"
                     value={formData.adm ? "adm" : "usuario"}
                     onValueChange={(value) =>
                       setFormData({ ...formData, adm: value === "adm" })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="tipoUsuario">
+                      
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
