@@ -3,4 +3,6 @@
 dist/*.map
 dist/**/*.map
 /deploy
-./deploy
+node_modules/*
+deploy.js
+deploy/*
