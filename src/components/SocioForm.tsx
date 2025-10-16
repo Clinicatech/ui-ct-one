@@ -68,7 +68,7 @@ export function SocioForm({
         setBancoIdInput(banco.bancoId.toString());
       }
     } else if (!formData.dadosBancarios?.bancoId) {
-      // Limpar seleção quando não há banco_id
+      // Limpar seleção quando não há bancoId
       setBancoSelecionado(null);
       setBancoIdInput("");
     }
@@ -174,8 +174,8 @@ export function SocioForm({
           bairro: data.bairro,
           cidade: data.localidade,
           uf: data.uf,
-          cidade_codigo: data.ibge,
-          uf_codigo: data.ibge ? data.ibge.substring(0, 2) : undefined,
+          cidadeCodigo: data.ibge,
+          ufCodigo: data.ibge ? data.ibge.substring(0, 2) : undefined,
         },
       });
 
@@ -261,8 +261,8 @@ export function SocioForm({
         razao: person.razao || null,
         documento: person.documento,
         tipo: person.tipo,
-        inscricao_estadual: person.inscricaoEstadual || null,
-        inscricao_municipal: person.inscricaoMunicipal || null,
+        inscricaoEstadual: person.inscricaoEstadual || null,
+        inscricaoMunicipal: person.inscricaoMunicipal || null,
       },
       endereco:
         person.enderecos && person.enderecos.length > 0
@@ -274,8 +274,8 @@ export function SocioForm({
               bairro: person.enderecos[0].bairro || null,
               cidade: person.enderecos[0].cidade || null,
               uf: person.enderecos[0].uf || null,
-              cidade_codigo: person.enderecos[0].cidadeCodigo || null,
-              uf_codigo: person.enderecos[0].ufCodigo || null,
+              cidadeCodigo: person.enderecos[0].cidadeCodigo || null,
+              ufCodigo: person.enderecos[0].ufCodigo || null,
             }
           : undefined,
       dadosBancarios:
@@ -415,27 +415,27 @@ export function SocioForm({
             {formData.pessoa.tipo === "PJ" && (
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4 border border-gray-300 rounded-md p-2">
                 <div className="space-y-2">
-                  <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
+                  <Label htmlFor="inscricaoEstadual">Inscrição Estadual</Label>
                   <Input
-                    id="inscricao_estadual"
+                    id="inscricaoEstadual"
                     placeholder="Inscrição estadual"
-                    value={formData.pessoa.inscricao_estadual || ""}
+                    value={formData.pessoa.inscricaoEstadual || ""}
                     onChange={(e) =>
-                      handlePessoaChange("inscricao_estadual", e.target.value)
+                      handlePessoaChange("inscricaoEstadual", e.target.value)
                     }
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="inscricao_municipal">
+                  <Label htmlFor="inscricaoMunicipal">
                     Inscrição Municipal
                   </Label>
                   <Input
-                    id="inscricao_municipal"
+                    id="inscricaoMunicipal"
                     placeholder="Inscrição municipal"
-                    value={formData.pessoa.inscricao_municipal || ""}
+                    value={formData.pessoa.inscricaoMunicipal || ""}
                     onChange={(e) =>
-                      handlePessoaChange("inscricao_municipal", e.target.value)
+                      handlePessoaChange("inscricaoMunicipal", e.target.value)
                     }
                   />
                 </div>
@@ -580,13 +580,13 @@ export function SocioForm({
             <h3 className="text-lg font-medium">Dados Bancários</h3>
 
             <div className="space-y-2 border border-gray-300 rounded-md p-2">
-              <Label htmlFor="banco_id">Banco</Label>
+              <Label htmlFor="bancoId">Banco</Label>
               <div className="flex gap-2">
                 {/* Input para buscar por ID */}
                 <div className="flex gap-2 flex-1 max-w-[20%]">
                   <Input
-                    id="banco_id"
-                    name="banco_id"
+                    id="bancoId"
+                    name="bancoId"
                     placeholder="000"
                     value={bancoIdInput}
                     onChange={(e) => setBancoIdInput(e.target.value)}
@@ -660,9 +660,9 @@ export function SocioForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="agencia_digito">Dígito da Agência</Label>
+                <Label htmlFor="agenciaDigito">Dígito da Agência</Label>
                 <Input
-                  id="agencia_digito"
+                  id="agenciaDigito"
                   value={formData.dadosBancarios?.agenciaDigito || ""}
                   onChange={(e) =>
                     handleDadosBancariosChange("agenciaDigito", e.target.value)
@@ -683,9 +683,9 @@ export function SocioForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="conta_digito">Dígito da Conta</Label>
+                <Label htmlFor="contaDigito">Dígito da Conta</Label>
                 <Input
-                  id="conta_digito"
+                  id="contaDigito"
                   value={formData.dadosBancarios?.contaDigito || ""}
                   onChange={(e) =>
                     handleDadosBancariosChange("contaDigito", e.target.value)
@@ -695,7 +695,7 @@ export function SocioForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="conta_tipo">Tipo de Conta</Label>
+                <Label htmlFor="contaTipo">Tipo de Conta</Label>
                 <Select
                   value={formData.dadosBancarios?.contaTipo?.toString() || ""}
                   onValueChange={(value) =>
@@ -720,9 +720,9 @@ export function SocioForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="chave_pix">Chave PIX</Label>
+              <Label htmlFor="chavePix">Chave PIX</Label>
               <Input
-                id="chave_pix"
+                id="chavePix"
                 placeholder="Chave PIX"
                 value={formData.dadosBancarios?.chavePix || ""}
                 onChange={(e) =>
@@ -739,18 +739,18 @@ export function SocioForm({
             <h3 className="text-lg font-medium">Participação</h3>
 
             <div className="space-y-2 border border-gray-300 rounded-md p-2 max-w-[30%]">
-              <Label htmlFor="perc_rateio">Percentual de Rateio (%)</Label>
+              <Label htmlFor="percRateio">Percentual de Rateio (%)</Label>
               <Input
-                id="perc_rateio"
+                id="percRateio"
                 type="number"
                 min="0"
                 max="100"
                 step="0.01"
                 placeholder="0.00"
-                value={formData.socioInfo?.perc_rateio || 0}
+                value={formData.socioInfo?.percRateio || 0}
                 onChange={(e) =>
                   handleSocioInfoChange(
-                    "perc_rateio",
+                    "percRateio",
                     parseFloat(e.target.value) || 0
                   )
                 }

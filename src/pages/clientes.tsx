@@ -71,7 +71,7 @@ export function ClienteManagement({
     if (!editingCliente) return;
 
     try {
-      await ClienteService.update(editingCliente.cliente_info_id, data);
+      await ClienteService.update(editingCliente.clienteInfoId, data);
       await loadClientes();
       setEditingCliente(null);
       setFormData(DEFAULT_CLIENTE_FORM_DATA);
@@ -102,8 +102,8 @@ export function ClienteManagement({
         razao: cliente.pessoa.razao,
         documento: cliente.pessoa.documento,
         tipo: cliente.pessoa.tipo,
-        inscricao_estadual: cliente.pessoa.inscricao_estadual,
-        inscricao_municipal: cliente.pessoa.inscricao_municipal,
+        inscricaoEstadual: cliente.pessoa.inscricaoEstadual,
+        inscricaoMunicipal: cliente.pessoa.inscricaoMunicipal,
       },
       endereco: cliente.endereco
         ? {
@@ -122,8 +122,8 @@ export function ClienteManagement({
             razao: cliente.responsavel.razao,
             documento: cliente.responsavel.documento,
             tipo: cliente.responsavel.tipo,
-            inscricao_estadual: cliente.responsavel.inscricao_estadual,
-            inscricao_municipal: cliente.responsavel.inscricao_municipal,
+            inscricaoEstadual: cliente.responsavel.inscricaoEstadual,
+            inscricaoMunicipal: cliente.responsavel.inscricaoMunicipal,
           }
         : undefined,
       enderecoResponsavel: cliente.responsavel?.endereco
@@ -138,9 +138,9 @@ export function ClienteManagement({
           }
         : undefined,
       clienteInfo: {
-        clienteInfoId: cliente.cliente_info_id,
-        pessoaId: cliente.pessoa.pessoa_id,
-        pessoaResponsavelId: cliente.responsavel?.pessoa_id || undefined,
+        clienteInfoId: cliente.clienteInfoId,
+        pessoaId: cliente.pessoa.pessoaId,
+        pessoaResponsavelId: cliente.responsavel?.pessoaId || undefined,
       },
     });
 
@@ -216,7 +216,7 @@ export function ClienteManagement({
                 </TableRow>
               ) : (
                 filteredClientes.map((cliente) => (
-                  <TableRow key={cliente.cliente_info_id}>
+                  <TableRow key={cliente.clienteInfoId}>
                     <TableCell className="font-medium">
                       {cliente.pessoa.nome}
                     </TableCell>
@@ -247,7 +247,7 @@ export function ClienteManagement({
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleDelete(cliente.cliente_info_id)}
+                          onClick={() => handleDelete(cliente.clienteInfoId)}
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>

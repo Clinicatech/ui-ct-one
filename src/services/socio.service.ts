@@ -65,12 +65,12 @@ export class SocioService {
               complemento: formData.endereco.complemento || undefined,
               bairro: formData.endereco.bairro || undefined,
               cidade: formData.endereco.cidade || undefined,
-              cidadeCodigo: formData.endereco.cidade_codigo
-                ? parseInt(formData.endereco.cidade_codigo)
+              cidadeCodigo: formData.endereco.cidadeCodigo
+                ? parseInt(formData.endereco.cidadeCodigo)
                 : undefined,
               uf: formData.endereco.uf || undefined,
-              ufCodigo: formData.endereco.uf_codigo
-                ? parseInt(formData.endereco.uf_codigo)
+              ufCodigo: formData.endereco.ufCodigo
+                ? parseInt(formData.endereco.ufCodigo)
                 : undefined,
             }
           : undefined,

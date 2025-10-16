@@ -437,7 +437,7 @@ export function ParceiroForm({
 
       setTimeout(() => {
         const numeroInput = document.querySelector(
-          'input[name="numero_responsavel"]'
+          'input[name="numeroResponsavel"]'
         ) as HTMLInputElement;
         if (numeroInput) {
           numeroInput.focus();
@@ -573,9 +573,9 @@ export function ParceiroForm({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
               {formData.pessoa.tipo === "PJ" && (
                 <div className="space-y-2">
-                  <Label htmlFor="inscricao_estadual">Inscrição Estadual</Label>
+                  <Label htmlFor="inscricaoEstadual">Inscrição Estadual</Label>
                   <Input
-                    id="inscricao_estadual"
+                    id="inscricaoEstadual"
                     placeholder="Inscrição estadual"
                     value={formData.pessoa.inscricaoEstadual || ""}
                     onChange={(e) =>
@@ -588,9 +588,9 @@ export function ParceiroForm({
 
             {formData.pessoa.tipo === "PJ" && (
               <div className="space-y-2">
-                <Label htmlFor="inscricao_municipal">Inscrição Municipal</Label>
+                <Label htmlFor="inscricaoMunicipal">Inscrição Municipal</Label>
                 <Input
-                  id="inscricao_municipal"
+                  id="inscricaoMunicipal"
                   placeholder="Inscrição municipal"
                   value={formData.pessoa.inscricaoMunicipal || ""}
                   onChange={(e) =>
@@ -738,13 +738,13 @@ export function ParceiroForm({
             <h3 className="text-lg font-medium">Dados Bancários</h3>
 
             <div className="space-y-2 border border-gray-300 rounded-md p-2">
-              <Label htmlFor="banco_id">Banco</Label>
+              <Label htmlFor="bancoId">Banco</Label>
               <div className="flex gap-2">
                 {/* Input para buscar por ID */}
                 <div className="flex gap-2 flex-1 max-w-[20%]">
                   <Input
-                    id="banco_id"
-                    name="banco_id"
+                    id="bancoId"
+                    name="bancoId"
                     placeholder="000"
                     value={bancoIdInput}
                     onChange={(e) => setBancoIdInput(e.target.value)}
@@ -818,9 +818,9 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="agencia_digito">Dígito da Agência</Label>
+                <Label htmlFor="agenciaDigito">Dígito da Agência</Label>
                 <Input
-                  id="agencia_digito"
+                  id="agenciaDigito"
                   value={formData.dadosBancarios?.agenciaDigito || ""}
                   onChange={(e) =>
                     handleDadosBancariosChange("agenciaDigito", e.target.value)
@@ -843,9 +843,9 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="conta_digito">Dígito da Conta</Label>
+                <Label htmlFor="contaDigito">Dígito da Conta</Label>
                 <Input
-                  id="conta_digito"
+                  id="contaDigito"
                   value={formData.dadosBancarios?.contaDigito || ""}
                   onChange={(e) =>
                     handleDadosBancariosChange("contaDigito", e.target.value)
@@ -856,7 +856,7 @@ export function ParceiroForm({
             </div>
 
             <div className="space-y-2 border border-gray-300 rounded-md p-2">
-              <Label htmlFor="conta_tipo">Tipo de Conta</Label>
+              <Label htmlFor="contaTipo">Tipo de Conta</Label>
               <Select
                 value={formData.dadosBancarios?.contaTipo?.toString() || ""}
                 onValueChange={(value) =>
@@ -880,9 +880,9 @@ export function ParceiroForm({
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="chave_pix">Chave PIX</Label>
+              <Label htmlFor="chavePix">Chave PIX</Label>
               <Input
-                id="chave_pix"
+                id="chavePix"
                 placeholder="Chave PIX"
                 value={formData.dadosBancarios?.chavePix || ""}
                 onChange={(e) =>
@@ -926,7 +926,7 @@ export function ParceiroForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="responsavel_tipo">Tipo</Label>
+                <Label htmlFor="responsavelTipo">Tipo</Label>
                 <Select
                   value={formData.responsavel?.tipo || "PF"}
                   onValueChange={(value) =>
@@ -947,9 +947,9 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="responsavel_nome">Nome</Label>
+                <Label htmlFor="responsavelNome">Nome</Label>
                 <Input
-                  id="responsavel_nome"
+                  id="responsavelNome"
                   value={formData.responsavel?.nome || ""}
                   onChange={(e) =>
                     handleResponsavelChange("nome", e.target.value)
@@ -959,9 +959,9 @@ export function ParceiroForm({
 
               {formData.responsavel?.tipo === "PJ" && (
                 <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                  <Label htmlFor="responsavel_razao">Razão Social</Label>
+                  <Label htmlFor="responsavelRazao">Razão Social</Label>
                   <Input
-                    id="responsavel_razao"
+                    id="responsavelRazao"
                     value={formData.responsavel?.razao || ""}
                     onChange={(e) =>
                       handleResponsavelChange("razao", e.target.value)
@@ -971,9 +971,9 @@ export function ParceiroForm({
               )}
 
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="responsavel_documento">Documento</Label>
+                <Label htmlFor="responsavelDocumento">Documento</Label>
                 <Input
-                  id="responsavel_documento"
+                  id="responsavelDocumento"
                   value={formData.responsavel?.documento || ""}
                   onChange={(e) => {
                     const maskedValue =
@@ -994,11 +994,11 @@ export function ParceiroForm({
               {formData.responsavel?.tipo === "PJ" && (
                 <>
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="responsavel_inscricao_estadual">
+                    <Label htmlFor="responsavelInscricaoEstadual">
                       Inscrição Estadual
                     </Label>
                     <Input
-                      id="responsavel_inscricao_estadual"
+                      id="responsavelInscricaoEstadual"
                       value={formData.responsavel?.inscricaoEstadual || ""}
                       onChange={(e) =>
                         handleResponsavelChange(
@@ -1009,11 +1009,11 @@ export function ParceiroForm({
                     />
                   </div>
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="responsavel_inscricao_municipal">
+                    <Label htmlFor="responsavelInscricaoMunicipal">
                       Inscrição Municipal
                     </Label>
                     <Input
-                      id="responsavel_inscricao_municipal"
+                      id="responsavelInscricaoMunicipal"
                       value={formData.responsavel?.inscricaoMunicipal || ""}
                       onChange={(e) =>
                         handleResponsavelChange(
@@ -1028,9 +1028,7 @@ export function ParceiroForm({
             </div>
 
             <div className="space-y-2 border border-gray-300 rounded-md p-2">
-              <Label htmlFor="atividade_parceiro_id">
-                Atividade do Parceiro
-              </Label>
+              <Label htmlFor="atividadeParceiroId">Atividade do Parceiro</Label>
               <Select
                 value={
                   formData.parceiroInfo?.atividadeParceiroId?.toString() ||
@@ -1077,10 +1075,10 @@ export function ParceiroForm({
 
             <div className="grid grid-cols-[20%_60%_15%] gap-4">
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="cep_responsavel">CEP</Label>
+                <Label htmlFor="cepResponsavel">CEP</Label>
                 <div className="flex gap-2">
                   <Input
-                    id="cep_responsavel"
+                    id="cepResponsavel"
                     value={formData.enderecoResponsavel?.cep || ""}
                     onChange={(e) => {
                       const maskedValue = maskCEP(e.target.value);
@@ -1118,9 +1116,9 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="endereco_responsavel">Logradouro</Label>
+                <Label htmlFor="enderecoResponsavel">Logradouro</Label>
                 <Input
-                  id="endereco_responsavel"
+                  id="enderecoResponsavel"
                   value={formData.enderecoResponsavel?.endereco || ""}
                   onChange={(e) =>
                     handleEnderecoResponsavelChange("endereco", e.target.value)
@@ -1129,10 +1127,10 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="numero_responsavel">Número</Label>
+                <Label htmlFor="numeroResponsavel">Número</Label>
                 <Input
-                  id="numero_responsavel"
-                  name="numero_responsavel"
+                  id="numeroResponsavel"
+                  name="numeroResponsavel"
                   value={formData.enderecoResponsavel?.numero || ""}
                   onChange={(e) =>
                     handleEnderecoResponsavelChange("numero", e.target.value)
@@ -1143,9 +1141,9 @@ export function ParceiroForm({
 
             <div className="grid grid-cols-[40%_57%] gap-4">
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="complemento_responsavel">Complemento</Label>
+                <Label htmlFor="complementoResponsavel">Complemento</Label>
                 <Input
-                  id="complemento_responsavel"
+                  id="complementoResponsavel"
                   value={formData.enderecoResponsavel?.complemento || ""}
                   onChange={(e) =>
                     handleEnderecoResponsavelChange(
@@ -1157,9 +1155,9 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="bairro_responsavel">Bairro</Label>
+                <Label htmlFor="bairroResponsavel">Bairro</Label>
                 <Input
-                  id="bairro_responsavel"
+                  id="bairroResponsavel"
                   value={formData.enderecoResponsavel?.bairro || ""}
                   onChange={(e) =>
                     handleEnderecoResponsavelChange("bairro", e.target.value)
@@ -1170,9 +1168,9 @@ export function ParceiroForm({
 
             <div className="grid grid-cols-[70%_10%] gap-4">
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="cidade_responsavel">Cidade</Label>
+                <Label htmlFor="cidadeResponsavel">Cidade</Label>
                 <Input
-                  id="cidade_responsavel"
+                  id="cidadeResponsavel"
                   value={formData.enderecoResponsavel?.cidade || ""}
                   onChange={(e) =>
                     handleEnderecoResponsavelChange("cidade", e.target.value)
@@ -1181,9 +1179,9 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="uf_responsavel">UF</Label>
+                <Label htmlFor="ufResponsavel">UF</Label>
                 <Input
-                  id="uf_responsavel"
+                  id="ufResponsavel"
                   value={formData.enderecoResponsavel?.uf || ""}
                   onChange={(e) =>
                     handleEnderecoResponsavelChange("uf", e.target.value)
@@ -1196,9 +1194,9 @@ export function ParceiroForm({
             {/* Campos de Contato */}
             <div className="grid grid-cols-[20%_20%_55%] gap-4">
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="telefone_responsavel">Telefone</Label>
+                <Label htmlFor="telefoneResponsavel">Telefone</Label>
                 <Input
-                  id="telefone_responsavel"
+                  id="telefoneResponsavel"
                   value={
                     formData.enderecoResponsavel?.contatoComercialTelefone1 ||
                     ""
@@ -1213,9 +1211,9 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="celular_responsavel">Celular</Label>
+                <Label htmlFor="celularResponsavel">Celular</Label>
                 <Input
-                  id="celular_responsavel"
+                  id="celularResponsavel"
                   value={
                     formData.enderecoResponsavel?.contatoComercialTelefone2 ||
                     ""
@@ -1230,9 +1228,9 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                <Label htmlFor="email_responsavel">E-mail</Label>
+                <Label htmlFor="emailResponsavel">E-mail</Label>
                 <Input
-                  id="email_responsavel"
+                  id="emailResponsavel"
                   type="email"
                   value={
                     formData.enderecoResponsavel?.contatoComercialEmail || ""
@@ -1256,11 +1254,11 @@ export function ParceiroForm({
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 border border-gray-300 rounded-md p-2">
               <div className="space-y-2">
-                <Label htmlFor="perc_indicacao">
+                <Label htmlFor="percIndicacao">
                   Percentual de Indicação (%)
                 </Label>
                 <Input
-                  id="perc_indicacao"
+                  id="percIndicacao"
                   type="number"
                   min="0"
                   max="100"
@@ -1277,11 +1275,11 @@ export function ParceiroForm({
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="perc_mensalidade">
+                <Label htmlFor="percMensalidade">
                   Percentual de Mensalidade (%)
                 </Label>
                 <Input
-                  id="perc_mensalidade"
+                  id="percMensalidade"
                   type="number"
                   min="0"
                   max="100"

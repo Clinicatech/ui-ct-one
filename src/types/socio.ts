@@ -85,9 +85,9 @@ export interface Banco {
 }
 
 export interface Entidade {
-  entidade_id: number;
+  entidadeId: number;
   nome: string;
   cnpj: string;
-  url_site?: string;
-  url_logo?: string;
+  urlSite?: string;
+  urlLogo?: string;
 }

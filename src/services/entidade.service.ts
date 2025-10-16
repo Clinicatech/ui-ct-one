@@ -68,7 +68,7 @@ export interface EnderecoApi {
 export interface ContaBancariaApi {
   entidadeContaBancariaId: number;
   bancoId?: number; // Pode não vir da view atual
-  banco_nome?: string; // Nome do banco se disponível
+  bancoNome?: string; // Nome do banco se disponível
   agencia: string;
   agenciaDigito?: string;
   conta: string;
@@ -318,7 +318,7 @@ export class EntidadeService {
 
       // Dados bancários
       bancoId: contaBancaria?.bancoId || contaBancaria?.banco?.bancoId,
-      bancoNome: contaBancaria?.banco?.nome || contaBancaria?.banco_nome || "",
+      bancoNome: contaBancaria?.banco?.nome || contaBancaria?.bancoNome || "",
       bancoCodigo: contaBancaria?.banco?.codigo || "",
       agencia: contaBancaria?.agencia || "",
       agenciaDigito: contaBancaria?.agenciaDigito || "",

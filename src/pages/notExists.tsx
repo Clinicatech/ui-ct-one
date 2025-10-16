@@ -18,7 +18,7 @@ export function NotExists({ title }: NotExistsProps) {
               {title}
             </h3>
             <p className="text-muted-foreground">
-              Esta funcionalidade será implementada em breve! Certo, Dudu !??
+              Esta funcionalidade será implementada em breve!
             </p>
           </div>
         </CardContent>

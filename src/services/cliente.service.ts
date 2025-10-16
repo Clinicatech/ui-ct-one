@@ -75,8 +75,8 @@ export class ClienteService {
         razao: formData.pessoa.razao || undefined,
         documento: formData.pessoa.documento,
         tipo: formData.pessoa.tipo,
-        inscricao_estadual: formData.pessoa.inscricao_estadual || undefined,
-        inscricao_municipal: formData.pessoa.inscricao_municipal || undefined,
+        inscricaoEstadual: formData.pessoa.inscricaoEstadual || undefined,
+        inscricaoMunicipal: formData.pessoa.inscricaoMunicipal || undefined,
       },
       endereco:
         formData.endereco &&
@@ -93,12 +93,12 @@ export class ClienteService {
               complemento: formData.endereco.complemento || undefined,
               bairro: formData.endereco.bairro || undefined,
               cidade: formData.endereco.cidade || undefined,
-              cidadeCodigo: formData.endereco.cidade_codigo
-                ? parseInt(formData.endereco.cidade_codigo)
+              cidadeCodigo: formData.endereco.cidadeCodigo
+                ? parseInt(formData.endereco.cidadeCodigo)
                 : undefined,
               uf: formData.endereco.uf || undefined,
-              ufCodigo: formData.endereco.uf_codigo
-                ? parseInt(formData.endereco.uf_codigo)
+              ufCodigo: formData.endereco.ufCodigo
+                ? parseInt(formData.endereco.ufCodigo)
                 : undefined,
             }
           : undefined,
@@ -108,10 +108,10 @@ export class ClienteService {
             razao: formData.responsavel.razao || undefined,
             documento: formData.responsavel.documento,
             tipo: formData.responsavel.tipo,
-            inscricao_estadual:
-              formData.responsavel.inscricao_estadual || undefined,
-            inscricao_municipal:
-              formData.responsavel.inscricao_municipal || undefined,
+            inscricaoEstadual:
+              formData.responsavel.inscricaoEstadual || undefined,
+            inscricaoMunicipal:
+              formData.responsavel.inscricaoMunicipal || undefined,
             endereco: formData.enderecoResponsavel
               ? {
                   cep: formData.enderecoResponsavel.cep || undefined,
@@ -122,12 +122,12 @@ export class ClienteService {
                     formData.enderecoResponsavel.complemento || undefined,
                   bairro: formData.enderecoResponsavel.bairro || undefined,
                   cidade: formData.enderecoResponsavel.cidade || undefined,
-                  cidadeCodigo: formData.enderecoResponsavel.cidade_codigo
-                    ? parseInt(formData.enderecoResponsavel.cidade_codigo)
+                  cidadeCodigo: formData.enderecoResponsavel.cidadeCodigo
+                    ? parseInt(formData.enderecoResponsavel.cidadeCodigo)
                     : undefined,
                   uf: formData.enderecoResponsavel.uf || undefined,
-                  ufCodigo: formData.enderecoResponsavel.uf_codigo
-                    ? parseInt(formData.enderecoResponsavel.uf_codigo)
+                  ufCodigo: formData.enderecoResponsavel.ufCodigo
+                    ? parseInt(formData.enderecoResponsavel.ufCodigo)
                     : undefined,
                 }
               : undefined,

@@ -128,8 +128,8 @@ export function ClienteForm({
           bairro: data.bairro,
           cidade: data.localidade,
           uf: data.uf,
-          cidade_codigo: data.ibge,
-          uf_codigo: data.ibge ? data.ibge.substring(0, 2) : undefined,
+          cidadeCodigo: data.ibge,
+          ufCodigo: data.ibge ? data.ibge.substring(0, 2) : undefined,
         },
       });
 
@@ -158,8 +158,8 @@ export function ClienteForm({
         razao: person.razao || null,
         documento: person.documento,
         tipo: person.tipo,
-        inscricao_estadual: person.inscricaoEstadual || null,
-        inscricao_municipal: person.inscricaoMunicipal || null,
+        inscricaoEstadual: person.inscricaoEstadual || null,
+        inscricaoMunicipal: person.inscricaoMunicipal || null,
       },
       endereco:
         person.enderecos && person.enderecos.length > 0
@@ -171,8 +171,8 @@ export function ClienteForm({
               bairro: person.enderecos[0].bairro || null,
               cidade: person.enderecos[0].cidade || null,
               uf: person.enderecos[0].uf || null,
-              cidade_codigo: person.enderecos[0].cidadeCodigo || null,
-              uf_codigo: person.enderecos[0].ufCodigo || null,
+              cidadeCodigo: person.enderecos[0].cidadeCodigo || null,
+              ufCodigo: person.enderecos[0].ufCodigo || null,
             }
           : undefined,
     });
@@ -188,8 +188,8 @@ export function ClienteForm({
         razao: person.razao || null,
         documento: person.documento,
         tipo: person.tipo,
-        inscricao_estadual: person.inscricaoEstadual || null,
-        inscricao_municipal: person.inscricaoMunicipal || null,
+        inscricaoEstadual: person.inscricaoEstadual || null,
+        inscricaoMunicipal: person.inscricaoMunicipal || null,
       },
       enderecoResponsavel:
         person.enderecos && person.enderecos.length > 0
@@ -201,8 +201,8 @@ export function ClienteForm({
               bairro: person.enderecos[0].bairro || null,
               cidade: person.enderecos[0].cidade || null,
               uf: person.enderecos[0].uf || null,
-              cidade_codigo: person.enderecos[0].cidadeCodigo || null,
-              uf_codigo: person.enderecos[0].ufCodigo || null,
+              cidadeCodigo: person.enderecos[0].cidadeCodigo || null,
+              ufCodigo: person.enderecos[0].ufCodigo || null,
             }
           : undefined,
       clienteInfo: {
@@ -257,8 +257,8 @@ export function ClienteForm({
           bairro: data.bairro,
           cidade: data.localidade,
           uf: data.uf,
-          cidade_codigo: data.ibge,
-          uf_codigo: data.ibge ? data.ibge.substring(0, 2) : undefined,
+          cidadeCodigo: data.ibge,
+          ufCodigo: data.ibge ? data.ibge.substring(0, 2) : undefined,
         },
       });
 
@@ -266,7 +266,7 @@ export function ClienteForm({
 
       setTimeout(() => {
         const numeroInput = document.querySelector(
-          'input[name="numero_responsavel"]'
+          'input[name="numeroResponsavel"]'
         ) as HTMLInputElement;
         if (numeroInput) {
           numeroInput.focus();
@@ -327,7 +327,7 @@ export function ClienteForm({
                 <TabsTrigger value="pessoa">Pessoa</TabsTrigger>
                 <TabsTrigger value="endereco">Endereço</TabsTrigger>
                 <TabsTrigger value="responsavel">Responsável</TabsTrigger>
-                <TabsTrigger value="endereco_responsavel">
+                <TabsTrigger value="enderecoResponsavel">
                   Endereço Responsável
                 </TabsTrigger>
               </TabsList>
@@ -413,30 +413,30 @@ export function ClienteForm({
                   {formData.pessoa.tipo === "PJ" && (
                     <>
                       <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                        <Label htmlFor="inscricao_estadual">
+                        <Label htmlFor="inscricaoEstadual">
                           Inscrição Estadual
                         </Label>
                         <Input
-                          id="inscricao_estadual"
-                          value={formData.pessoa.inscricao_estadual || ""}
+                          id="inscricaoEstadual"
+                          value={formData.pessoa.inscricaoEstadual || ""}
                           onChange={(e) =>
                             handlePessoaChange(
-                              "inscricao_estadual",
+                              "inscricaoEstadual",
                               e.target.value
                             )
                           }
                         />
                       </div>
                       <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                        <Label htmlFor="inscricao_municipal">
+                        <Label htmlFor="inscricaoMunicipal">
                           Inscrição Municipal
                         </Label>
                         <Input
-                          id="inscricao_municipal"
-                          value={formData.pessoa.inscricao_municipal || ""}
+                          id="inscricaoMunicipal"
+                          value={formData.pessoa.inscricaoMunicipal || ""}
                           onChange={(e) =>
                             handlePessoaChange(
-                              "inscricao_municipal",
+                              "inscricaoMunicipal",
                               e.target.value
                             )
                           }
@@ -567,12 +567,10 @@ export function ClienteForm({
                     <Label htmlFor="telefone">Telefone</Label>
                     <Input
                       id="telefone"
-                      value={
-                        formData.endereco?.contato_comercial_telefone1 || ""
-                      }
+                      value={formData.endereco?.contatoComercialTelefone1 || ""}
                       onChange={(e) =>
                         handleEnderecoChange(
-                          "contato_comercial_telefone1",
+                          "contatoComercialTelefone1",
                           e.target.value
                         )
                       }
@@ -583,12 +581,10 @@ export function ClienteForm({
                     <Label htmlFor="celular">Celular</Label>
                     <Input
                       id="celular"
-                      value={
-                        formData.endereco?.contato_comercial_telefone2 || ""
-                      }
+                      value={formData.endereco?.contatoComercialTelefone2 || ""}
                       onChange={(e) =>
                         handleEnderecoChange(
-                          "contato_comercial_telefone2",
+                          "contatoComercialTelefone2",
                           e.target.value
                         )
                       }
@@ -600,10 +596,10 @@ export function ClienteForm({
                     <Input
                       id="email"
                       type="email"
-                      value={formData.endereco?.contato_comercial_email || ""}
+                      value={formData.endereco?.contatoComercialEmail || ""}
                       onChange={(e) =>
                         handleEnderecoChange(
-                          "contato_comercial_email",
+                          "contatoComercialEmail",
                           e.target.value
                         )
                       }
@@ -642,7 +638,7 @@ export function ClienteForm({
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="responsavel_tipo">Tipo</Label>
+                    <Label htmlFor="responsavelTipo">Tipo</Label>
                     <Select
                       value={formData.responsavel?.tipo || "PF"}
                       onValueChange={(value) =>
@@ -663,9 +659,9 @@ export function ClienteForm({
                   </div>
 
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="responsavel_nome">Nome</Label>
+                    <Label htmlFor="responsavelNome">Nome</Label>
                     <Input
-                      id="responsavel_nome"
+                      id="responsavelNome"
                       value={formData.responsavel?.nome || ""}
                       onChange={(e) =>
                         handleResponsavelChange("nome", e.target.value)
@@ -675,9 +671,9 @@ export function ClienteForm({
 
                   {formData.responsavel?.tipo === "PJ" && (
                     <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                      <Label htmlFor="responsavel_razao">Razão Social</Label>
+                      <Label htmlFor="responsavelRazao">Razão Social</Label>
                       <Input
-                        id="responsavel_razao"
+                        id="responsavelRazao"
                         value={formData.responsavel?.razao || ""}
                         onChange={(e) =>
                           handleResponsavelChange("razao", e.target.value)
@@ -687,9 +683,9 @@ export function ClienteForm({
                   )}
 
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="responsavel_documento">Documento</Label>
+                    <Label htmlFor="responsavelDocumento">Documento</Label>
                     <ValidatedInput
-                      id="responsavel_documento"
+                      id="responsavelDocumento"
                       value={formData.responsavel?.documento || ""}
                       onChange={(e) => {
                         const maskedValue = getDocumentMask(
@@ -706,32 +702,30 @@ export function ClienteForm({
                   {formData.responsavel?.tipo === "PJ" && (
                     <>
                       <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                        <Label htmlFor="responsavel_inscricao_estadual">
+                        <Label htmlFor="responsavelInscricaoEstadual">
                           Inscrição Estadual
                         </Label>
                         <Input
-                          id="responsavel_inscricao_estadual"
-                          value={formData.responsavel?.inscricao_estadual || ""}
+                          id="responsavelInscricaoEstadual"
+                          value={formData.responsavel?.inscricaoEstadual || ""}
                           onChange={(e) =>
                             handleResponsavelChange(
-                              "inscricao_estadual",
+                              "inscricaoEstadual",
                               e.target.value
                             )
                           }
                         />
                       </div>
                       <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                        <Label htmlFor="responsavel_inscricao_municipal">
+                        <Label htmlFor="responsavelInscricaoMunicipal">
                           Inscrição Municipal
                         </Label>
                         <Input
-                          id="responsavel_inscricao_municipal"
-                          value={
-                            formData.responsavel?.inscricao_municipal || ""
-                          }
+                          id="responsavelInscricaoMunicipal"
+                          value={formData.responsavel?.inscricaoMunicipal || ""}
                           onChange={(e) =>
                             handleResponsavelChange(
-                              "inscricao_municipal",
+                              "inscricaoMunicipal",
                               e.target.value
                             )
                           }
@@ -742,13 +736,13 @@ export function ClienteForm({
                 </div>
               </TabsContent>
 
-              <TabsContent value="endereco_responsavel" className="space-y-4">
+              <TabsContent value="enderecoResponsavel" className="space-y-4">
                 <div className="grid grid-cols-[20%_60%_15%] gap-4">
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="cep_responsavel">CEP</Label>
+                    <Label htmlFor="cepResponsavel">CEP</Label>
                     <div className="flex gap-2">
                       <ValidatedInput
-                        id="cep_responsavel"
+                        id="cepResponsavel"
                         value={formData.enderecoResponsavel?.cep || ""}
                         onChange={(e) => {
                           const maskedValue = maskCEP(e.target.value);
@@ -786,9 +780,9 @@ export function ClienteForm({
                   </div>
 
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="endereco_responsavel">Logradouro</Label>
+                    <Label htmlFor="enderecoResponsavel">Logradouro</Label>
                     <Input
-                      id="endereco_responsavel"
+                      id="enderecoResponsavel"
                       value={formData.enderecoResponsavel?.endereco || ""}
                       onChange={(e) =>
                         handleEnderecoResponsavelChange(
@@ -800,10 +794,10 @@ export function ClienteForm({
                   </div>
 
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="numero_responsavel">Número</Label>
+                    <Label htmlFor="numeroResponsavel">Número</Label>
                     <Input
-                      id="numero_responsavel"
-                      name="numero_responsavel"
+                      id="numeroResponsavel"
+                      name="numeroResponsavel"
                       value={formData.enderecoResponsavel?.numero || ""}
                       onChange={(e) =>
                         handleEnderecoResponsavelChange(
@@ -816,9 +810,9 @@ export function ClienteForm({
                 </div>
                 <div className="grid grid-cols-[40%_57%] gap-4">
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="complemento_responsavel">Complemento</Label>
+                    <Label htmlFor="complementoResponsavel">Complemento</Label>
                     <Input
-                      id="complemento_responsavel"
+                      id="complementoResponsavel"
                       value={formData.enderecoResponsavel?.complemento || ""}
                       onChange={(e) =>
                         handleEnderecoResponsavelChange(
@@ -830,9 +824,9 @@ export function ClienteForm({
                   </div>
 
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="bairro_responsavel">Bairro</Label>
+                    <Label htmlFor="bairroResponsavel">Bairro</Label>
                     <Input
-                      id="bairro_responsavel"
+                      id="bairroResponsavel"
                       value={formData.enderecoResponsavel?.bairro || ""}
                       onChange={(e) =>
                         handleEnderecoResponsavelChange(
@@ -846,9 +840,9 @@ export function ClienteForm({
 
                 <div className="grid grid-cols-[70%_10%] gap-4">
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="cidade_responsavel">Cidade</Label>
+                    <Label htmlFor="cidadeResponsavel">Cidade</Label>
                     <Input
-                      id="cidade_responsavel"
+                      id="cidadeResponsavel"
                       value={formData.enderecoResponsavel?.cidade || ""}
                       onChange={(e) =>
                         handleEnderecoResponsavelChange(
@@ -860,9 +854,9 @@ export function ClienteForm({
                   </div>
 
                   <div className="space-y-2 border border-gray-300 rounded-md p-2">
-                    <Label htmlFor="uf_responsavel">UF</Label>
+                    <Label htmlFor="ufResponsavel">UF</Label>
                     <Input
-                      id="uf_responsavel"
+                      id="ufResponsavel"
                       value={formData.enderecoResponsavel?.uf || ""}
                       onChange={(e) =>
                         handleEnderecoResponsavelChange("uf", e.target.value)
@@ -879,11 +873,11 @@ export function ClienteForm({
                       id="telefone"
                       value={
                         formData.enderecoResponsavel
-                          ?.contato_comercial_telefone1 || ""
+                          ?.contatoComercialTelefone1 || ""
                       }
                       onChange={(e) =>
                         handleEnderecoChange(
-                          "contato_comercial_telefone1",
+                          "contatoComercialTelefone1",
                           e.target.value
                         )
                       }
@@ -896,11 +890,11 @@ export function ClienteForm({
                       id="celular"
                       value={
                         formData.enderecoResponsavel
-                          ?.contato_comercial_telefone2 || ""
+                          ?.contatoComercialTelefone2 || ""
                       }
                       onChange={(e) =>
                         handleEnderecoChange(
-                          "contato_comercial_telefone2",
+                          "contatoComercialTelefone2",
                           e.target.value
                         )
                       }
@@ -913,12 +907,12 @@ export function ClienteForm({
                       id="email"
                       type="email"
                       value={
-                        formData.enderecoResponsavel?.contato_comercial_email ||
+                        formData.enderecoResponsavel?.contatoComercialEmail ||
                         ""
                       }
                       onChange={(e) =>
                         handleEnderecoChange(
-                          "contato_comercial_email",
+                          "contatoComercialEmail",
                           e.target.value
                         )
                       }

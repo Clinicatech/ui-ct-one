@@ -1,17 +1,17 @@
 export interface Cliente {
-  cliente_info_id: number;
+  clienteInfoId: number;
   pessoa: {
-    pessoa_id: number;
+    pessoaId: number;
     nome: string;
     razao: string | null;
     documento: string;
     tipo: "PF" | "PJ";
-    entidade_id: number;
-    inscricao_estadual: string | null;
-    inscricao_municipal: string | null;
+    entidadeId: number;
+    inscricaoEstadual: string | null;
+    inscricaoMunicipal: string | null;
   };
   endereco: {
-    endereco_id: number;
+    enderecoId: number;
     cep: string;
     endereco: string | null;
     numero: string | null;
@@ -19,20 +19,20 @@ export interface Cliente {
     bairro: string | null;
     cidade: string | null;
     uf: string | null;
-    cidade_codigo?: string | null;
-    uf_codigo?: string | null;
+    cidadeCodigo?: string | null;
+    ufCodigo?: string | null;
   } | null;
   responsavel: {
-    pessoa_id: number;
+    pessoaId: number;
     nome: string;
     razao: string | null;
     documento: string;
     tipo: "PF" | "PJ";
-    entidade_id: number;
-    inscricao_estadual: string | null;
-    inscricao_municipal: string | null;
+    entidadeId: number;
+    inscricaoEstadual: string | null;
+    inscricaoMunicipal: string | null;
     endereco: {
-      endereco_id: number;
+      enderecoId: number;
       cep: string;
       endereco: string | null;
       numero: string | null;
@@ -40,8 +40,8 @@ export interface Cliente {
       bairro: string | null;
       cidade: string | null;
       uf: string | null;
-      cidade_codigo?: string | null;
-      uf_codigo?: string | null;
+      cidadeCodigo?: string | null;
+      ufCodigo?: string | null;
     } | null;
   } | null;
 }
@@ -52,8 +52,8 @@ export interface ClienteFormData {
     razao?: string | null;
     documento: string;
     tipo: "PF" | "PJ";
-    inscricao_estadual?: string | null;
-    inscricao_municipal?: string | null;
+    inscricaoEstadual?: string | null;
+    inscricaoMunicipal?: string | null;
   };
   endereco?: {
     cep?: string;
@@ -63,19 +63,19 @@ export interface ClienteFormData {
     bairro?: string | null;
     cidade?: string | null;
     uf?: string | null;
-    cidade_codigo?: string | null;
-    uf_codigo?: string | null;
-    contato_comercial_telefone1?: string | null;
-    contato_comercial_telefone2?: string | null;
-    contato_comercial_email?: string | null;
+    cidadeCodigo?: string | null;
+    ufCodigo?: string | null;
+    contatoComercialTelefone1?: string | null;
+    contatoComercialTelefone2?: string | null;
+    contatoComercialEmail?: string | null;
   } | null;
   responsavel?: {
     nome: string;
     razao?: string | null;
     documento: string;
     tipo: "PF" | "PJ";
-    inscricao_estadual?: string | null;
-    inscricao_municipal?: string | null;
+    inscricaoEstadual?: string | null;
+    inscricaoMunicipal?: string | null;
   } | null;
   enderecoResponsavel?: {
     cep?: string;
@@ -85,11 +85,11 @@ export interface ClienteFormData {
     bairro?: string | null;
     cidade?: string | null;
     uf?: string | null;
-    cidade_codigo?: string | null;
-    uf_codigo?: string | null;
-    contato_comercial_telefone1?: string | null;
-    contato_comercial_telefone2?: string | null;
-    contato_comercial_email?: string | null;
+    cidadeCodigo?: string | null;
+    ufCodigo?: string | null;
+    contatoComercialTelefone1?: string | null;
+    contatoComercialTelefone2?: string | null;
+    contatoComercialEmail?: string | null;
   } | null;
   clienteInfo?: {
     clienteInfoId?: number;
