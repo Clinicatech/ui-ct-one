@@ -59,20 +59,20 @@ export function SocioForm({
 
   // Sincronizar banco selecionado com formData
   useEffect(() => {
-    if (formData.dadosBancarios?.banco_id && bancos.length > 0) {
+    if (formData.dadosBancarios?.bancoId && bancos.length > 0) {
       const banco = bancos.find(
-        (b) => b.bancoId === formData.dadosBancarios?.banco_id
+        (b) => b.bancoId === formData.dadosBancarios?.bancoId
       );
       if (banco) {
         setBancoSelecionado(banco);
         setBancoIdInput(banco.bancoId.toString());
       }
-    } else if (!formData.dadosBancarios?.banco_id) {
+    } else if (!formData.dadosBancarios?.bancoId) {
       // Limpar seleção quando não há banco_id
       setBancoSelecionado(null);
       setBancoIdInput("");
     }
-  }, [formData.dadosBancarios?.banco_id, bancos]);
+  }, [formData.dadosBancarios?.bancoId, bancos]);
 
   const loadBancos = async () => {
     setCarregandoBancos(true);
@@ -96,7 +96,7 @@ export function SocioForm({
         ...formData,
         dadosBancarios: {
           ...formData.dadosBancarios,
-          banco_id: undefined,
+          bancoId: undefined,
         },
       });
       return;
@@ -112,7 +112,7 @@ export function SocioForm({
         ...formData,
         dadosBancarios: {
           ...formData.dadosBancarios,
-          banco_id: banco.bancoId,
+          bancoId: banco.bancoId,
         },
       });
     } else {
@@ -121,7 +121,7 @@ export function SocioForm({
         ...formData,
         dadosBancarios: {
           ...formData.dadosBancarios,
-          banco_id: undefined,
+          bancoId: undefined,
         },
       });
     }
@@ -137,7 +137,7 @@ export function SocioForm({
         ...formData,
         dadosBancarios: {
           ...formData.dadosBancarios,
-          banco_id: banco.bancoId,
+          bancoId: banco.bancoId,
         },
       });
     }
@@ -282,13 +282,13 @@ export function SocioForm({
         person.dadosBancarios && person.dadosBancarios.length > 0
           ? {
               dadosBancariosId: person.dadosBancarios[0].dadosBancariosId, // Incluir ID para UPDATE
-              banco_id: person.dadosBancarios[0].bancoId,
+              bancoId: person.dadosBancarios[0].bancoId,
               agencia: person.dadosBancarios[0].agencia,
               conta: person.dadosBancarios[0].conta,
-              conta_tipo: person.dadosBancarios[0].contaTipo as 1 | 2,
-              chave_pix: person.dadosBancarios[0].chavePix || null,
-              conta_digito: person.dadosBancarios[0].contaDigito || null,
-              agencia_digito: person.dadosBancarios[0].agenciaDigito || null,
+              contaTipo: person.dadosBancarios[0].contaTipo as 1 | 2,
+              chavePix: person.dadosBancarios[0].chavePix || null,
+              contaDigito: person.dadosBancarios[0].contaDigito || null,
+              agenciaDigito: person.dadosBancarios[0].agenciaDigito || null,
             }
           : dadosBancariosPreservados, // Preservar dados bancários preenchidos pelo usuário
     });
@@ -663,9 +663,9 @@ export function SocioForm({
                 <Label htmlFor="agencia_digito">Dígito da Agência</Label>
                 <Input
                   id="agencia_digito"
-                  value={formData.dadosBancarios?.agencia_digito || ""}
+                  value={formData.dadosBancarios?.agenciaDigito || ""}
                   onChange={(e) =>
-                    handleDadosBancariosChange("agencia_digito", e.target.value)
+                    handleDadosBancariosChange("agenciaDigito", e.target.value)
                   }
                   maxLength={1}
                 />
@@ -686,9 +686,9 @@ export function SocioForm({
                 <Label htmlFor="conta_digito">Dígito da Conta</Label>
                 <Input
                   id="conta_digito"
-                  value={formData.dadosBancarios?.conta_digito || ""}
+                  value={formData.dadosBancarios?.contaDigito || ""}
                   onChange={(e) =>
-                    handleDadosBancariosChange("conta_digito", e.target.value)
+                    handleDadosBancariosChange("contaDigito", e.target.value)
                   }
                   maxLength={1}
                 />
@@ -697,9 +697,9 @@ export function SocioForm({
               <div className="space-y-2">
                 <Label htmlFor="conta_tipo">Tipo de Conta</Label>
                 <Select
-                  value={formData.dadosBancarios?.conta_tipo?.toString() || ""}
+                  value={formData.dadosBancarios?.contaTipo?.toString() || ""}
                   onValueChange={(value) =>
-                    handleDadosBancariosChange("conta_tipo", parseInt(value))
+                    handleDadosBancariosChange("contaTipo", parseInt(value))
                   }
                 >
                   <SelectTrigger>
@@ -724,9 +724,9 @@ export function SocioForm({
               <Input
                 id="chave_pix"
                 placeholder="Chave PIX"
-                value={formData.dadosBancarios?.chave_pix || ""}
+                value={formData.dadosBancarios?.chavePix || ""}
                 onChange={(e) =>
-                  handleDadosBancariosChange("chave_pix", e.target.value)
+                  handleDadosBancariosChange("chavePix", e.target.value)
                 }
               />
             </div>

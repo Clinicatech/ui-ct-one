@@ -75,9 +75,9 @@ export function SocioManagement({
       ),
     },
     {
-      key: "perc_rateio",
+      key: "percRateio",
       header: "% Rateio",
-      render: (socio) => `${socio.perc_rateio}%`,
+      render: (socio) => `${socio.percRateio}%`,
     },
     {
       key: "actions",
@@ -178,8 +178,10 @@ export function SocioManagement({
   }, [isCreateDialogOpen, isEditDialogOpen]);
 
   useEffect(() => {
-    setFormData(DEFAULT_SOCIO_FORM_DATA);
-    setHasUnsavedChanges(false);
+    if (isCreateDialogOpen) {
+      setFormData(DEFAULT_SOCIO_FORM_DATA);
+      setHasUnsavedChanges(false);
+    }
   }, [isCreateDialogOpen]);
 
   useEffect(() => {
@@ -190,8 +192,8 @@ export function SocioManagement({
           razao: editingSocio.pessoa.razao,
           documento: editingSocio.pessoa.documento,
           tipo: editingSocio.pessoa.tipo,
-          inscricao_estadual: editingSocio.pessoa.inscricao_estadual,
-          inscricao_municipal: editingSocio.pessoa.inscricao_municipal,
+          inscricaoEstadual: editingSocio.pessoa.inscricaoEstadual,
+          inscricaoMunicipal: editingSocio.pessoa.inscricaoMunicipal,
         },
         endereco: editingSocio.endereco
           ? {
@@ -206,17 +208,18 @@ export function SocioManagement({
           : undefined,
         dadosBancarios: editingSocio.dadosBancarios
           ? {
-              banco_id: editingSocio.dadosBancarios.banco_id,
+              dadosBancariosId: editingSocio.dadosBancarios.dadosBancariosId,
+              bancoId: editingSocio.dadosBancarios.bancoId,
               agencia: editingSocio.dadosBancarios.agencia,
               conta: editingSocio.dadosBancarios.conta,
-              conta_tipo: editingSocio.dadosBancarios.conta_tipo as 1 | 2,
-              chave_pix: editingSocio.dadosBancarios.chave_pix,
-              conta_digito: editingSocio.dadosBancarios.conta_digito,
-              agencia_digito: editingSocio.dadosBancarios.agencia_digito,
+              contaTipo: editingSocio.dadosBancarios.contaTipo as 1 | 2,
+              chavePix: editingSocio.dadosBancarios.chavePix,
+              contaDigito: editingSocio.dadosBancarios.contaDigito,
+              agenciaDigito: editingSocio.dadosBancarios.agenciaDigito,
             }
           : undefined,
         socioInfo: {
-          perc_rateio: editingSocio.perc_rateio,
+          percRateio: editingSocio.percRateio,
         },
       });
       setHasUnsavedChanges(false);
@@ -298,8 +301,8 @@ export function SocioManagement({
         razao: socio.pessoa.razao,
         documento: socio.pessoa.documento,
         tipo: socio.pessoa.tipo,
-        inscricao_estadual: socio.pessoa.inscricao_estadual,
-        inscricao_municipal: socio.pessoa.inscricao_municipal,
+        inscricaoEstadual: socio.pessoa.inscricaoEstadual,
+        inscricaoMunicipal: socio.pessoa.inscricaoMunicipal,
       },
       endereco: socio.endereco
         ? {
@@ -314,17 +317,18 @@ export function SocioManagement({
         : undefined,
       dadosBancarios: socio.dadosBancarios
         ? {
-            banco_id: socio.dadosBancarios.banco_id,
+            dadosBancariosId: socio.dadosBancarios.dadosBancariosId,
+            bancoId: socio.dadosBancarios.bancoId,
             agencia: socio.dadosBancarios.agencia,
             conta: socio.dadosBancarios.conta,
-            conta_tipo: socio.dadosBancarios.conta_tipo as 1 | 2,
-            chave_pix: socio.dadosBancarios.chave_pix,
-            conta_digito: socio.dadosBancarios.conta_digito,
-            agencia_digito: socio.dadosBancarios.agencia_digito,
+            contaTipo: socio.dadosBancarios.contaTipo as 1 | 2,
+            chavePix: socio.dadosBancarios.chavePix,
+            contaDigito: socio.dadosBancarios.contaDigito,
+            agenciaDigito: socio.dadosBancarios.agenciaDigito,
           }
         : undefined,
       socioInfo: {
-        perc_rateio: socio.perc_rateio,
+        percRateio: socio.percRateio,
       },
     });
     setActiveTab("pessoa");
@@ -340,7 +344,7 @@ export function SocioManagement({
     try {
       const apiData = socioService.convertToApiFormat(formData);
       const updatedSocioApi = await socioService.update(
-        editingSocio.socio_info_id,
+        editingSocio.socioInfoId,
         apiData
       );
       const updatedSocio =
@@ -348,9 +352,7 @@ export function SocioManagement({
 
       setSocios((prevSocios) =>
         prevSocios.map((socio) =>
-          socio.socio_info_id === editingSocio.socio_info_id
-            ? updatedSocio
-            : socio
+          socio.socioInfoId === editingSocio.socioInfoId ? updatedSocio : socio
         )
       );
 
@@ -372,9 +374,9 @@ export function SocioManagement({
   const handleDelete = async (socio: Socio) => {
     setIsDeleting(true);
     try {
-      await socioService.remove(socio.socio_info_id);
+      await socioService.remove(socio.socioInfoId);
       setSocios((prevSocios) =>
-        prevSocios.filter((s) => s.socio_info_id !== socio.socio_info_id)
+        prevSocios.filter((s) => s.socioInfoId !== socio.socioInfoId)
       );
       toast.success("Sócio removido com sucesso!");
     } catch (error) {
@@ -515,7 +517,7 @@ export function SocioManagement({
         isLoading={isLoading}
         loadingText="Carregando sócios..."
         emptyText="Nenhum sócio encontrado"
-        keyExtractor={(socio) => socio.socio_info_id}
+        keyExtractor={(socio) => socio.socioInfoId}
       />
 
       {totalPages > 1 && (

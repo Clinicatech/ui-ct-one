@@ -1,17 +1,17 @@
 export interface Socio {
-  socio_info_id: number;
+  socioInfoId: number;
   pessoa: {
-    pessoa_id: number;
+    pessoaId: number;
     nome: string;
     razao: string | null;
     documento: string;
     tipo: "PF" | "PJ";
-    entidade_id: number;
-    inscricao_estadual: string | null;
-    inscricao_municipal: string | null;
+    entidadeId: number;
+    inscricaoEstadual: string | null;
+    inscricaoMunicipal: string | null;
   };
   endereco: {
-    endereco_id: number;
+    enderecoId: number;
     cep: string;
     endereco: string | null;
     numero: string | null;
@@ -19,26 +19,26 @@ export interface Socio {
     bairro: string | null;
     cidade: string | null;
     uf: string | null;
-    cidade_codigo?: string | null;
-    uf_codigo?: string | null;
+    cidadeCodigo?: string | null;
+    ufCodigo?: string | null;
   } | null;
   dadosBancarios: {
-    dados_bancarios_id: number;
-    banco_id: number;
+    dadosBancariosId: number;
+    bancoId: number;
     agencia: string;
     conta: string;
-    conta_tipo: number;
-    chave_pix: string | null;
-    conta_digito: string | null;
-    agencia_digito: string | null;
+    contaTipo: number;
+    chavePix: string | null;
+    contaDigito: string | null;
+    agenciaDigito: string | null;
     banco: {
-      banco_id: number;
+      bancoId: number;
       codigo: string;
       nome: string;
       ativo: boolean;
     };
   } | null;
-  perc_rateio: number;
+  percRateio: number;
 }
 
 export interface SocioFormData {
@@ -48,8 +48,8 @@ export interface SocioFormData {
     razao?: string | null;
     documento: string;
     tipo: "PF" | "PJ";
-    inscricao_estadual?: string | null;
-    inscricao_municipal?: string | null;
+    inscricaoEstadual?: string | null;
+    inscricaoMunicipal?: string | null;
   };
   endereco?: {
     cep?: string;
@@ -59,26 +59,26 @@ export interface SocioFormData {
     bairro?: string | null;
     cidade?: string | null;
     uf?: string | null;
-    cidade_codigo?: string | null;
-    uf_codigo?: string | null;
+    cidadeCodigo?: string | null;
+    ufCodigo?: string | null;
   };
   dadosBancarios?: {
     dadosBancariosId?: number; // ID dos dados bancários quando já existem
-    banco_id?: number;
+    bancoId?: number;
     agencia?: string;
     conta?: string;
-    conta_tipo?: 1 | 2;
-    chave_pix?: string | null;
-    conta_digito?: string | null;
-    agencia_digito?: string | null;
+    contaTipo?: 1 | 2;
+    chavePix?: string | null;
+    contaDigito?: string | null;
+    agenciaDigito?: string | null;
   };
   socioInfo?: {
-    perc_rateio?: number;
+    percRateio?: number;
   };
 }
 
 export interface Banco {
-  banco_id: number;
+  bancoId: number;
   codigo: string;
   nome: string;
   ativo: boolean;

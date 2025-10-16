@@ -6,8 +6,8 @@ export const DEFAULT_SOCIO_FORM_DATA: SocioFormData = {
     razao: "",
     documento: "",
     tipo: "PF",
-    inscricao_estadual: "",
-    inscricao_municipal: "",
+    inscricaoEstadual: "",
+    inscricaoMunicipal: "",
   },
   endereco: {
     cep: "",
@@ -19,16 +19,16 @@ export const DEFAULT_SOCIO_FORM_DATA: SocioFormData = {
     uf: "",
   },
   dadosBancarios: {
-    banco_id: undefined,
+    bancoId: undefined,
     agencia: "",
     conta: "",
-    conta_tipo: 1,
-    chave_pix: "",
-    conta_digito: "",
-    agencia_digito: "",
+    contaTipo: 1,
+    chavePix: "",
+    contaDigito: "",
+    agenciaDigito: "",
   },
   socioInfo: {
-    perc_rateio: 0,
+    percRateio: 0,
   },
 };
 
