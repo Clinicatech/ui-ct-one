@@ -1,6 +1,7 @@
 # compiled output
 /dist
 /node_modules
+/deploy
 .env
 pnpm.lock
 yarn.lock
@@ -10,8 +11,9 @@ bun.lockb
 dist/*
 node_modules/*
 deploy.js
-/deploy
 deploy/*
+
+
 
 # Logs
 logs
