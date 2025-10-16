@@ -9,6 +9,9 @@ bun.lockb
 
 dist/*
 node_modules/*
+deploy.js
+/deploy
+deploy/*
 
 deploy.js
 deploy/*
