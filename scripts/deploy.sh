@@ -31,6 +31,9 @@ fi
 echo "📁 Copiando arquivos de '$DEPLOY_DIR' para a raiz do projeto..."
 cp -a "$DEPLOY_DIR"/. .
 
+echo "🧹 Limpando conteúdo de '$DEPLOY_DIR'..."
+rm -rf "$DEPLOY_DIR"/*
+
 # Faz commit e push forçado
 echo "✅ Commitando e fazendo push forçado..."
 git add .
