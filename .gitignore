@@ -2,3 +2,4 @@
 !dist/
 dist/*.map
 dist/**/*.map
+/deploy
