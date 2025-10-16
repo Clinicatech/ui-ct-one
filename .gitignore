@@ -1,1 +1,4 @@
 # compiled output
+!dist/
+dist/*.map
+dist/**/*.map
