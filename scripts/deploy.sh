@@ -23,8 +23,8 @@ fi
 
 # Verifica se a pasta deploy existe
 if [ ! -d "$DEPLOY_DIR" ]; then
-  echo "❌ A pasta '$DEPLOY_DIR' não existe. Abortei o processo."
-  exit 1
+  echo "📁 Criando pasta '$DEPLOY_DIR'..."
+  mkdir -p "$DEPLOY_DIR"
 fi
 
 # Copia os arquivos da pasta deploy para a raiz, sobrescrevendo
