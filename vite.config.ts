@@ -18,5 +18,21 @@ export default defineConfig({
   build: {
     outDir: "dist",
     sourcemap: true,
+    chunkSizeWarningLimit: 1000,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ["react", "react-dom"],
+          router: ["react-router-dom"],
+          ui: [
+            "@radix-ui/react-dialog",
+            "@radix-ui/react-dropdown-menu",
+            "@radix-ui/react-select",
+          ],
+          charts: ["recharts"],
+          utils: ["clsx", "tailwind-merge", "class-variance-authority"],
+        },
+      },
+    },
   },
 });
