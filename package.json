@@ -5,13 +5,16 @@
   "type": "module",
   "scripts": {
     "start:dev": "vite",
-    "build:prod": "tsc && vite build",
+    "start:dev:local": "cp env.development .env && vite",
+    "start:dev:prod": "cp env.production .env && vite",
+    "build:prod": "cp env.production .env && tsc && vite build",
+    "build:dev": "cp env.development .env && tsc && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "preview": "vite preview",
     "start:gitdev": "git add . && git commit -m \"Update version dev\" && git push origin develop && git status",
     "start:gitmain": "./scripts/start-pm.sh",
     "start:gitmainforce": "git checkout main && git reset --hard develop && git push origin main --force && git status",
-    "start:gitdeploy": "./scripts/deploy.sh"    
+    "start:gitdeploy": "./scripts/deploy.sh"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.11",
@@ -52,6 +55,7 @@
     "react": "^19.1.1",
     "react-day-picker": "^9.8.1",
     "react-dom": "^19.1.1",
+    "react-hook-form": "^7.65.0",
     "react-resizable-panels": "^3.0.4",
     "react-router-dom": "^7.8.0",
     "recharts": "^3.1.2",
